@@ -1,0 +1,149 @@
+<%- include("partials/header") %>
+<!-- order-success.ejs -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Successful | Essence Perfumery</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        .bg-gradient {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        }
+        .text-perfume {
+            color: #9D4EDD;
+        }
+        .border-perfume {
+            border-color: #9D4EDD;
+        }
+        .bg-perfume {
+            background-color: #9D4EDD;
+        }
+        .hover\:bg-perfume-dark:hover {
+            background-color: #7B2CBF;
+        }
+    </style>
+</head>
+<body class="bg-gradient min-h-screen">
+  
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 py-12">
+        <div class="max-w-3xl mx-auto bg-white rounded-lg shadow-lg overflow-hidden">
+            <!-- Order Success Banner -->
+            <div class="bg-perfume text-white p-8 text-center">
+                <div class="flex justify-center mb-4">
+                    <div class="rounded-full bg-white w-16 h-16 flex items-center justify-center">
+                        <i class="fas fa-check text-perfume text-3xl"></i>
+                    </div>
+                </div>
+                <h2 class="text-3xl font-bold">Order Placed Successfully!</h2>
+                <p class="mt-2 text-lg">Thank you for shopping with Essence Perfumery</p>
+            </div>
+
+            <!-- Order Details -->
+            <div class="p-6 md:p-8">
+                <!-- Order Information -->
+                <div class="border-b border-gray-200 pb-6 mb-6">
+                    <div class="flex flex-wrap justify-between mb-4">
+                        <div class="mb-4 md:mb-0">
+                            <p class="text-gray-600">Order Number</p>
+                            <p class="font-semibold text-lg">#<%= orderNumber || 'ESP24789631' %></p>
+                        </div>
+                        <div class="mb-4 md:mb-0">
+                            <p class="text-gray-600">Order Date</p>
+                            <p class="font-semibold"><%= orderDate  %></p>
+                        </div>
+                        <div>
+                            <p class="text-gray-600">Payment Method</p>
+                            <p class="font-semibold"><%= paymentMethod  %></p>
+                        </div>
+                    </div>
+                    <!-- <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                        <div class="flex items-center mb-2">
+                            <i class="fas fa-map-marker-alt text-perfume mr-2"></i>
+                            <h3 class="font-semibold">Delivery Address</h3>
+                        </div>
+                        <p class="text-gray-700"><%= customerName  %></p>
+                        <p class="text-gray-700"><%= address  %></p>
+                        <p class="text-gray-700">Phone: <%= phone  %></p>
+                    </div> -->
+                </div>
+
+                <!-- Order Items -->
+                <h3 class="text-xl font-semibold mb-4">Order Summary</h3>
+                <div class="border border-gray-200 rounded-lg overflow-hidden mb-6">
+                    <div class="divide-y divide-gray-200">
+                        <!-- First item -->
+                       
+
+             
+
+                <!-- Delivery Timeline -->
+                <div class="mb-8">
+                    <h3 class="text-lg font-semibold mb-4">Delivery Timeline</h3>
+                    <div class="relative">
+                        <div class="absolute left-5 inset-y-0 w-0.5 bg-gray-200"></div>
+                        <div class="relative z-10 space-y-8">
+                            <div class="flex">
+                                <div class="flex-shrink-0 bg-perfume w-10 h-10 rounded-full flex items-center justify-center text-white">
+                                    <i class="fas fa-check"></i>
+                                </div>
+                                <div class="ml-4">
+                                    <h4 class="font-semibold">Order Confirmed</h4>
+                                    <p class="text-gray-600 text-sm"><%= locals.orderConfirmedDate || 'April 9, 2025' %></p>
+                                </div>
+                            </div>
+                            <div class="flex">
+                                <div class="flex-shrink-0 bg-white w-10 h-10 rounded-full flex items-center justify-center text-perfume border-2 border-perfume">
+                                    <i class="fas fa-box"></i>
+                                </div>
+                                <div class="ml-4">
+                                    <h4 class="font-semibold">Processing</h4>
+                                    <p class="text-gray-600 text-sm"><%= locals.processingDate || 'April 10, 2025' %></p>
+                                </div>
+                            </div>
+                            <div class="flex">
+                                <div class="flex-shrink-0 bg-white w-10 h-10 rounded-full flex items-center justify-center text-gray-400 border-2 border-gray-200">
+                                    <i class="fas fa-shipping-fast"></i>
+                                </div>
+                                <div class="ml-4">
+                                    <h4 class="font-semibold text-gray-600">Shipped</h4>
+                                    <p class="text-gray-600 text-sm"><%= locals.shippingDate || 'April 11, 2025' %></p>
+                                </div>
+                            </div>
+                            <div class="flex">
+                                <div class="flex-shrink-0 bg-white w-10 h-10 rounded-full flex items-center justify-center text-gray-400 border-2 border-gray-200">
+                                    <i class="fas fa-home"></i>
+                                </div>
+                                <div class="ml-4">
+                                    <h4 class="font-semibold text-gray-600">Delivered</h4>
+                                    <p class="text-gray-600 text-sm"><%= locals.deliveryDate || 'April 13-14, 2025' %></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Buttons -->
+                <div class="flex flex-col md:flex-row space-y-3 md:space-y-0 md:space-x-4 mt-6">
+                    <a href="/user/orderDetails" class="bg-perfume hover:bg-perfume-dark text-white py-3 px-6 rounded-md text-center font-medium transition duration-200">
+                        Order Details
+                    </a>
+                    <a href="#" class="border border-gray-300 text-gray-700 hover:bg-gray-50 py-3 px-6 rounded-md text-center font-medium transition duration-200">
+                        Continue Shopping
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        
+    </main>
+
+    
+</body>
+</html>
+
+<%- include("partials/footer") %>

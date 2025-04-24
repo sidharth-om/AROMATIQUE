@@ -1,0 +1,340 @@
+<%- include("partials/header") %>
+<!-- order-details.ejs -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Details | Essence Perfumery</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        .bg-gradient {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        }
+        .text-perfume {
+            color: #9D4EDD;
+        }
+        .border-perfume {
+            border-color: #9D4EDD;
+        }
+        .bg-perfume {
+            background-color: #9D4EDD;
+        }
+        .hover\:bg-perfume-dark:hover {
+            background-color: #7B2CBF;
+        }
+        .shadow-custom {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+    </style>
+</head>
+<body class="bg-gradient min-h-screen">
+   
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 py-8">
+        <!-- Breadcrumbs -->
+        <div class="flex items-center text-sm text-gray-500 mb-6">
+            <a href="#" class="hover:text-perfume">Home</a>
+            <span class="mx-2">/</span>
+            <a href="#" class="hover:text-perfume">My Account</a>
+            <span class="mx-2">/</span>
+            <a href="#" class="hover:text-perfume">My Orders</a>
+            <span class="mx-2">/</span>
+            <span class="text-gray-700 font-medium">Order #<%= orderNumber %></span>
+        </div>
+
+        <!-- Page Title -->
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-2xl font-bold text-gray-800">Order Details</h1>
+            <a href="#" class="text-perfume hover:underline flex items-center">
+                <i class="fas fa-arrow-left mr-2"></i> Back to My Orders
+            </a>
+        </div>
+
+        <div class="flex flex-col lg:flex-row gap-6">
+            <!-- Left Column - Order Info -->
+            <div class="lg:w-8/12">
+                <!-- Order Summary Card -->
+                <div class="bg-white rounded-lg shadow-custom p-6 mb-6">
+                    <div class="flex flex-col md:flex-row justify-between mb-6 border-b pb-6">
+                        <div>
+                            <h2 class="text-lg font-semibold text-gray-800 mb-1">Order #<%= orderNumber%></h2>
+                            <p class="text-sm text-gray-500">Placed on <%= orderDate %></p>
+                        </div>
+                        <div class="mt-4 md:mt-0">
+                            <span class="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-1 rounded-full"><%= 'pending' %></span>
+                        </div>
+                    </div>
+
+                    <!-- Order Items -->
+                    <h3 class="font-semibold text-gray-800 mb-4">Items in Your Order</h3>
+                    <div class="space-y-6">
+                        <!-- Item 1 -->
+                        <% cart.items.forEach(item=>{ %>
+                        <div class="flex flex-col sm:flex-row border-b border-gray-100 pb-6">
+                            <div class="sm:w-24 sm:h-24 bg-gray-100 rounded-md flex items-center justify-center mb-4 sm:mb-0">
+                                <!-- <i class="fas fa-spray-can-sparkles text-2xl text-gray-400"></i> -->
+                                <img  src="/uploads/<%= item.productId.images[0] %>" alt="Product" class="fas fa-spray-can-sparkles text-2xl text-gray-400" >
+                            </div>
+                            <div class="sm:ml-6 flex-1">
+                                <div class="flex flex-col sm:flex-row justify-between">
+                                    <div>
+                                        <h4 class="font-medium text-gray-800"><%= item.productId.name %></h4>
+
+                                        <% 
+                                        const variant=item.productId.variants.find(v=>v.volume===item.volume)
+                                        const regularPrice=variant ? variant.regularPrice : 0;
+                                        const volume=variant ? variant.volume : 0
+                                        %>
+
+                                        <p class="text-sm text-gray-500 mt-1"><%= volume %></p>
+                                        <div class="mt-2 flex items-center">
+                                            <span class="text-sm text-gray-500">Qty: <%= item.quantity %></span>
+                                            <span class="mx-2 text-gray-300">|</span>
+                                            <span class="text-sm font-medium">₹<%= regularPrice %></span>
+                                        </div>
+                                    </div>
+                                    <div class="mt-4 sm:mt-0 space-y-2">
+                                        <button class="text-perfume hover:text-perfume-dark text-sm font-medium">Buy Again</button>
+                                        <% if (locals.product1Review !== true) { %>
+                                        <button class="block text-gray-600 hover:text-perfume text-sm">Write a Review</button>
+                                        <% } %>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <% }) %>
+
+                   
+                    </div>
+                </div>
+
+                <!-- Shipping Info Card -->
+                <div class="bg-white rounded-lg shadow-custom p-6 mb-6">
+                    <h3 class="font-semibold text-gray-800 mb-4">Shipping Information</h3>
+                    <div class="flex flex-col md:flex-row justify-between">
+                        <div class="mb-6 md:mb-0">
+                            <h4 class="text-sm font-medium text-gray-700 mb-2">Shipping Address</h4>
+                            <div class="text-sm text-gray-600">
+                                <p><%= customerName || 'Emma Wilson' %></p>
+                                <p><%= address || '123 Fragrance Avenue, Apt 45' %></p>
+                              
+                                <p>Phone: <%= phone || '+1 (555) 123-4567' %></p>
+                            </div>
+                        </div>
+                        <div>
+                            <h4 class="text-sm font-medium text-gray-700 mb-2">Shipping Method</h4>
+                            <p class="text-sm text-gray-600"><%= locals.shippingMethod || 'Standard Shipping (3-5 business days)' %></p>
+                            
+                            <h4 class="text-sm font-medium text-gray-700 mt-5 mb-2">Tracking Number</h4>
+                            <a href="#" class="text-perfume hover:text-perfume-dark text-sm font-medium flex items-center">
+                                <%= orderNumber %>
+                                <i class="fas fa-external-link-alt ml-2 text-xs"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Delivery Timeline -->
+                <div class="bg-white rounded-lg shadow-custom p-6 mb-6">
+                    <h3 class="font-semibold text-gray-800 mb-4">Delivery Timeline</h3>
+                    <div class="relative">
+                        <div class="absolute left-5 inset-y-0 w-0.5 bg-gray-200"></div>
+                        <div class="relative z-10 space-y-8">
+                            <div class="flex">
+                                <div class="flex-shrink-0 bg-perfume w-10 h-10 rounded-full flex items-center justify-center text-white">
+                                    <i class="fas fa-check"></i>
+                                </div>
+                                <div class="ml-4">
+                                    <h4 class="font-semibold">Order Placed</h4>
+                                    <p class="text-gray-600 text-sm"><%= locals.orderPlacedDate || 'April 7, 2025, 10:23 AM' %></p>
+                                </div>
+                            </div>
+                            <div class="flex">
+                                <div class="flex-shrink-0 bg-perfume w-10 h-10 rounded-full flex items-center justify-center text-white">
+                                    <i class="fas fa-check"></i>
+                                </div>
+                                <div class="ml-4">
+                                    <h4 class="font-semibold">Processing</h4>
+                                    <p class="text-gray-600 text-sm"><%= locals.processingDate || 'April 7, 2025, 2:45 PM' %></p>
+                                </div>
+                            </div>
+                            <div class="flex">
+                                <div class="flex-shrink-0 bg-perfume w-10 h-10 rounded-full flex items-center justify-center text-white">
+                                    <i class="fas fa-check"></i>
+                                </div>
+                                <div class="ml-4">
+                                    <h4 class="font-semibold">Shipped</h4>
+                                    <p class="text-gray-600 text-sm"><%= locals.shippedDate || 'April 8, 2025, 9:15 AM' %></p>
+                                    <a href="#" class="text-perfume hover:underline text-sm mt-1 inline-block">View Shipment Details</a>
+                                </div>
+                            </div>
+                            <div class="flex">
+                                <div class="flex-shrink-0 bg-perfume w-10 h-10 rounded-full flex items-center justify-center text-white">
+                                    <i class="fas fa-check"></i>
+                                </div>
+                                <div class="ml-4">
+                                    <h4 class="font-semibold">Delivered</h4>
+                                    <p class="text-gray-600 text-sm"><%= locals.deliveredDate || 'April 10, 2025, 11:42 AM' %></p>
+                                    <p class="text-gray-600 text-sm mt-1">Signed by: <%= locals.signedBy || 'E. Wilson' %></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column - Order Summary & Actions -->
+            <div class="lg:w-4/12">
+                <!-- Price Summary Card -->
+                <div class="bg-white rounded-lg shadow-custom p-6 mb-6">
+                    <h3 class="font-semibold text-gray-800 mb-4">Price Details</h3>
+                    <div class="space-y-3">
+                        <div class="flex justify-between">
+                            <p class="text-gray-600">Price (2 items)</p>
+                            <p class="font-medium"><%= subtotal %></p>
+                        </div>
+                        <div class="flex justify-between">
+                            <p class="text-gray-600">Shipping</p>
+                            <p class="font-medium"><%= shipping %></p>
+                        </div>
+                        <!-- <div class="flex justify-between">
+                            <p class="text-gray-600">Tax</p>
+                            <p class="font-medium">></p>
+                        </div> -->
+                        <% if (locals.discount) { %>
+                        <div class="flex justify-between text-green-600">
+                            <p>Discount</p>
+                            <p>-<%= discount %></p>
+                        </div>
+                        <% } %>
+                        <div class="border-t border-gray-200 pt-3 mt-3">
+                            <div class="flex justify-between font-bold">
+                                <p>Total</p>
+                                <p class="text-perfume"><%= total %></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Payment Info Card -->
+                <div class="bg-white rounded-lg shadow-custom p-6 mb-6">
+                    <h3 class="font-semibold text-gray-800 mb-4">Payment Information</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <h4 class="text-sm font-medium text-gray-700 mb-2">Payment Method</h4>
+                            <div class="flex items-center">
+                                <i class="far fa-credit-card text-gray-600 mr-2"></i>
+                                <p class="text-sm text-gray-600"><%= paymentMethod%></p>
+                            </div>
+                        </div>
+                        <div>
+                            <h4 class="text-sm font-medium text-gray-700 mb-2">Billing Address</h4>
+                            <div class="text-sm text-gray-600">
+                                <p>Same as shipping address</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-6">
+                        <button class="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 px-4 rounded-md text-center font-medium transition duration-200 text-sm">
+                            Download Invoice
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Actions Card -->
+                <div class="bg-white rounded-lg shadow-custom p-6 mb-6">
+                    <h3 class="font-semibold text-gray-800 mb-4">Need Help?</h3>
+                    <div class="space-y-3">
+                        <a href="#" class="block text-perfume hover:text-perfume-dark font-medium">Return or Replace Items</a>
+                        <a href="#" class="block text-perfume hover:text-perfume-dark font-medium">Track Package</a>
+                        <a href="#" class="block text-perfume hover:text-perfume-dark font-medium">Cancel Items</a>
+                        <a href="#" class="block text-perfume hover:text-perfume-dark font-medium">Contact Customer Service</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- You May Also Like Section -->
+        <div class="mt-12">
+            <h2 class="text-2xl font-semibold mb-6">You May Also Like</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+                <!-- Product 1 -->
+                <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition duration-300">
+                    <div class="h-48 bg-gray-100 flex items-center justify-center">
+                        <i class="fas fa-spray-can-sparkles text-4xl text-gray-400"></i>
+                    </div>
+                    <div class="p-4">
+                        <h3 class="font-semibold">Amber Elixir</h3>
+                        <p class="text-sm text-gray-600 mb-2">Eau de Parfum · 75ml</p>
+                        <div class="flex justify-between items-center mt-2">
+                            <p class="font-bold">$95.00</p>
+                            <button class="text-perfume hover:text-perfume-dark">
+                                <i class="fas fa-shopping-bag"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Product 2 -->
+                <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition duration-300">
+                    <div class="h-48 bg-gray-100 flex items-center justify-center">
+                        <i class="fas fa-spray-can-sparkles text-4xl text-gray-400"></i>
+                    </div>
+                    <div class="p-4">
+                        <h3 class="font-semibold">Floral Dreams</h3>
+                        <p class="text-sm text-gray-600 mb-2">Eau de Toilette · 50ml</p>
+                        <div class="flex justify-between items-center mt-2">
+                            <p class="font-bold">$65.00</p>
+                            <button class="text-perfume hover:text-perfume-dark">
+                                <i class="fas fa-shopping-bag"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Product 3 -->
+                <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition duration-300">
+                    <div class="h-48 bg-gray-100 flex items-center justify-center">
+                        <i class="fas fa-spray-can-sparkles text-4xl text-gray-400"></i>
+                    </div>
+                    <div class="p-4">
+                        <h3 class="font-semibold">Ocean Breeze</h3>
+                        <p class="text-sm text-gray-600 mb-2">Body Mist · 200ml</p>
+                        <div class="flex justify-between items-center mt-2">
+                            <p class="font-bold">$42.00</p>
+                            <button class="text-perfume hover:text-perfume-dark">
+                                <i class="fas fa-shopping-bag"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Product 4 -->
+                <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition duration-300">
+                    <div class="h-48 bg-gray-100 flex items-center justify-center">
+                        <i class="fas fa-spray-can-sparkles text-4xl text-gray-400"></i>
+                    </div>
+                    <div class="p-4">
+                        <h3 class="font-semibold">Midnight Rose</h3>
+                        <p class="text-sm text-gray-600 mb-2">Eau de Parfum · 100ml</p>
+                        <div class="flex justify-between items-center mt-2">
+                            <p class="font-bold">$110.00</p>
+                            <button class="text-perfume hover:text-perfume-dark">
+                                <i class="fas fa-shopping-bag"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+</body>
+</html>
+
+
+<%- include("partials/footer") %>

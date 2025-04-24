@@ -1,0 +1,1036 @@
+<%- include("partials/header") %>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- All your existing head content remains the same -->
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>User Dashboard</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+  <style>
+    /* All your existing styles remain the same */
+    :root {
+      --primary-color: #4F46E5;
+      --secondary-color: #6366F1;
+      --accent-color: #818CF8;
+      --light-bg: #F9FAFB;
+      --card-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    }
+    
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #F3F4F6;
+    }
+    
+    .dashboard-sidebar {
+      background-color: white;
+      border-radius: 0.75rem;
+      box-shadow: var(--card-shadow);
+      height: 100%;
+    }
+    
+    .sidebar-link {
+      display: flex;
+      align-items: center;
+      padding: 0.75rem 1rem;
+      color: #4B5563;
+      border-radius: 0.5rem;
+      margin-bottom: 0.25rem;
+      transition: all 0.3s ease;
+    }
+    
+    .sidebar-link.active {
+      background-color: var(--primary-color);
+      color: white;
+      box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.4);
+    }
+    
+    .sidebar-link:hover:not(.active) {
+      background-color: #F3F4F6;
+      color: var(--primary-color);
+    }
+    
+    .sidebar-link i {
+      margin-right: 0.5rem;
+      font-size: 1.25rem;
+    }
+    
+    .card {
+      border: none;
+      border-radius: 0.75rem;
+      box-shadow: var(--card-shadow);
+      overflow: hidden;
+      transition: transform 0.3s ease;
+    }
+    
+    .card:hover {
+      transform: translateY(-5px);
+    }
+    
+    .card-header {
+      background-color: white;
+      border-bottom: 1px solid rgba(229, 231, 235, 0.5);
+      padding: 1rem 1.5rem;
+    }
+    
+    .btn-primary {
+      background-color: var(--primary-color);
+      border-color: var(--primary-color);
+      padding: 0.5rem 1.5rem;
+      border-radius: 0.5rem;
+      transition: all 0.3s ease;
+    }
+    
+    .btn-primary:hover {
+      background-color: var(--secondary-color);
+      border-color: var(--secondary-color);
+      box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.4);
+    }
+    
+    .btn-outline-primary {
+      color: var(--primary-color);
+      border-color: var(--primary-color);
+      padding: 0.5rem 1.5rem;
+      border-radius: 0.5rem;
+      transition: all 0.3s ease;
+    }
+    
+    .btn-outline-primary:hover {
+      background-color: var(--primary-color);
+      color: white;
+      box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.4);
+    }
+    
+    .breadcrumb-section {
+      background-color: white;
+      padding: 1rem 0;
+      margin-bottom: 2rem;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    }
+    
+    .breadcrumb-item a {
+      color: var(--primary-color);
+      text-decoration: none;
+      position: relative;
+    }
+    
+    .breadcrumb-item a::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      bottom: -2px;
+      width: 100%;
+      height: 2px;
+      background-color: var(--primary-color);
+      transform: scaleX(0);
+      transition: transform 0.3s ease;
+    }
+    
+    .breadcrumb-item a:hover::after {
+      transform: scaleX(1);
+    }
+    
+    .profile-card {
+      background: linear-gradient(145deg, #EEF2FF, #E0E7FF);
+      border: none;
+    }
+    
+    .wallet-card, .referral-card {
+      background: linear-gradient(145deg, #F0FDF4, #DCFCE7);
+    }
+    
+    .orders-card, .wallet-history-card {
+      background: linear-gradient(145deg, #FEF2F2, #FEE2E2);
+    }
+    
+    .address-card {
+      background: linear-gradient(145deg, #EFF6FF, #DBEAFE);
+    }
+    
+    .badge-active {
+      background-color: #10B981;
+      color: white;
+    }
+    
+    .badge-pending {
+      background-color: #F59E0B;
+      color: white;
+    }
+    
+    .table-responsive {
+      border-radius: 0.5rem;
+      overflow: hidden;
+    }
+    
+    table {
+      border-collapse: separate;
+      border-spacing: 0;
+    }
+    
+    table thead th {
+      background-color: #F9FAFB;
+      padding: 1rem;
+      font-weight: 500;
+    }
+    
+    table tbody td {
+      padding: 1rem;
+      border-top: 1px solid #E5E7EB;
+    }
+    
+    .referral-link {
+      background-color: #F3F4F6;
+      padding: 0.75rem;
+      border-radius: 0.5rem;
+      margin: 1rem 0;
+      display: flex;
+      align-items: center;
+    }
+    
+    .amount-display {
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: var(--primary-color);
+      margin: 1.5rem 0;
+    }
+    
+    @media (max-width: 768px) {
+      .dashboard-sidebar {
+        margin-bottom: 2rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Breadcrumb -->
+  <div class="breadcrumb-section">
+    <div class="container">
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-0">
+          <li class="breadcrumb-item"><a href="#"><i class="fas fa-home me-1"></i>Home</a></li>
+          <li class="breadcrumb-item"><a href="#">Profile</a></li>
+          <li class="breadcrumb-item active" aria-current="page">Account</li>
+        </ol>
+      </nav>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="container py-4">
+    <div class="row g-4">
+      <!-- Sidebar -->
+      <div class="col-lg-3">
+        <div class="dashboard-sidebar p-4">
+          <h5 class="mb-4 fw-bold text-uppercase fs-6">My Account</h5>
+          <div class="nav flex-column nav-pills">
+            <a class="sidebar-link active mb-2" id="dashboard-tab" data-bs-toggle="pill" href="#dashboard">
+              <i class="fas fa-tachometer-alt"></i> Dashboard
+            </a>
+            <a class="sidebar-link mb-2" id="address-tab" data-bs-toggle="pill" href="#address">
+              <i class="fas fa-map-marker-alt"></i> My Address
+            </a>
+            <a class="sidebar-link mb-2" id="orders-tab" data-bs-toggle="pill" href="#orders">
+              <i class="fas fa-shopping-bag"></i> Orders
+            </a>
+            <!-- <a class="sidebar-link mb-2" id="wallet-tab" data-bs-toggle="pill" href="#wallet">
+              <i class="fas fa-wallet"></i> Wallet Status
+            </a> -->
+            <a class="sidebar-link mb-2" id="wallet-history-tab" href="/user/wallet">
+              <i class="fas fa-history"></i> Wallet 
+            </a>
+            <a class="sidebar-link mb-2" id="referral-tab" data-bs-toggle="pill" href="#referral">
+              <i class="fas fa-user-friends"></i> Referrals
+            </a>
+            <a class="sidebar-link text-danger" href="/logout">
+              <i class="fas fa-sign-out-alt"></i> Logout
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Content Area -->
+      <div class="col-lg-9">
+        <div class="tab-content">
+          <!-- Dashboard -->
+          <div class="tab-pane fade show active" id="dashboard">
+            <div class="card profile-card mb-4">
+              <div class="card-header bg-transparent border-0">
+                <h5 class="mb-0 fw-bold"><i class="fas fa-user-circle me-2"></i>User Profile</h5>
+              </div>
+              <div class="card-body text-center">
+                <div class="mb-4">
+                  <!-- Profile picture area -->
+                  <div class="position-relative mx-auto" style="width: 100px; height: 100px;">
+                    <!-- The profile image container -->
+                    <form id="profile-upload-form" enctype="multipart/form-data">
+                        <div class="position-relative mx-auto" style="width: 100px; height: 100px;">
+                          <!-- <div class="rounded-circle bg-primary bg-opacity-10 d-flex justify-content-center align-items-center position-relative" 
+     style="width: 100px; height: 100px; overflow: hidden;">    
+
+                                <i class="fas fa-user fa-3x text-primary    " id="profile-icon"></i>
+                                <img id="profile-image" src="<%= user?.image || '' %>" class="<%= user?.image ? '' : 'd-none' %>"
+                                     style="width: 100%; height: 100%; object-fit: cover;" alt="Profile Image">
+                            </div>
+                     -->
+
+                     <div class="rounded-circle bg-primary bg-opacity-10 d-flex justify-content-center align-items-center position-relative" 
+                     style="width: 100px; height: 100px; overflow: hidden;">
+                        <% if (user?.image) { %>
+                            <img id="profile-image" src="<%= user.image %>"
+                                 style="width: 100%; height: 100%; object-fit: cover;" alt="Profile Image">
+                        <% } else { %>
+                            <i class="fas fa-user fa-3x text-primary" id="profile-icon"></i>
+                        <% } %>
+                    </div>
+
+                            <label for="profile-image-upload" class="position-absolute bottom-0 end-0 bg-white rounded-circle p-2 shadow-sm" 
+                                   style="cursor: pointer; margin-right: 5px; margin-bottom: 5px;">
+                                <i class="fas fa-camera text-primary"></i>
+                            </label>
+                    
+                            <input type="file" id="profile-image-upload" name="image" accept="image/*" style="display: none;">
+                        </div>
+                    </form>
+                    
+                    <!-- Camera icon button that actually triggers the file input -->
+                    <label for="profile-image-upload" class="position-absolute bottom-0 end-0 bg-white rounded-circle p-2 shadow-sm" style="cursor: pointer; margin-right: 5px; margin-bottom: 5px;">
+                      <i class="fas fa-camera text-primary"></i>
+                    </label>
+                    
+                    <!-- The actual file input -->
+                    <input type="file" id="profile-image-upload" name="profile-image-upload" accept="image/*" style="display: none;">
+                  </div>
+                </div>
+                <p class="text-muted small mb-2">Click the camera icon to upload profile picture</p>
+
+                <h5 class="card-title fw-bold"><%= user?.fullname  %></h5>
+                <div class="mb-3">
+                  <p class="card-text mb-1">
+                    <i class="fas fa-phone-alt me-2 text-muted"></i>
+                    <span><%= user?.phoneNumber  %></span>
+                  </p>
+                  <p class="card-text">
+                    <i class="fas fa-envelope me-2 text-muted"></i>
+                    <span><%= user?.email %></span>
+                  </p>
+                </div>
+                <div class="d-flex justify-content-center gap-2">
+                  <a href="#" class="btn btn-outline-primary btn-sm" id="changeEmailBtn">
+                    <i class="fas fa-envelope me-1"></i> Change Email
+                  </a>
+                  <a href="#" class="btn btn-outline-primary btn-sm" id="changePasswordBtn">
+                    <i class="fas fa-lock me-1"></i> Change Password
+                  </a>
+                </div>
+
+                <div id="changeEmailForm" class="mt-3 d-none">
+                  <form id="emailForm">
+                      <div class="mb-3">
+                          <label class="form-label">Current Email</label>
+                          <input type="email" class="form-control" id="currentEmail" name="currentEmail" value="<%= user.email  %>">
+                      </div>
+                      <div class="mb-3">
+                          <label class="form-label">New Email</label>
+                          <input type="email" class="form-control" id="newEmail" name="newEmail" required>
+                      </div>
+                      <button type="submit" class="btn btn-primary">Submit</button>
+                  </form>
+              </div>
+              
+              <!-- OTP Verification Form (Initially Hidden) -->
+              <div id="otpForm" class="mt-3 d-none">
+                  <form id="verifyOtpForm">
+                      <div class="mb-3">
+                          <label class="form-label">Enter OTP</label>
+                          <input type="text" class="form-control" id="otpCode" name="otpCode" required>
+                      </div>
+                      <button type="submit" class="btn btn-success">Verify OTP</button>
+                  </form>
+              </div>
+              
+
+
+                        <!-- Change Password Form (Initially Hidden) -->
+            <div id="changePasswordForm" class="mt-3 d-none">
+              <form id="passwordForm">
+                  <div class="mb-3">
+                      <label class="form-label">New Password</label>
+                      <input type="password" class="form-control" id="newPassword" name="newPassword" required>
+                  </div>
+                  <div class="mb-3">
+                      <label class="form-label">Confirm New Password</label>
+                      <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" required>
+                  </div>
+                  <button type="submit" class="btn btn-primary">Submit</button>
+              </form>
+            </div>
+
+            <!-- OTP Verification Form (Initially Hidden) -->
+            <div id="passwordOtpForm" class="mt-3 d-none">
+              <form id="verifyPasswordOtpForm">
+                  <div class="mb-3">
+                      <label class="form-label">Enter OTP</label>
+                      <input type="text" class="form-control" id="passwordOtpCode" name="passwordOtpCode" required>
+                  </div>
+                  <button type="submit" class="btn btn-success">Verify OTP</button>
+              </form>
+            </div>
+
+              
+
+
+
+              </div>
+            </div>
+            
+            <div class="row g-4">
+              <div class="col-md-4">
+                <div class="card h-100 text-center">
+                  <div class="card-body">
+                    <div class="mb-3">
+                      <i class="fas fa-shopping-bag fa-2x text-primary"></i>
+                    </div>
+                    <h5 class="fw-bold">Orders</h5>
+                    <h2 class="fw-bold">3</h2>
+                    <p class="text-muted">Total Orders</p>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="card h-100 text-center">
+                  <div class="card-body">
+                    <div class="mb-3">
+                      <i class="fas fa-wallet fa-2x text-success"></i>
+                    </div>
+                    <h5 class="fw-bold">Wallet</h5>
+                    <h2 class="fw-bold">₹2,500</h2>
+                    <p class="text-muted">Available Balance</p>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="card h-100 text-center">
+                  <div class="card-body">
+                    <div class="mb-3">
+                      <i class="fas fa-user-friends fa-2x text-warning"></i>
+                    </div>
+                    <h5 class="fw-bold">Referrals</h5>
+                    <h2 class="fw-bold">₹500</h2>
+                    <p class="text-muted">Earned So Far</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Address -->
+          <div class="tab-pane fade" id="address">
+            <div class="card address-card mb-4">
+              <div class="card-header bg-transparent border-0">
+                <h5 class="mb-0 fw-bold"><i class="fas fa-map-marker-alt me-2"></i>My Addresses</h5>
+              </div>
+              <div class="card-body">
+                <div class="row g-4">
+                  <% address.forEach(addr => { %>
+                  <div class="col-lg-6">
+                    <div class="card mb-3">
+                      <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
+                        <h6 class="mb-0 fw-bold">Home Address</h6>
+                        <span class="badge bg-primary">Default</span>
+                      </div>
+                      <div class="card-body">
+                        <address class="mb-3">
+                          <p class="mb-1"><%= addr.name %></p>
+                          <p class="mb-1"><%= addr.address  %></p>
+                          <p class="mb-1"><%= addr.phoneNumber  %></p>
+                          <p class="mb-1"><%= addr.pincode  %></p>
+                          <!-- <p class="mb-0">Phone: +1 (123) 456-7890</p> -->
+                        </address>
+                        <div class="d-flex gap-2">
+                          <form action="/user/editAddress" method="POST">
+                            <input type="hidden" name="addressId" value="<%= addr._id %>">
+                            <button type="submit" class="btn btn-primary btn-sm">
+                                <i class="fas fa-edit"></i> Edit
+                            </button>
+                        </form>
+                        
+
+                          <a href="#" class="btn btn-sm btn-outline-danger toggleAddressStatus" 
+                          data-address-id="<%= addr._id %>" 
+                          data-status="<%= addr.status %>">
+                           <i class="fas fa-ban me-1"></i> <%= addr.status === 'active' ? 'Delete' : 'Unblock' %>
+                       </a>
+                       
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                   <% }) %>
+                  <div class="col-lg-6">
+                    <div class="card mb-3 h-100 d-flex align-items-center justify-content-center text-center p-4">
+                      <div>
+                        <div class="mb-3">
+                          <i class="fas fa-plus-circle fa-3x text-muted"></i>
+                        </div>
+                        <h6>Add New Address</h6>
+                        <p class="text-muted mb-3">Add a new shipping or billing address</p>
+                        <a href="/user/addAddress" class="btn btn-primary">
+                           
+                          <i class="fas fa-plus me-1" ></i> Add Address
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                 
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Orders -->
+          <div class="tab-pane fade" id="orders">
+            <div class="card orders-card">
+              <div class="card-header bg-transparent border-0">
+                <h5 class="mb-0 fw-bold"><i class="fas fa-shopping-bag me-2"></i>Your Orders</h5>
+              </div>
+              <div class="card-body">
+                <div class="table-responsive">
+                  <table class="table align-middle">
+                    <thead>
+                      <tr>
+                        <th>Order ID</th>
+                        <th>Date</th>
+                        <th>Status</th>
+                        <th>Total</th>
+                        <th>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>#ORD-2023-1001</td>
+                        <td>Mar 15, 2025</td>
+                        <td><span class="badge rounded-pill badge-active">Delivered</span></td>
+                        <td>₹1,250.00</td>
+                        <td>
+                          <a href="#" class="btn btn-sm btn-outline-primary">
+                            <i class="fas fa-eye me-1"></i> View
+                          </a>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>#ORD-2023-0987</td>
+                        <td>Mar 10, 2025</td>
+                        <td><span class="badge rounded-pill badge-pending">Processing</span></td>
+                        <td>₹850.00</td>
+                        <td>
+                          <a href="#" class="btn btn-sm btn-outline-primary">
+                            <i class="fas fa-eye me-1"></i> View
+                          </a>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>#ORD-2023-0965</td>
+                        <td>Feb 28, 2025</td>
+                        <td><span class="badge rounded-pill badge-active">Delivered</span></td>
+                        <td>₹2,100.00</td>
+                        <td>
+                          <a href="#" class="btn btn-sm btn-outline-primary">
+                            <i class="fas fa-eye me-1"></i> View
+                          </a>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Wallet Status -->
+          <div class="tab-pane fade" id="wallet">
+            <div class="card wallet-card">
+              <div class="card-header bg-transparent border-0">
+                <h5 class="mb-0 fw-bold"><i class="fas fa-wallet me-2"></i>Wallet Status</h5>
+              </div>
+              <div class="card-body">
+                <div class="row">
+                  <div class="col-lg-8 mx-auto text-center">
+                    <div class="mb-4">
+                      <i class="fas fa-wallet fa-3x text-success"></i>
+                    </div>
+                    <h6 class="mb-3">Current Balance</h6>
+                    <div class="amount-display">₹2,500</div>
+                    <button type="button" class="btn btn-primary">
+                      <i class="fas fa-plus me-1"></i> Add Money
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Wallet History -->
+          <div class="tab-pane fade" id="wallet-history">
+            <div class="card wallet-history-card">
+              <div class="card-header bg-transparent border-0">
+                <h5 class="mb-0 fw-bold"><i class="fas fa-history me-2"></i>Wallet History</h5>
+              </div>
+              <div class="card-body">
+                <div class="table-responsive">
+                  <table class="table align-middle">
+                    <thead>
+                      <tr>
+                        <th>Transaction ID</th>
+                        <th>Date</th>
+                        <th>Type</th>
+                        <th>Status</th>
+                        <th>Amount</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>#TXN-1001</td>
+                        <td>Mar 25, 2025</td>
+                        <td>Deposit</td>
+                        <td><span class="badge rounded-pill badge-active">Success</span></td>
+                        <td class="text-success">+₹1,000.00</td>
+                      </tr>
+                      <tr>
+                        <td>#TXN-0998</td>
+                        <td>Mar 15, 2025</td>
+                        <td>Payment</td>
+                        <td><span class="badge rounded-pill badge-active">Success</span></td>
+                        <td class="text-danger">-₹850.00</td>
+                      </tr>
+                      <tr>
+                        <td>#TXN-0987</td>
+                        <td>Mar 10, 2025</td>
+                        <td>Deposit</td>
+                        <td><span class="badge rounded-pill badge-active">Success</span></td>
+                        <td class="text-success">+₹2,000.00</td>
+                      </tr>
+                      <tr>
+                        <td>#TXN-0982</td>
+                        <td>Mar 5, 2025</td>
+                        <td>Referral</td>
+                        <td><span class="badge rounded-pill badge-active">Success</span></td>
+                        <td class="text-success">+₹250.00</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Referrals -->
+          <div class="tab-pane fade" id="referral">
+            <div class="card referral-card">
+              <div class="card-header bg-transparent border-0">
+                <h5 class="mb-0 fw-bold"><i class="fas fa-user-friends me-2"></i>Referrals</h5>
+              </div>
+              <div class="card-body">
+                <div class="p-4 mb-4 bg-light rounded-3">
+                  <h5 class="mb-3">Refer your friends and earn money!</h5>
+                  <p>Share your unique referral link with friends and family. When they sign up and make their first purchase, you'll earn ₹100!</p>
+                  
+                  <div class="referral-link">
+                    <span class="flex-grow-1 text-truncate">https://example.com/ref/johndoe123</span>
+                    <button class="btn btn-sm btn-primary ms-2" onclick="copyToClipboard()">
+                      <i class="fas fa-copy"></i> Copy
+                    </button>
+                  </div>
+                  
+                  <div class="d-flex justify-content-center gap-3 mt-4">
+                    <a href="#" class="btn btn-outline-primary">
+                      <i class="fab fa-facebook me-1"></i> Share on Facebook
+                    </a>
+                    <a href="#" class="btn btn-outline-primary">
+                      <i class="fab fa-twitter me-1"></i> Share on Twitter
+                    </a>
+                  </div>
+                </div>
+                
+                <div class="row g-4">
+                  <div class="col-md-6">
+                    <div class="card">
+                      <div class="card-body text-center">
+                        <div class="mb-3">
+                          <i class="fas fa-users fa-2x text-primary"></i>
+                        </div>
+                        <h4>5</h4>
+                        <p class="text-muted mb-0">Total Referrals</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="card">
+                      <div class="card-body text-center">
+                        <div class="mb-3">
+                          <i class="fas fa-money-bill-wave fa-2x text-success"></i>
+                        </div>
+                        <h4>₹500</h4>
+                        <p class="text-muted mb-0">Total Earned</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="mt-4">
+                  <h6 class="mb-3">Recent Referrals</h6>
+                  <div class="table-responsive">
+                    <table class="table align-middle">
+                      <thead>
+                        <tr>
+                          <th>Name</th>
+                          <th>Date</th>
+                          <th>Status</th>
+                          <th>Amount</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td>Jane Smith</td>
+                          <td>Mar 20, 2025</td>
+                          <td><span class="badge rounded-pill badge-active">Completed</span></td>
+                          <td>₹100</td>
+                        </tr>
+                        <tr>
+                          <td>Mike Johnson</td>
+                          <td>Mar 15, 2025</td>
+                          <td><span class="badge rounded-pill badge-active">Completed</span></td>
+                          <td>₹100</td>
+                        </tr>
+                        <tr>
+                          <td>Sarah Williams</td>
+                          <td>Mar 10, 2025</td>
+                          <td><span class="badge rounded-pill badge-active">Completed</span></td>
+                          <td>₹100</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <%- include("partials/footer") %>
+  <script>
+    // Function to copy referral link to clipboard
+    function copyToClipboard() {
+      // Function would copy the referral link to clipboard
+      alert('Referral link copied to clipboard!');
+    }
+
+    // Profile image upload handler - moved outside of the copyToClipboard function
+    document.addEventListener('DOMContentLoaded', function() {
+      document.getElementById('profile-image-upload').addEventListener('change', function(event) {
+        if (this.files && this.files[0]) {
+          var reader = new FileReader();
+          
+          reader.onload = function(e) {
+            // Get elements
+            var profileIcon = document.getElementById('profile-icon');
+            var image = document.getElementById('profile-image');
+            
+            // Set image source
+            image.src = e.target.result;
+            
+            // Show image, hide icon
+            profileIcon.classList.add('d-none');
+            image.classList.remove('d-none');
+          };
+          
+          reader.readAsDataURL(this.files[0]);
+        }
+      });
+    });
+
+
+
+    document.getElementById("profile-image-upload").addEventListener("change", function(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    console.log("functon works..")
+
+    const formData = new FormData();
+    formData.append("image", file);
+
+    fetch(`/user/uploadProfile`, {
+        method: "POST",
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            document.getElementById("profile-icon").classList.add("d-none"); // Hide default icon
+            document.getElementById("profile-image").src = data.imageUrl; // Update image preview
+            document.getElementById("profile-image").classList.remove("d-none"); // Show uploaded image
+            alert("Profile picture updated successfully!");
+        } else {
+            alert("Error uploading image: " + data.message);
+        }
+    })
+    .catch(error => console.error("Upload failed:", error));
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Select all delete buttons
+    const deleteButtons = document.querySelectorAll('.toggleAddressStatus');
+
+    deleteButtons.forEach(button => {
+        button.addEventListener('click', function(event) {
+            event.preventDefault();
+
+            const addressId = this.getAttribute('data-address-id');
+
+            if (!addressId) {
+                alert("Error: Address ID not found!");
+                return;
+            }
+
+            if (!confirm("Are you sure you want to delete this address?")) {
+                return;
+            }
+
+            fetch('/user/deleteAddress', {  // Remove addressId from the URL
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ addressId }) // Send in the body
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`Server error: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    this.closest('.address-card').remove(); // Remove the address card from UI
+                    alert("Address deleted successfully!");
+                    window.location.reload()
+                } else {
+                    alert(data.message || "Error deleting address");
+                }
+            })
+            .catch(error => {
+                console.error("Error:", error);
+                alert("Failed to delete address. Please try again.");
+            });
+        });
+    });
+});
+
+
+
+  // Toggle Email Form
+  document.getElementById("changeEmailBtn").addEventListener("click", function(event) {
+        event.preventDefault();
+        document.getElementById("changeEmailForm").classList.toggle("d-none");
+        document.getElementById("changePasswordForm").classList.add("d-none"); // Hide password form
+        document.getElementById("otpForm").classList.add("d-none"); // Hide OTP form if visible
+    });
+
+    // Toggle Password Form
+    document.getElementById("changePasswordBtn").addEventListener("click", function(event) {
+        event.preventDefault();
+        document.getElementById("changePasswordForm").classList.toggle("d-none");
+        document.getElementById("changeEmailForm").classList.add("d-none"); // Hide email form
+        document.getElementById("otpForm").classList.add("d-none"); // Hide OTP form if visible
+    });
+
+
+
+    document.getElementById("emailForm").addEventListener("submit",async function (event) {
+      event.preventDefault()
+      // const formData= Object.fromEntries(new FormData(this).entries());
+
+      const currentEmail = document.getElementById("currentEmail").value;
+      const newEmail = document.getElementById("newEmail").value;
+      try {
+        const response=await fetch("/user/changeEmailOtp",{
+          method:"POST",
+          headers:{"Content-Type":"application/json"},
+          body:JSON.stringify({currentEmail,newEmail})
+        })
+        const result=await response.json()
+        if(result.success){
+       
+          document.getElementById("changeEmailForm").classList.add("d-none"); // Hide email form
+          document.getElementById("otpForm").classList.remove("d-none"); // Show OTP form
+        }
+        else{
+          alert(result.message)
+        }
+      } catch (error) {
+        console.log(error.message)
+      }
+    })
+
+
+    document.getElementById("verifyOtpForm").addEventListener("submit",async function (event) {
+      event.preventDefault()
+
+      const otp=document.getElementById("otpCode").value
+
+      try {
+        const response=await fetch("/user/verifyChangeEmailOtp",{
+          method:"POST",
+          headers:{"Content-Type":"application/json"},
+          body:JSON.stringify({otp})
+        })
+        const result=await response.json()
+
+        if(result.success){
+          window.location.reload();
+        }
+        else{
+          alert(result.message)
+        }
+      } catch (error) {
+        console.log(error.message)
+      }
+    })
+
+
+    document.getElementById("changePasswordForm").addEventListener("submit",async function (event) {
+        event.preventDefault()
+
+        const newPassword=document.getElementById("newPassword").value
+        const confirmPassword=document.getElementById("confirmPassword").value
+
+        try {
+          const response=await fetch("/user/changePasswordOtp",{
+            method:"POST",
+            headers:{"Content-Type":"application/json"},
+            body:JSON.stringify({newPassword,confirmPassword})
+
+          })
+          const result=await response.json()
+
+          if(result.success){
+            document.getElementById("changePasswordForm").classList.add("d-none")
+            document.getElementById("passwordOtpForm").classList.remove("d-none")
+          }
+          else{
+            alert(result.message)
+          }
+        } catch (error) {
+          console.log(error.message)
+        }
+
+    })
+
+    document.getElementById("passwordOtpForm").addEventListener("submit",async function (event) {
+      event.preventDefault()
+        const passwordOtpCode=document.getElementById("passwordOtpCode").value
+
+        try {
+          const response=await fetch("/user/verifyChangePasswordOtp",{
+            method:"POST",
+            headers:{"Content-Type":"application/json"},
+            body:JSON.stringify({passwordOtpCode})
+          })
+          const result=await response.json()
+
+          if(result.success){
+            alert(result.message)
+            window.location.reload()
+          }
+          else{
+            alert(result.message)
+          }
+        } catch (error) {
+          console.log(error.message)
+        }
+
+    })
+
+
+    // async function fetchBalance() {
+    //   try {
+    //     const response=await fetch("/user/walletBalance",{
+    //       method:"GET",
+    //       headers:{"Content-Type":"application/json",
+    //       'Authorization': `Bearer ${localStorage.getItem('token')}`
+    //       }
+    //     })
+
+    //     if(!response.ok){
+    //       alert(result.message)
+    //     }
+
+    //     const result=await response.json()
+    //     document.querySelector(".amount-display").textContent=`₹${result.balance.toFixed(2)}`
+    //   } catch (error) {
+    //     console.log(error.message)
+    //   }
+    // }
+
+
+
+//     async function fetchWalletHistory(params) {
+//       try {
+//         const response=await fetch("/user/walletHistory",{
+//           method:"GET",
+//           headers:{"Content-Type":"application/json",
+//           'Authorization':`Bearer ${localStorage.getItem('token')}`
+//         }
+//         })
+
+//         if(!response.ok){
+//           alert(result.message)
+//         }
+
+//         const transactions=await response.json()
+
+//         const tableBody=document.querySelector('#wallet-history.table tbody');
+//         tableBody.innerHTML=''
+
+//         transactions.forEach(transaction=>{
+//           const date = new Date(transaction.createdAt).toLocaleDateString('en-IN', {
+//         year: 'numeric',
+//         month: 'short',
+//         day: 'numeric'
+//       })
+
+//       const row=document.createElement('tr')
+//       row.innerHTML=`
+//       <td>${transaction.transactionId}</td>
+//       <td>${date}</td>
+//       <td>${transaction.type.charAt(0).toUpperCase() + transaction.type.slice(1)}</td>
+//        <td><span class="badge rounded-pill badge-active">${transaction.status.charAt(0).toUpperCase() + transaction.status.slice(1)}</span></td>
+//         <td class="${transaction.amount > 0 ? 'text-success' : 'text-danger'}">
+//           ${transaction.amount > 0 ? '+' : ''}₹${Math.abs(transaction.amount).toFixed(2)}
+//         </td>
+//       `
+
+//       tableBody.appendChild(row);
+//         })
+//       } catch (error) {
+//         console.log(error.message)
+//       }
+//     }
+
+
+
+//     // Initialize event listeners
+// document.addEventListener('DOMContentLoaded', () => {
+//   // Fetch wallet balance when the wallet tab is shown
+//   document.querySelector('a[data-bs-target="#wallet"]').addEventListener('click', fetchWalletBalance);
+  
+//   // Fetch wallet history when the history tab is shown
+//   document.querySelector('a[data-bs-target="#wallet-history"]').addEventListener('click', fetchWalletHistory);
+  
+// })
+  </script>
+</body>
+</html>

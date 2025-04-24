@@ -1,0 +1,217 @@
+<%- include("partials/header") %>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home | Your Store</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 font-sans">
+
+    <!-- Hero Section -->
+    <section class="relative w-full h-[75vh] overflow-hidden">
+        <img src="/uploads/userhomemainimage.jpg" alt="Hero Image" class="w-full h-full object-cover brightness-95">
+        <div class="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center">
+            <div class="text-center px-4">
+                <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-4 drop-shadow-lg">Discover Premium Products</h1>
+                <p class="text-xl text-white mb-8 max-w-2xl mx-auto drop-shadow-md">Explore our collection of high-quality products at competitive prices</p>
+                <a href="/user/shopping" class="bg-white text-gray-900 hover:bg-gray-100 px-8 py-3 rounded-full font-semibold transition duration-300 inline-block">Shop Now</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Flash Sale Section -->
+    <section class="container mx-auto my-16 px-4">
+        <div class="flex items-center justify-between mb-8">
+            <h2 class="text-3xl font-bold text-gray-800">Flash Sale</h2>
+            <div class="hidden md:flex items-center space-x-2">
+                <span class="text-red-600 font-semibold">Limited Time Offers</span>
+                <div class="flex space-x-1">
+                    <span class="bg-red-600 text-white px-2 py-1 rounded">23</span>
+                    <span class="text-gray-800">:</span>
+                    <span class="bg-red-600 text-white px-2 py-1 rounded">59</span>
+                    <span class="text-gray-800">:</span>
+                    <span class="bg-red-600 text-white px-2 py-1 rounded">59</span>
+                </div>
+            </div>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            <% products.forEach(product => { %>
+                <div class="group">
+                    <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+                        <a href="/user/productView/<%=product._id%>" class="block relative overflow-hidden">
+                            <div class="absolute top-2 right-2 bg-red-600 text-white text-xs font-bold px-2 py-1 rounded-full z-10">SALE</div>
+                            <img src="/uploads/<%=product.images[0]%>" class="w-full h-64 object-cover transition-transform duration-500 group-hover:scale-105" alt="<%= product.name %>">
+                        </a>
+                        <div class="p-4">
+                            <h5 class="text-lg font-semibold text-gray-800 mb-2 truncate"><%= product.name %></h5>
+                            <div>
+                                <% const variant = product.variants[0]; %>
+                                <% const discountedPrice = variant.regularPrice - (variant.regularPrice * product.offer / 100); %>
+                                
+                                <% if (product.offer > 0) { %>
+                                    <span class="text-sm line-through text-gray-500">₹<%= variant.regularPrice.toFixed(2) %></span>
+                                    <span class="text-lg font-bold text-gray-900 ml-2">₹<%= discountedPrice.toFixed(2) %></span>
+                                    <span class="text-sm text-red-600 ml-2">(<%= product.offer %>% off)</span>
+                                <% } else { %>
+                                    <span class="text-lg font-bold text-gray-900">₹<%= variant.regularPrice.toFixed(2) %></span>
+                                <% } %>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            <% }); %>
+        </div>
+    </section>
+
+    <!-- Brands Section -->
+    <section class="bg-gray-100 py-16">
+        <div class="container mx-auto px-4">
+            <h2 class="text-3xl font-bold text-gray-800 text-center mb-12">Top Brands</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                <% brands.forEach(brand => { %>
+                    <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+                        <a href="/user/shopping?brand=<%=brand.name %>" class="block">
+                            <img src="/<%= brand.image %>" class="w-full h-40 object-contain p-4" alt="<%= brand.name %>">
+                            <div class="p-4 border-t border-gray-100">
+                                <h5 class="text-lg font-semibold text-gray-800 mb-2"><%= brand.name %></h5>
+                                <p class="text-gray-600 text-sm line-clamp-2"><%= brand.description %></p>
+                            </div>
+                        </a>
+                    </div>
+                <% }); %>
+            </div>
+        </div>
+    </section>
+
+    <!-- Categories Section -->
+    <section class="container mx-auto my-16 px-4">
+        <h2 class="text-3xl font-bold text-gray-800 text-center mb-12">Shop by Category</h2>
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            <% categories.forEach(category => { %>
+                <div class="relative group overflow-hidden rounded-lg shadow-md">
+                    <a href="/user/shopping?category=<%= category.name %>">
+                        <img src="/<%= category.image %>" class="w-full h-64 object-cover transition-transform duration-500 group-hover:scale-110" alt="<%= category.name %>">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex items-end">
+                            <h5 class="text-xl font-bold text-white p-4 w-full text-center"><%= category.name %></h5>
+                        </div>
+                    </a>
+                </div>
+            <% }); %>
+        </div>
+    </section>
+
+    <!-- New Arrivals Section -->
+    <section class="bg-gray-50 py-16">
+        <div class="container mx-auto px-4">
+            <div class="flex items-center justify-between mb-8">
+                <h2 class="text-3xl font-bold text-gray-800">New Arrivals</h2>
+                <a href="/user/shopping?sort=newest" class="text-gray-800 hover:text-gray-600 font-medium flex items-center">
+                    View All
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-1" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                    </svg>
+                </a>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                <% products.forEach(product => { %>
+                    <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+                        <a href="/user/productView/<%=product._id%>" class="block relative">
+                            <div class="absolute top-2 left-2 bg-emerald-500 text-white text-xs font-bold px-2 py-1 rounded-full z-10">NEW</div>
+                            <img src="/uploads/<%= product.images[0] %>" class="w-full h-64 object-cover" alt="<%= product.name %>">
+                        </a>
+                        <div class="p-4">
+                            <h5 class="text-lg font-semibold text-gray-800 mb-2 truncate"><%= product.name %></h5>
+                            <div class="flex items-center mb-2">
+                                <div class="flex text-amber-400">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                    </svg>
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                    </svg>
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                    </svg>
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                    </svg>
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                    </svg>
+                                </div>
+                                <span class="text-xs text-gray-500 ml-1">(5.0)</span>
+                            </div>
+                            <div>
+                                <% const variant = product.variants[0]; %>
+                                <% const discountedPrice = variant.regularPrice - (variant.regularPrice * product.offer / 100); %>
+                                
+                                <% if (product.offer > 0) { %>
+                                    <span class="text-sm line-through text-gray-500">₹<%= variant.regularPrice.toFixed(2) %></span>
+                                    <span class="text-lg font-bold text-gray-900 ml-2">₹<%= discountedPrice.toFixed(2) %></span>
+                                    <span class="text-sm text-red-600 ml-2">(<%= product.offer %>% off)</span>
+                                <% } else { %>
+                                    <span class="text-lg font-bold text-gray-900">₹<%= variant.regularPrice.toFixed(2) %></span>
+                                <% } %>
+                            </div>
+                        </div>
+                    </div>
+                <% }); %>
+            </div>
+        </div>
+    </section>
+
+    <!-- Newsletter Section -->
+    <section class="bg-gray-800 text-white py-16">
+        <div class="container mx-auto px-4">
+            <div class="max-w-3xl mx-auto text-center">
+                <h2 class="text-3xl font-bold mb-4">Subscribe to Our Newsletter</h2>
+                <p class="text-gray-300 mb-8">Stay updated with our latest products and exclusive offers</p>
+                <form class="flex flex-col sm:flex-row gap-2 max-w-md mx-auto">
+                    <input type="email" placeholder="Your email address" class="flex-grow px-4 py-3 rounded-lg focus:outline-none text-gray-800">
+                    <button type="submit" class="bg-red-600 hover:bg-red-700 px-6 py-3 rounded-lg font-semibold transition duration-300">Subscribe</button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- Trust Badges Section -->
+    <section class="container mx-auto py-12 px-4">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+            <div class="flex flex-col items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-gray-800 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <h3 class="font-semibold text-lg mb-1">Fast Delivery</h3>
+                <p class="text-gray-600 text-sm">Free shipping on orders over ₹999</p>
+            </div>
+            <div class="flex flex-col items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-gray-800 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                </svg>
+                <h3 class="font-semibold text-lg mb-1">Secure Payment</h3>
+                <p class="text-gray-600 text-sm">100% secure payment</p>
+            </div>
+            <div class="flex flex-col items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-gray-800 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                </svg>
+                <h3 class="font-semibold text-lg mb-1">Money-Back Guarantee</h3>
+                <p class="text-gray-600 text-sm">30-day return policy</p>
+            </div>
+            <div class="flex flex-col items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-gray-800 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <h3 class="font-semibold text-lg mb-1">24/7 Support</h3>
+                <p class="text-gray-600 text-sm">Dedicated support</p>
+            </div>
+        </div>
+    </section>
+
+</body>
+</html>
+
+<%- include("partials/footer") %>

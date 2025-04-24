@@ -1,0 +1,429 @@
+<%- include("partials/header") %>
+<style>
+  .pagination-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 5px;
+}
+
+.pagination {
+  display: flex;
+  list-style: none;
+  padding: 0;
+}
+
+.pagination .page-item {
+  margin: 0 5px; /* Add space between buttons */
+}
+
+.pagination .page-link {
+  text-decoration: none;
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  color: #333;
+  border-radius: 5px;
+  transition: background 0.3s;
+}
+
+.pagination .page-link:hover {
+  background: #f5f5f5;
+}
+
+.pagination .active .page-link {
+  background: #007bff;
+  color: white;
+  border-color: #007bff;
+}
+
+  .error-message {
+    color: red;
+  }
+</style>
+<section class="content-main">
+  <div class="content-header">
+    <div>
+      <h2 class="content-title card-title">Brands</h2>
+    </div>
+  </div>
+
+  <!-- <div class="mb-3 d-flex justify-content-between">
+    <input
+      type="text"
+      id="searchBrand"
+      class="form-control w-25"
+      placeholder="Search Brand..."
+    />
+  </div> -->
+  
+  <header class="card-header text-center mb-20">
+    <form action="/admin/brands/" method="get" class="d-inline">
+        <div class="input-group input-group-sm border border-1 border-grey rounded-pill" 
+             style="width: 500px; margin-left: 230px; display: flex;">
+             
+            <input type="text" class="form-control border-0 rounded-pill" 
+                   placeholder="Search customers..." 
+                   name="search" 
+                   id="searchInput"
+                   value="<%= searchQuery %>">
+            
+            <button class="btn border-0" type="submit">Search</button>
+            
+            <button type="button" class="btn border-0 text-danger" id="clearSearch">✖</button>
+        </div>
+    </form>
+</header>
+
+
+
+  <div class="card">
+    <div class="card-body">
+      <div class="row">
+        <div class="col-md-3">
+          <form id="addBrand" enctype="multipart/form-data">
+            <div class="mb-4">
+              <label for="product_name" class="form-label">Brand Name</label>
+              <input
+                type="text"
+                name="name"
+                placeholder="Type here"
+                class="form-control"
+              />
+            </div>
+            <label for="product_name" class="form-label">Brand Image</label>
+            <div class="input-upload">
+              <img src="" alt="" />
+              <input class="form-control border" name="image" type="file" />
+            </div>
+            <div class="d-grid">
+              <button class="btn btn-primary mt-20" type="submit">
+                Add Brand
+              </button>
+            </div>
+          </form>
+        </div>
+        <div class="col-md-7 ml-105">
+          <div class="table-responsive">
+            <table class="table table-hover">
+              <thead>
+                <tr>
+                  <th>Brand</th>
+                  <th>Logo</th>
+                  <th>Status</th>
+                  <th>Edit</th>
+                </tr>
+              </thead>
+              
+              <tbody>
+
+                
+              <% if(brands.length==0){ %>
+                <tr>
+                  <td colspan="7" class="text-center fw-bold text-danger">Brand not found</td>
+                </tr>
+              <% }else %>
+
+                <% brands.forEach(brand=>{ %>
+                <tr>
+                  <td class="text-start"><%= brand.name %></td>
+                  <td class="text-start">
+                    <div
+                      class="d-flex align-items-center justify-content-center"
+                      style="
+                        width: 40px;
+                        height: 40px;
+                        border-radius: 50%;
+                        overflow: hidden;
+                      "
+                    >
+                      <img
+                        src="/<%= brand.image%>"
+                        alt=""
+                        class="img-fluid rounded-circle"
+                        style="width: 100%; height: auto"
+                      />
+                    </div>
+                  </td>
+                
+                  <td class="text-start">
+                    <div class="form-check form-switch">
+                      <!-- <input class="form-check-input brand-status-toggle" type="checkbox"
+                        data-id="<%= brand._id %>" <%= brand.status === 'Active' ? 'checked' : '' %> /> -->
+                      <label class="form-check-label">
+                        <span class="badge rounded-pill <%= brand.status === 'Active' ? 'alert-success' : 'alert-danger' %>">
+                          <%= brand.status %>
+                        </span>
+                      </label>
+                    </div>
+                  </td>
+                  
+                  <td class="text-start">
+                    <button
+                      class="btn btn-danger editBrandBtn"
+                      id="editBtn"
+                      data-id="<%= brand._id%>"
+                      data-name="<%= brand.name %>"
+                      data-image="/<%= brand.image%>"
+                      data-status="<%= brand.status %>"
+                    >
+                      Edit
+                    </button>
+
+                  
+                  </td>
+                </tr>
+                <% }) %>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="pagination-container"></div>
+</section>
+
+<!-- Edit Brand Modal -->
+<div
+  class="modal fade"
+  id="editBrandModal"
+  tabindex="-1"
+  aria-labelledby="editBrandModalLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="editBrandModalLabel">Edit Brand</h5>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+          aria-label="Close"
+        ></button>
+      </div>
+      <div class="modal-body">
+        <form id="editBrandForm">
+          <input type="hidden" id="editBrandId" name="brandId" />
+
+          <div class="mb-3">
+            <label for="editBrandName" class="form-label">Brand Name</label>
+            <input
+              type="text"
+              id="editBrandName"
+              name="name"
+              class="form-control"
+              required
+            />
+          </div>
+
+          <div class="mb-3">
+            <label for="editBrandImagePreview" class="form-label"
+              >Current Image</label
+            >
+            <div>
+              <img
+                id="editBrandImagePreview"
+                src=""
+                alt="Brand Image"
+                class="img-fluid rounded"
+                style="max-width: 100px"
+              />
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label for="editBrandImage" class="form-label"
+              >Upload New Image</label
+            >
+            <input
+              type="file"
+              id="editBrandImage"
+              name="image"
+              class="form-control"
+            />
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Status</label>
+            <select id="editBrandStatus" name="status" class="form-control">
+              <option value="Active">Active</option>
+              <option value="Blocked">Blocked</option>
+            </select>
+          </div>
+
+          <button type="submit" id="updateBrand" class="btn btn-primary">
+            Update Brand
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<div class="pagination-container d-flex justify-content-center mt-3">
+  <ul class="pagination">
+    <% if (currentPage > 1) { %>
+      <li class="page-item">
+        <a class="page-link" href="/admin/brands?page=<%= currentPage - 1 %>&search=<%= searchQuery %>">Previous</a>
+      </li>
+    <% } %>
+
+    <% for (let i = 1; i <= totalPages; i++) { %>
+      <li class="page-item <%= i === currentPage ? 'active' : '' %>">
+        <a class="page-link" href="/admin/brands?page=<%= i %>&search=<%= searchQuery %>"><%= i %></a>
+      </li>
+    <% } %>
+
+    <% if (currentPage < totalPages) { %>
+      <li class="page-item">
+        <a class="page-link" href="/admin/brands?page=<%= currentPage + 1 %>&search=<%= searchQuery %>">Next</a>
+      </li>
+    <% } %>
+  </ul>
+</div>
+
+
+<%- include("partials/footer") %>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+
+
+<script>
+  document
+    .getElementById("addBrand")
+    .addEventListener("submit", async function (event) {
+      event.preventDefault();
+      const formData = new FormData(this);
+      try {
+        const response = await fetch("/admin/addBrand", {
+          method: "POST",
+
+          body: formData,
+        });
+        const result = await response.json();
+        if (result.success) {
+          Swal.fire({
+          icon: 'success',
+          title: 'Add Brand Successful',
+          text: result.message
+      });
+         setTimeout(()=>{
+          location.reload()
+         },1000)
+        } else {
+          Swal.fire({
+          icon: 'error',
+          title: 'Add Brand Failed',
+          text: result.message
+      });
+
+        }
+      } catch (error) {
+        console.log(error.message);
+      }
+    });
+
+  document.addEventListener("DOMContentLoaded", function () {
+    const editButtons = document.querySelectorAll(".editBrandBtn");
+    const modalElement = document.getElementById("editBrandModal");
+    const editBrandModal = new bootstrap.Modal(modalElement); // Initialize modal
+
+    editButtons.forEach((button) => {
+      button.addEventListener("click", function () {
+       
+
+        // Populate the modal fields
+        const id=this.getAttribute("data-id")
+        document.getElementById("editBrandId").value = this.getAttribute("data-id");
+        document.getElementById("editBrandName").value =this.getAttribute("data-name");
+        document.getElementById("editBrandImagePreview").src =  this.getAttribute("data-image");
+        document.getElementById("editBrandStatus").value =  this.getAttribute("data-status");
+        document.getElementById("updateBrand").setAttribute("data-id",id)
+        modalElement.classList.remove("hidden")
+
+
+         // const id = this.getAttribute("data-id");
+        // const name = this.getAttribute("data-name");
+        // const image = this.getAttribute("data-image");
+        // const status = this.getAttribute("data-status");
+
+        // Ensure the modal opens correctly
+        
+          editBrandModal.show();
+        
+      });
+    });
+
+    document.getElementById("updateBrand").addEventListener("click",async function(){
+      event.preventDefault()
+      const id=this.getAttribute("data-id")
+      // const updatedData={
+      //   name:document.getElementById("editBrandName").value,
+      //   image: document.getElementById("editBrandImagePreview").src,
+      //   status:document.getElementById("editBrandStatus").value
+      // }
+      const formData = new FormData();
+    formData.append("name", document.getElementById("editBrandName").value);
+    formData.append("status", document.getElementById("editBrandStatus").value);
+
+    // Check if user selected a new image
+    const imageFile = document.getElementById("editBrandImage").files[0];
+    if (imageFile) {
+        formData.append("image", imageFile);
+    }
+      try {
+        const response=await fetch(`/admin/editBrand/${id}`,{
+          method:"POST",
+          // headers:{"Content-Type":"application/json"},
+          // body:JSON.stringify(updatedData)
+          body:formData
+        })
+        const result=await response.json()
+        console.log("resul :",result);
+        
+
+        if (result.success) {
+          // Use Swal from SweetAlert2
+          Swal.fire({
+            icon: 'success',
+            title: 'Add Brand Successful',
+            text: result.message,
+            timer: 1500,
+            showConfirmButton: false
+          }).then(() => {
+            window.location.reload();
+          });
+        } else {
+          Swal.fire({
+            icon: 'error',
+            title: 'Add Brand Failed',
+            text: result.message
+          });
+        }
+       
+  
+       
+      } catch (error) {
+        console.log(error.message)
+      }
+    })
+
+  });
+
+
+
+
+
+document.getElementById("clearSearch").addEventListener("click", function () {
+    // Clear the input field
+    document.getElementById("searchInput").value = ""; 
+
+    // Remove search parameter from URL
+    const url = new URL(window.location.href);
+    url.searchParams.delete("search"); // Remove the 'search' query
+    window.location.href = url.toString(); // Reload the page without search query
+});
+
+</script>

@@ -1,0 +1,509 @@
+<%- include("partials/header") %>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Order Details | YourStore</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #f1f3f6;
+    }
+  </style>
+</head>
+<body class="bg-gray-100">
+ 
+
+  <!-- Main Content -->
+  <main class="container mx-auto px-4 py-6">
+    <!-- Order Status -->
+    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+      <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-4">
+        <div>
+          <h1 class="text-xl font-bold text-gray-800">Order #<%= viewData.order.orderId%></h1>
+          <p class="text-gray-600">Placed on <%= viewData.order.orderDate %></p>
+        </div>
+        <div class="mt-2 md:mt-0">
+          <span class="px-3 py-1 bg-green-100 text-green-800 rounded-full font-medium">
+            <%= viewData.order.status %>
+          </span>
+        </div>
+      </div>
+      
+      <!-- Order Progress -->
+      <div class="relative pt-8">
+        <div class="flex mb-2">
+          <div class="w-1/4 text-center">
+            <div class="relative">
+              <div class="h-3 w-3 bg-green-500 rounded-full mx-auto z-10 relative"></div>
+              <div class="absolute top-0 left-1/2 w-full h-1 bg-green-500 -translate-y-1/2"></div>
+            </div>
+            <p class="text-xs mt-2 font-medium text-green-600">Order Placed</p>
+          </div>
+          <div class="w-1/4 text-center">
+            <div class="relative">
+              <div class="h-3 w-3 bg-green-500 rounded-full mx-auto z-10 relative"></div>
+              <div class="absolute top-0 left-0 w-full h-1 bg-green-500 -translate-y-1/2"></div>
+            </div>
+            <p class="text-xs mt-2 font-medium text-green-600">Processing</p>
+          </div>
+          <div class="w-1/4 text-center">
+            <div class="relative">
+              <div class="h-3 w-3 bg-green-500 rounded-full mx-auto z-10 relative"></div>
+              <div class="absolute top-0 left-0 w-full h-1 bg-green-500 -translate-y-1/2"></div>
+            </div>
+            <p class="text-xs mt-2 font-medium text-green-600">Shipped</p>
+          </div>
+          <div class="w-1/4 text-center">
+            <div class="relative">
+              <div class="h-3 w-3 bg-gray-300 rounded-full mx-auto z-10 relative"></div>
+              <div class="absolute top-0 left-0 w-full h-1 bg-gray-300 -translate-y-1/2"></div>
+            </div>
+            <p class="text-xs mt-2 font-medium text-gray-500">Delivered</p>
+          </div>
+        </div>
+        <p class="text-sm text-gray-600 mt-4">
+          Your order is on the way! Expected delivery by <span class="font-semibold"><%= "10.12.13  " %></span>
+        </p>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <!-- Order Items -->
+      <div class="lg:col-span-2">
+        <div class="bg-white rounded-lg shadow-md overflow-hidden">
+          <div class="border-b px-6 py-4">
+            <h2 class="text-lg font-semibold text-gray-800">Order Items</h2>
+          </div>
+          
+        
+            <div class="p-6 border-b last:border-b-0">
+              <div class="flex flex-col md:flex-row">
+                <div class="w-full md:w-20 h-20 flex-shrink-0 mb-4 md:mb-0">
+                    <img  src="/uploads/<%= viewData.orderItem.productId.images[0] %>" alt="Product" class="object-cover rounded-full mr-10" >
+                </div>
+                <div class="flex-grow md:ml-6">
+                   
+
+                  <h3 class="text-base font-medium text-gray-800 mb-1"><%= viewData.orderItem.productId.name %></h3>
+                  <p class="text-sm text-gray-600 mb-2">
+                   
+                    <% if (viewData.orderItem.volume) { %> • Volume: <%= viewData.orderItem.volume %><% } %>
+                  </p>
+                 
+                  <div class="flex items-center justify-between mt-2">
+                    <div class="flex items-center">
+                      <span class="text-lg font-semibold"></span>
+                      <% if (viewData.orderItem.itemSalePrice) { %>
+                        <span class="text-sm text-gray-500 line-through ml-2"></span>
+                        <!-- <span class="text-sm text-green-600 ml-2"><%= "discount" %>% off</span> -->
+                        
+                      <% } %>
+                    </div>
+                    <div class="text-sm mb-15">Quantity: <%= viewData.orderItem.quantity %></div>
+                  </div>
+                  
+                </div>
+              </div>
+            </div>
+          
+            <!-- Return and Invoice Buttons -->
+            <div class="flex justify-end mt-4 mb-6 px-6 space-x-4">
+              <button id="downloadInvoiceButton" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded">
+                Download Invoice
+              </button>
+              <button id="returnItemButton" class="bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded">
+                Return Order
+              </button>
+            </div>
+        </div>
+      </div>
+
+      <!-- Order Summary -->
+      <div class="lg:col-span-1">
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+          <h2 class="text-lg font-semibold text-gray-800 mb-4">Price Details</h2>
+          <div class="space-y-3 text-sm">
+            <div class="flex justify-between">
+              <span class="text-gray-600">Price (<%= viewData.order.items.length %> items)</span>
+              <span><%= subtotal %></span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-gray-600">Discount</span>
+              <span class="text-green-600"><%= discount %></span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-gray-600">Delivery Charges</span>
+              <% if (viewData.order.deliveryFee > 0) { %>
+                <span>₹<%= order.deliveryFee.toLocaleString() %></span>
+              <% } else { %>
+                <span class="text-green-600">FREE</span>
+              <% } %>
+            </div>
+            <% if (viewData.order.tax > 0) { %>
+              <div class="flex justify-between">
+                <span class="text-gray-600">Tax</span>
+                <span>₹<%= order.tax.toLocaleString() %></span>
+              </div>
+            <% } %>
+            <div class="border-t pt-3 mt-3">
+              <div class="flex justify-between font-semibold">
+                <span>Total Amount</span>
+                <span>₹<%= totalAmount %></span>
+              </div>
+            </div>
+            <div class="text-green-600 font-medium pt-2">
+              You saved <%= discount  %> on this order
+            </div>
+          </div>
+        </div>
+
+        <!-- Shipping Info -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+          <h2 class="text-lg font-semibold text-gray-800 mb-4">Shipping Address</h2>
+          <div class="text-sm text-gray-700">
+            <p class="font-medium mb-1"><%=  viewData.order.address.name %></p>
+            <p class="mb-1"><%= viewData.order.address.address %></p>
+            <p class="mb-1">Phone: <%= viewData.order.address.phoneNumber %></p>
+            <p class="mb-1">Pin: <%= viewData.order.address.pincode %></p>
+          </div>
+        </div>
+
+        <!-- Payment Info -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+          <h2 class="text-lg font-semibold text-gray-800 mb-4">Payment Information</h2>
+          <div class="text-sm text-gray-700">
+            <div class="flex justify-between mb-2">
+              <span>Payment Method</span>
+              <span class="font-medium"><%= viewData.order.paymentMethod %></span>
+            </div>
+            <div class="flex justify-between mb-2">
+                <span>Status</span>
+                <span class="font-medium"><%= viewData.order.status %></span>
+              </div>
+              <div class="flex justify-between mb-2">
+                <span>Payment Status</span>
+                <span class="font-medium"><%= viewData.order.paymentStatus %></span>
+              </div>
+              <div class="flex justify-between mb-2">
+                <span>Amount Paid</span>
+                <span class="font-medium"><%= totalAmount %></span>
+              </div>
+              <div class="flex justify-between mb-2">
+                <span>Order Date</span>
+                <span class="font-medium"><%= viewData.order.orderDate %></span>
+              </div>
+            <% if (viewData.order.payment    === 'Card') { %>
+              <div class="flex justify-between">
+                <span>Card</span>
+                <span class="font-medium">xxxx xxxx xxxx <%= order.payment.cardLast4 %></span>
+              </div>
+            <% } %>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Need Help Section -->
+    <div class="bg-white rounded-lg shadow-md p-6 mt-6">
+      <h2 class="text-lg font-semibold text-gray-800 mb-4">Need Help?</h2>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <a href="#" class="flex items-center p-4 border rounded-lg hover:bg-gray-50 transition">
+          <div class="mr-4 text-blue-600">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <div>
+            <h3 class="font-medium text-gray-800">Contact Support</h3>
+            <p class="text-sm text-gray-600">Get help with your order</p>
+          </div>
+        </a>
+        <a href="#" class="flex items-center p-4 border rounded-lg hover:bg-gray-50 transition">
+          <div class="mr-4 text-blue-600">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+            </svg>
+          </div>
+          <div>
+            <h3 class="font-medium text-gray-800">Return Items</h3>
+            <p class="text-sm text-gray-600">Start a return or exchange</p>
+          </div>
+        </a>
+        <a href="#" class="flex items-center p-4 border rounded-lg hover:bg-gray-50 transition">
+          <div class="mr-4 text-blue-600">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <div>
+            <h3 class="font-medium text-gray-800">Delivery Status</h3>
+            <p class="text-sm text-gray-600">Check delivery updates</p>
+          </div>
+        </a>
+      </div>
+    </div>
+  </main>
+
+  <%- include("partials/footer") %>
+
+  <script>
+    // Sample data for demonstration
+    const order = {
+      id: "OD117865432198",
+      date: "June 15, 2023",
+      status: "Shipped",
+      deliveryDate: "June 20, 2023",
+      items: [
+        {
+          name: "Apple iPhone 13 (128GB) - Midnight",
+          image: "https://via.placeholder.com/80",
+          color: "Midnight",
+          seller: "Apple Store",
+          price: 69900,
+          originalPrice: 79900,
+          discount: 12,
+          quantity: 1
+        },
+        {
+          name: "Apple AirPods Pro with MagSafe Charging Case",
+          image: "https://via.placeholder.com/80",
+          seller: "Apple Store",
+          price: 24900,
+          originalPrice: 26900,
+          discount: 7,
+          quantity: 1
+        }
+      ],
+      subtotal: 106800,
+      discount: 12000,
+      deliveryFee: 0,
+      tax: 1200,
+      total: 96000,
+      savings: 12000,
+      shipping: {
+        name: "John Doe",
+        address: "123 Main Street, Apartment 4B",
+        city: "Mumbai",
+        state: "Maharashtra",
+        pincode: "400001",
+        phone: "+91 9876543210"
+      },
+      payment: {
+        method: "Card",
+        cardLast4: "4321"
+      }
+    };
+
+    // You would typically fetch this data from your backend
+    // This is just for demonstration purposes
+    document.addEventListener('DOMContentLoaded', function() {
+      // Any JavaScript functionality can be added here
+      console.log('Order details page loaded');
+    });
+
+    
+   // Update the download invoice button functionality
+document.addEventListener('DOMContentLoaded', function() {
+  // Store common order data for use in multiple functions
+  const orderData = {
+    orderId: '<%= viewData.order.orderId %>',
+    status: '<%= viewData.order.status %>',
+    itemId: '<%= viewData.orderItem._id %>',
+    productId: '<%= viewData.orderItem.productId._id %>',
+    quantity: '<%= viewData.orderItem.quantity %>',
+    itemStatus: '<%= viewData.orderItem.itemStatus %>'
+  };
+  
+  // Handle return button visibility and functionality
+  const returnButton = document.getElementById('returnItemButton');
+  if (returnButton) {
+    // Only show return button for delivered items
+    if (orderData.itemStatus === 'delivered') {
+      returnButton.style.display = 'block';
+      setupReturnProcess(orderData);
+    } else {
+      returnButton.style.display = 'none';
+    }
+  }
+  
+  // Handle invoice button visibility and functionality
+  const downloadInvoiceButton = document.getElementById('downloadInvoiceButton');
+  if (downloadInvoiceButton) {
+    // Show invoice button for active items (not returned/cancelled)
+    if (orderData.itemStatus !== 'returned' && orderData.itemStatus !== 'cancelled') {
+      downloadInvoiceButton.style.display = 'block';
+      
+      downloadInvoiceButton.addEventListener('click', function() {
+        // Generate invoice for this specific item
+        window.location.href = `/user/invoice/${orderData.orderId}/${orderData.itemId}`;
+      });
+    } else {
+      downloadInvoiceButton.style.display = 'none';
+    }
+  }
+});
+
+
+function setupReturnProcess(orderData) {
+  const returnButton = document.getElementById('returnItemButton');
+  
+  returnButton.addEventListener('click', function() {
+    // Define common return reasons
+    const returnReasons = [
+      'Damaged product received',
+      'Wrong item received',
+      'Product does not match description',
+      'Product arrived too late',
+      'Changed my mind',
+      'Quality not as expected',
+      'Received duplicate item',
+      'Other reason'
+    ];
+    
+    // Create reasons dropdown HTML
+    const reasonsOptions = returnReasons.map(reason => 
+      `<option value="${reason}">${reason}</option>`
+    ).join('');
+    
+    // Show return modal with SweetAlert2
+    Swal.fire({
+      title: 'Return Item',
+      html: `
+        <div class="text-left mb-4">
+          <label for="returnReason" class="block text-sm font-medium text-gray-700 mb-2">
+            Please select a reason for the return
+          </label>
+          <select id="returnReason" class="block w-full p-2 border border-gray-300 rounded-md">
+            <option value="">-- Select a reason --</option>
+            ${reasonsOptions}
+          </select>
+          <div id="otherReasonContainer" class="hidden mt-3">
+            <label for="otherReason" class="block text-sm font-medium text-gray-700 mb-2">
+              Please specify your reason
+            </label>
+            <textarea id="otherReason" class="block w-full p-2 border border-gray-300 rounded-md" rows="3"></textarea>
+          </div>
+        </div>
+      `,
+      showCancelButton: true,
+      confirmButtonText: 'Submit Return Request',
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      preConfirm: () => {
+        const reason = document.getElementById('returnReason').value;
+        const otherReason = document.getElementById('otherReason').value;
+        
+        if (!reason) {
+          Swal.showValidationMessage('Please select a return reason');
+          return false;
+        }
+        
+        if (reason === 'Other reason' && !otherReason.trim()) {
+          Swal.showValidationMessage('Please specify your reason for return');
+          return false;
+        }
+        
+        return {
+          reason: reason === 'Other reason' ? otherReason : reason
+        };
+      },
+      didOpen: () => {
+        // Add event listener to show "Other reason" text area if selected
+        const reasonSelect = document.getElementById('returnReason');
+        const otherReasonContainer = document.getElementById('otherReasonContainer');
+        
+        reasonSelect.addEventListener('change', function() {
+          if (this.value === 'Other reason') {
+            otherReasonContainer.classList.remove('hidden');
+          } else {
+            otherReasonContainer.classList.add('hidden');
+          }
+        });
+      }
+    }).then((result) => {
+      if (result.isConfirmed) {
+        // Show confirmation dialog
+        Swal.fire({
+          title: 'Confirm Return',
+          text: 'Are you sure you want to return this item?',
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonText: 'Yes, return it',
+          cancelButtonText: 'Cancel'
+        }).then((confirmResult) => {
+          if (confirmResult.isConfirmed) {
+            // Process the return request
+            processReturnRequest(result.value.reason, orderData);
+          }
+        });
+      }
+    });
+  });
+}
+
+function processReturnRequest(reason, orderData) {
+  // Add loading state
+  Swal.fire({
+    title: 'Processing...',
+    text: 'Submitting your return request',
+    allowOutsideClick: false,
+    didOpen: () => {
+      Swal.showLoading();
+    }
+  });
+  
+  // Send the return request to the server
+  fetch('/user/returnRequest', {  // Make sure this matches your route in userRoute.js
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      orderId: orderData.orderId,
+      itemId: orderData.itemId,
+      productId: orderData.productId,
+      quantity: orderData.quantity,
+      reason: reason
+    })
+  })
+  .then(response => {
+    if (!response.ok) {
+      return response.text().then(text => {
+        console.error('Server error response:', text);
+        throw new Error(`Request failed with status ${response.status}`);
+      });
+    }
+    return response.json();
+  })
+  .then(data => {
+    // Show success message
+    Swal.fire({
+      title: 'Return Request Submitted',
+      text: 'Your return request has been submitted successfully. We will process it within 1-2 business days.',
+      icon: 'success',
+      confirmButtonText: 'OK'
+    }).then(() => {
+      // Reload the page to reflect the status change
+      window.location.reload();
+    });
+  })
+  .catch(error => {
+    console.error('Error submitting return request:', error);
+    // Show detailed error message
+    Swal.fire({
+      title: 'Error',
+      text: 'There was a problem submitting your return request: ' + error.message,
+      icon: 'error',
+      confirmButtonText: 'OK'
+    });
+  });
+}
+</script>
+</body>
+</html>

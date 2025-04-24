@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="zxx">
+<head>
+    <meta charset="UTF-8">
+    <meta name="description" content="Male_Fashion Template">
+    <meta name="keywords" content="Male_Fashion, unica, creative, html">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Aromatique</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        header {
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 20px;
+        }
+    </style>
+</head>
+<body class="font-['Nunito_Sans']">
+    <!-- Header -->
+    <header class="sticky top-0 bg-white shadow-md z-50">
+        <div class="container mx-auto px-4">
+            <div class="flex items-center justify-between py-4">
+                <!-- Logo -->
+                <div class="w-1/4">
+                    <a href="/user/home">
+                        <img src="/uploads/logo.png" alt="Logo" class="h-11" style="height: 100px; width: 100px;">
+                    </a>
+                </div>
+                <div class="col-lg-6 col-md-6 flex justify-center">
+                    <nav class="header__menu mobile-menu">
+                        <ul class="flex space-x-6">
+                            <li class="active"><a href="/user/home">Home</a></li>
+                            <li><a href="/user/shopping">Shop</a></li>
+                        </ul>
+                    </nav>
+                </div>
+
+                <!-- Navigation -->
+                <div class="flex items-center space-x-6">
+                    <% if (user) { %>
+                        <div class="relative">
+                            <button id="user-button" class="sign-in-link focus:outline-none">
+                                <%= user.fullname %>
+                            </button>
+                            <div id="user-dropdown" class="absolute right-0 mt-2 w-40 bg-white shadow-md rounded-md hidden">
+                                <a href="/user/viewProfile" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Profile</a>
+                                <a href="/user/myOrders" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">My orders</a>
+                                <a href="/user/wallet" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Wallet</a>
+                                
+                                <button id="logout-button" class="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-left">
+                                    Logout
+                                </button>
+                                
+                            </div>
+                        </div>
+                    <% } else { %>
+                        <a href="/user/signup" class="sign-in-link">Sign Up</a>
+                        <a href="/user/userLogin" class="sign-in-link">Log in</a>
+                    <% } %>
+                    
+                    <!-- Wishlist Icon -->
+                    <a href="/user/wishlist" class="relative">
+                        <i class="fas fa-heart text-xl text-gray-700"></i>
+                    </a>
+                    
+                    <!-- Cart Icon -->
+                    <a href="/user/cart" class="relative">
+                        <i class="fas fa-shopping-cart text-xl text-gray-700"></i>
+                        <span class="absolute -top-2 -right-2 bg-red-500 text-white text-xs px-2 py-1 rounded-full"><%= cart.items.length %></span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const userButton = document.getElementById("user-button");
+            const dropdownMenu = document.getElementById("user-dropdown");
+
+            if (userButton) {
+                userButton.addEventListener("click", function (event) {
+                    event.stopPropagation(); // Prevent event from bubbling
+                    dropdownMenu.classList.toggle("hidden"); // Toggle visibility
+                });
+
+                // Close dropdown when clicking outside
+                document.addEventListener("click", function (event) {
+                    if (!userButton.contains(event.target) && !dropdownMenu.contains(event.target)) {
+                        dropdownMenu.classList.add("hidden");
+                    }
+                });
+            }
+        });
+
+
+
+
+        document.addEventListener("DOMContentLoaded", function () {
+        const logoutButton = document.getElementById("logout-button");
+
+        if (logoutButton) {
+            logoutButton.addEventListener("click", async function () {
+                try {
+                    const response = await fetch("/user/logout", {
+                        method: "DELETE", // Ensure it's a POST request
+                        credentials: "include" // Send cookies if using sessions
+                    });
+
+                    if (response.ok) {
+                        window.location.href = "/user/userLogin"; // Redirect to login page
+                    } else {
+                        alert("Logout failed. Please try again.");
+                    }
+                } catch (error) {
+                    console.error("Error logging out:", error);
+                }
+            });
+        }
+    });
+    </script>
+</body>
+</html>

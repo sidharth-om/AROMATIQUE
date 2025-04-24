@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Forgot Password</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f4f6f9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin-left: 180px;
+        }
+        .forgot-container {
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            width: 100%;
+            max-width: 400px;
+        }
+        .forgot-title {
+            text-align: center;
+            margin-bottom: 25px;
+            color: #333;
+            font-weight: 600;
+        }
+        .btn-submit {
+            background-color: #007bff;
+            border: none;
+            transition: background-color 0.3s ease;
+        }
+        .btn-submit:hover {
+            background-color: #0056b3;
+        }
+        .form-control:focus {
+            border-color: #007bff;
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+        }
+    </style>
+</head>
+<body>
+    <div class="container" >
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="forgot-container">
+                    <h2 class="forgot-title">Forgot Password</h2>
+                    <form id="forgotForm">
+                        <div class="mb-3">
+                            <label for="emailInput" class="form-label">Email address</label>
+                            <input 
+                                type="email" 
+                                name="email" 
+                                id="emailInput"
+                                class="form-control" 
+                                placeholder="Enter your email" 
+                                required
+                            >
+                            <div class="form-text">
+                                We'll send a one-time password to reset your account.
+                            </div>
+                        </div>
+                        <button 
+                            type="submit" 
+                            class="btn btn-primary btn-submit w-100"
+                        >
+                            Send OTP
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('forgotForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = Object.fromEntries(new FormData(e.target).entries());
+            const res = await fetch('/user/sendForgotOtp', { 
+                method: 'POST', 
+                headers: { 'Content-Type': 'application/json' }, 
+                body: JSON.stringify(formData) 
+            });
+            const result = await res.json();
+            if(result.success) {
+                window.location.href = '/user/resetPassword';
+            } else {
+                alert(result.message);
+            }
+        });
+    </script>
+
+    <!-- Bootstrap JS (optional, for additional Bootstrap features) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

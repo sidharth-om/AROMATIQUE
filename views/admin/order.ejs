@@ -1,0 +1,475 @@
+<%- include("partials/header") %>
+
+<!-- order-management.ejs -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Order Management | Admin Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-50">
+  <div class="min-h-screen flex flex-col">
+  
+
+    <!-- Main content -->
+    <div class="container mx-auto px-6 py-8 flex-grow">
+      <div class="flex justify-between items-center mb-6">
+        <h2 class="text-3xl font-bold text-gray-800">Order Management</h2>
+        <div class="flex items-center space-x-3">
+          <div class="flex items-center space-x-2">
+            <span class="text-gray-600">Filter:</span>
+            <select class="bg-white border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+              <option>All Orders</option>
+              <option>Today</option>
+              <option>This Week</option>
+              <option>This Month</option>
+            </select>
+          </div>
+          <div class="flex items-center space-x-2">
+            <span class="text-gray-600">Status:</span>
+            <select class="bg-white border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+              <option>All</option>
+              <option>Pending</option>
+              <option>Processing</option>
+              <option>Shipped</option>
+              <option>Delivered</option>
+              <option>Cancelled</option>
+              <option>Return Request</option>
+            </select>
+          </div>
+          <button class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg transition duration-200 flex items-center">
+            <i class="fas fa-download mr-2"></i> Export
+          </button>
+        </div>
+      </div>
+
+      <!-- Order Stats Cards -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-blue-500">
+          <div class="flex items-center">
+            <div class="p-3 bg-blue-100 rounded-full">
+              <i class="fas fa-shopping-cart text-blue-500 text-xl"></i>
+            </div>
+            <div class="ml-4">
+              <h3 class="text-gray-500 text-sm">Total Orders</h3>
+              <p class="text-2xl font-bold">1,248</p>
+            </div>
+          </div>
+          <div class="mt-4 text-sm text-green-500">
+            <i class="fas fa-arrow-up"></i> 12% from last month
+          </div>
+        </div>
+        
+        <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-yellow-500">
+          <div class="flex items-center">
+            <div class="p-3 bg-yellow-100 rounded-full">
+              <i class="fas fa-clock text-yellow-500 text-xl"></i>
+            </div>
+            <div class="ml-4">
+              <h3 class="text-gray-500 text-sm">Pending Orders</h3>
+              <p class="text-2xl font-bold">42</p>
+            </div>
+          </div>
+          <div class="mt-4 text-sm text-red-500">
+            <i class="fas fa-arrow-up"></i> 5% from last month
+          </div>
+        </div>
+        
+        <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-green-500">
+          <div class="flex items-center">
+            <div class="p-3 bg-green-100 rounded-full">
+              <i class="fas fa-check-circle text-green-500 text-xl"></i>
+            </div>
+            <div class="ml-4">
+              <h3 class="text-gray-500 text-sm">Completed Orders</h3>
+              <p class="text-2xl font-bold">986</p>
+            </div>
+          </div>
+          <div class="mt-4 text-sm text-green-500">
+            <i class="fas fa-arrow-up"></i> 18% from last month
+          </div>
+        </div>
+        
+        <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-purple-500">
+          <div class="flex items-center">
+            <div class="p-3 bg-purple-100 rounded-full">
+              <i class="fas fa-dollar-sign text-purple-500 text-xl"></i>
+            </div>
+            <div class="ml-4">
+              <h3 class="text-gray-500 text-sm">Total Revenue</h3>
+              <p class="text-2xl font-bold">$34,742</p>
+            </div>
+          </div>
+          <div class="mt-4 text-sm text-green-500">
+            <i class="fas fa-arrow-up"></i> 8% from last month
+          </div>
+        </div>
+      </div>
+
+      <!-- Orders Table -->
+      <div class="bg-white rounded-lg shadow-md overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
+          <h3 class="text-xl font-semibold text-gray-800">Recent Orders</h3>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full">
+            <thead class="bg-gray-100">
+              <tr>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Order ID</th>
+                <!-- <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th> -->
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer Name</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product Name</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Amount</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Payment Method</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200">
+              <% orders.forEach(order => { %>
+                <% order.items.forEach((item,index)=>{ %>
+              <tr class="hover:bg-gray-50 transition-colors">
+                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-indigo-600">
+                  #<%= order.orderId %>
+                </td>
+                <!-- <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                  <%= order.orderDate %>
+                </td> -->
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                  <%= order.userId.fullname %>
+                </td>
+               
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                  <%= item.productId.name %>
+                </td>
+               
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                  <%= item.quantity %>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                    ₹<%= item.itemSalePrice %>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-800">
+                    ₹<%= item.itemSalePrice*item.quantity %>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                  <span class="<%= order.paymentMethod === 'Credit Card' ? 'text-green-600' : 'text-blue-600' %>">
+                    <i class="<%= order.paymentMethod === 'Credit Card' ? 'fas fa-credit-card' : 'fas fa-money-bill-wave' %> mr-1"></i>
+                    <%= order.paymentMethod %>
+                  </span>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm">
+                 <!-- Example of modified status dropdown with all necessary data attributes -->
+              <!-- For order status dropdown -->
+                <!-- <select 
+                class="form-select status-dropdown rounded-md py-1 px-2 border text-sm
+                <%= order.status === 'pending' ? 'bg-yellow-100 text-yellow-800 border-yellow-300' : 
+                order.status === 'processing' ? 'bg-blue-100 text-blue-800 border-blue-300' :
+                order.status === 'shipped' ? 'bg-indigo-100 text-indigo-800 border-indigo-300' : 
+                order.status === 'delivered' ? 'bg-green-100 text-green-800 border-green-300' :
+                order.status === 'cancelled' ? 'bg-red-100 text-red-800 border-red-300' :
+                order.status === 'return request' ? 'bg-purple-100 text-purple-800 border-purple-300' :
+                order.status === 'returned' ? 'bg-purple-100 text-purple-800 border-purple-300' :
+                order.status === 'failed' ? 'bg-red-100 text-red-800 border-red-300' :
+                'bg-gray-100 text-gray-800 border-gray-300' %>"
+                data-order-id="<%= order.orderId %>"
+                data-original-value="<%= order.status %>"
+                >
+                <option value="pending" <%= order.status === 'pending' ? 'selected' : '' %>>Pending</option>
+                <option value="processing" <%= order.status === 'processing' ? 'selected' : '' %>>Processing</option>
+                <option value="shipped" <%= order.status === 'shipped' ? 'selected' : '' %>>Shipped</option>
+                <option value="delivered" <%= order.status === 'delivered' ? 'selected' : '' %>>Delivered</option>
+                <option value="cancelled" <%= order.status === 'cancelled' ? 'selected' : '' %>>Cancelled</option>
+                <option value="return request" <%= order.status === 'return request' ? 'selected' : '' %>>Return Request</option>
+                <option value="returned" <%= order.status === 'returned' ? 'selected' : '' %>>Returned</option>
+                <option value="failed" <%= order.status === 'failed' ? 'selected' : '' %>>Failed</option>
+                </select> -->
+
+                  <!-- For item status dropdown -->
+                 <!-- For item status dropdown -->
+                <select 
+                class="form-select status-dropdown rounded-md py-1 px-2 border text-sm
+                <%= item.itemStatus === 'pending' ? 'bg-yellow-100 text-yellow-800 border-yellow-300' : 
+                item.itemStatus === 'processing' ? 'bg-blue-100 text-blue-800 border-blue-300' :
+                item.itemStatus === 'shipped' ? 'bg-indigo-100 text-indigo-800 border-indigo-300' : 
+                item.itemStatus === 'delivered' ? 'bg-green-100 text-green-800 border-green-300' :
+                item.itemStatus === 'cancelled' ? 'bg-red-100 text-red-800 border-red-300' :
+                item.itemStatus === 'return request' ? 'bg-purple-100 text-purple-800 border-purple-300' :
+                item.itemStatus === 'returned' ? 'bg-purple-100 text-purple-800 border-purple-300' :
+                'bg-gray-100 text-gray-800 border-gray-300' %>"
+                data-order-id="<%= order.orderId %>"
+                data-product-id="<%= item.productId._id %>"
+                data-original-value="<%= item.itemStatus %>"
+                data-is-item="true"
+                <%= (item.itemStatus === 'delivered' || item.itemStatus === 'returned') ? 'disabled' : '' %>
+                >
+                <option value="pending" <%= item.itemStatus === 'pending' ? 'selected' : '' %>>Pending</option>
+                <option value="processing" <%= item.itemStatus === 'processing' ? 'selected' : '' %>>Processing</option>
+                <option value="shipped" <%= item.itemStatus === 'shipped' ? 'selected' : '' %>>Shipped</option>
+                <option value="delivered" <%= item.itemStatus === 'delivered' ? 'selected' : '' %>>Delivered</option>
+                <option value="cancelled" <%= item.itemStatus === 'cancelled' ? 'selected' : '' %>>Cancelled</option>
+                <option value="return request" <%= item.itemStatus === 'return request' ? 'selected' : '' %>>Return Request</option>
+                <option value="returned" <%= item.itemStatus === 'returned' ? 'selected' : '' %>>Returned</option>
+                </select>                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                  <div class="flex justify-end space-x-2">
+                    <button class="text-indigo-600 hover:text-indigo-900 focus:outline-none view-order-btn" 
+                    title="View Order" 
+                    data-order-id="<%= order.orderId %>"
+                    data-product-index="<%= index %>"
+                    data-product-id="<%= item.productId._id %>">
+                    <i class="fas fa-eye"></i>
+                  </button>
+                   
+                  </div>
+                </td>
+              </tr>
+              <% }); %>
+              <% }) %>
+              
+            
+            </tbody>
+          </table>
+        </div>
+        
+        <!-- Pagination -->
+        <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 flex items-center justify-between">
+          <div class="flex-1 flex justify-between sm:hidden">
+            <a href="#" class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+              Previous
+            </a>
+            <a href="#" class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+              Next
+
+              <%- include("partials/footer") %>
+
+
+              <script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Get all status dropdowns
+  const statusDropdowns = document.querySelectorAll('.status-dropdown');
+  
+  // Add change event listener to each dropdown
+  statusDropdowns.forEach(dropdown => {
+    // Store the original value to allow canceling the change
+    let originalValue = dropdown.value;
+    
+    // Skip adding event listeners to disabled dropdowns
+    if (dropdown.disabled) {
+      return;
+    }
+    
+    dropdown.addEventListener('change', function(e) {
+      const newStatus = this.value.toLowerCase(); // Convert to lowercase to match schema
+      const orderId = this.getAttribute('data-order-id');
+      const productId = this.getAttribute('data-product-id');
+      const isItemUpdate = this.hasAttribute('data-is-item');
+      
+      // Create appropriate message for confirmation
+      let confirmMessage;
+      if (isItemUpdate) {
+        confirmMessage = `Are you sure you want to change the item status in order #${orderId} to ${newStatus}?`;
+      } else {
+        confirmMessage = `Are you sure you want to change the order #${orderId} status to ${newStatus}?`;
+      }
+      
+      // Show confirmation dialog
+      if (confirm(confirmMessage)) {
+        // Send AJAX request to backend
+        if (isItemUpdate) {
+          updateOrderItemStatus(orderId, productId, newStatus, this);
+        } else {
+          updateOrderStatus(orderId, newStatus, this);
+        }
+      } else {
+        // Reset to original value if user cancels
+        this.value = originalValue;
+      }
+    });
+    
+    // Update the original value when focus is gained
+    dropdown.addEventListener('focus', function() {
+      originalValue = this.value;
+    });
+  });
+  
+  // Function to send order status update to backend
+  function updateOrderStatus(orderId, status, dropdownElement) {
+    // Show loading state
+    dropdownElement.disabled = true;
+    
+    // Create request
+    fetch('/admin/updateStatus', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        orderId: orderId,
+        status: status
+      })
+    })
+    .then(handleResponse)
+    .then(data => {
+      handleSuccess(data, dropdownElement, status);
+      
+      // If status is now a terminal state (delivered or returned), keep it disabled
+      if (status === 'delivered' || status === 'returned') {
+        dropdownElement.disabled = true;
+      } else {
+        dropdownElement.disabled = false;
+      }
+      
+      // If it's a return request, may need to update the returnRequest object
+      if (status === 'return request') {
+        // No additional action needed here as backend will handle this
+      }
+    })
+    .catch(error => handleError(error, dropdownElement, originalValue))
+    .finally(() => {
+      // Only re-enable if not a terminal status
+      if (dropdownElement.value !== 'delivered' && dropdownElement.value !== 'returned') {
+        dropdownElement.disabled = false;
+      }
+    });
+  }
+  
+  // Function to send item status update to backend
+  function updateOrderItemStatus(orderId, productId, status, dropdownElement) {
+    // Show loading state
+    dropdownElement.disabled = true;
+    
+    // Gather any additional data (like reason for return) if needed
+    let additionalData = {};
+    if (status === 'return request') {
+      // For return requests, we might want to capture a reason
+      const reason = prompt("Please enter reason for return request:", "");
+      if (reason !== null) {
+        additionalData.reason = reason;
+      }
+    }
+    
+    // Create request
+    fetch('/admin/updateItemStatus', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        orderId: orderId,
+        productId: productId,
+        status: status,
+        ...additionalData
+      })
+    })
+    .then(handleResponse)
+    .then(data => {
+      handleSuccess(data, dropdownElement, status);
+      
+      // If status is now a terminal state (delivered or returned), keep it disabled
+      if (status === 'delivered' || status === 'returned') {
+        dropdownElement.disabled = true;
+      } else {
+        dropdownElement.disabled = false;
+      }
+    })
+    .catch(error => handleError(error, dropdownElement, originalValue))
+    .finally(() => {
+      // Only re-enable if not a terminal status
+      if (dropdownElement.value !== 'delivered' && dropdownElement.value !== 'returned') {
+        dropdownElement.disabled = false;
+      }
+    });
+  }
+  
+  // Rest of your code remains the same...
+  // Helper function to handle fetch response
+  function handleResponse(response) {
+    if (!response.ok) {
+      throw new Error('Network response was not ok');
+    }
+    return response.json();
+  }
+  
+  // Handle successful response
+  function handleSuccess(data, dropdownElement, status) {
+    showNotification('Status updated successfully!', 'success');
+    updateDropdownStyle(dropdownElement, status);
+  }
+  
+  // Handle error
+  function handleError(error, dropdownElement, originalValue) {
+    console.error('Error updating status:', error);
+    showNotification('Failed to update status. Please try again.', 'error');
+    dropdownElement.value = originalValue;
+  }
+  
+  // Function to update dropdown styling based on status
+  function updateDropdownStyle(dropdown, status) {
+    // Remove all existing status classes
+    dropdown.classList.remove(
+      'bg-yellow-100', 'text-yellow-800', 'border-yellow-300',
+      'bg-blue-100', 'text-blue-800', 'border-blue-300',
+      'bg-indigo-100', 'text-indigo-800', 'border-indigo-300',
+      'bg-green-100', 'text-green-800', 'border-green-300',
+      'bg-red-100', 'text-red-800', 'border-red-300',
+      'bg-purple-100', 'text-purple-800', 'border-purple-300'
+    );
+    
+    // Add appropriate classes based on new status (lowercase in your schema)
+    if (status === 'pending') {
+      dropdown.classList.add('bg-yellow-100', 'text-yellow-800', 'border-yellow-300');
+    } else if (status === 'processing') {
+      dropdown.classList.add('bg-blue-100', 'text-blue-800', 'border-blue-300');
+    } else if (status === 'shipped') {
+      dropdown.classList.add('bg-indigo-100', 'text-indigo-800', 'border-indigo-300');
+    } else if (status === 'delivered') {
+      dropdown.classList.add('bg-green-100', 'text-green-800', 'border-green-300');
+    } else if (status === 'cancelled' || status === 'failed') {
+      dropdown.classList.add('bg-red-100', 'text-red-800', 'border-red-300');
+    } else if (status === 'return request' || status === 'returned') {
+      dropdown.classList.add('bg-purple-100', 'text-purple-800', 'border-purple-300');
+    }
+  }
+  
+  // Function to show notification
+  function showNotification(message, type) {
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.className = `fixed top-4 right-4 px-6 py-3 rounded-md shadow-md transition-opacity duration-300 z-50 ${
+      type === 'success' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
+    }`;
+    notification.textContent = message;
+    
+    // Add to document
+    document.body.appendChild(notification);
+    
+    // Remove after delay
+    setTimeout(() => {
+      notification.style.opacity = '0';
+      setTimeout(() => {
+        document.body.removeChild(notification);
+      }, 300);
+    }, 3000);
+  }
+  
+  const viewOrderButtons = document.querySelectorAll('.view-order-btn');
+  viewOrderButtons.forEach(button => {
+    button.addEventListener('click', function() {
+      const orderId = this.getAttribute('data-order-id');
+      const productIndex = this.getAttribute('data-product-index');
+      const productId = this.getAttribute('data-product-id');
+
+      window.location.href = `/admin/orderDetail?orderId=${orderId}&productIndex=${productIndex}&productId=${productId}`;
+    });
+  });
+});
+
+    
+    
+              </script>

@@ -1,0 +1,342 @@
+<%- include("partials/header") %>
+<head>
+  <link
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/sweetalert2@10/dist/sweetalert2.min.css"
+
+
+  />
+  <style>
+    .search-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .add-product-btn {
+      white-space: nowrap;
+    }
+
+    .table th,
+    .table td {
+      text-align: center; /* Align table headers and data */
+      vertical-align: middle;
+    }
+
+    .product-image {
+      width: 50px;
+      height: 50px;
+      object-fit: cover;
+      border-radius: 5px;
+    }
+  </style>
+</head>
+
+<div class="content-header">
+  <h2 class="content-title card-title text-center">Products</h2>
+</div>
+
+<header class="card-header text-center mb-20">
+  <form action="/admin/products/" method="get" class="d-inline">
+      <div class="input-group input-group-sm border border-1 border-grey rounded-pill" 
+           style="width: 500px; margin-left: 230px; display: flex;">
+           
+          <input type="text" class="form-control border-0 rounded-pill" 
+                 placeholder="Search customers..." 
+                 name="search" 
+                 id="searchInput"
+                 value="<%= searchQuery %>">
+          
+          <button class="btn border-0" type="submit">Search</button>
+          
+          <button type="button" class="btn border-0 text-danger" id="clearSearch">✖</button>
+      </div>
+  </form>
+</header>
+    <!-- Add Product Button -->
+    <a href="/admin/addProduct" class="btn btn-primary add-product-btn"
+      >Add Product</a
+    >
+ 
+
+<div class="right mt-5">
+  <table class="table table-striped">
+    <thead class="table-dark">
+     
+
+      <tr>
+        <th scope="col"><b>Image</b></th>
+        <th scope="col"><b>Product Name</b></th>
+        <th scope="col"><b>Brand</b></th>
+        <th scope="col"><b>Category</b></th>
+        <th scope="col"><b>Offer</b></th>
+        <th scope="col"><b>Variant</b></th>
+        <th scope="col"><b>Action</b></th>
+        <th scope="col"><b>Edit</b></th>
+      </tr>
+    </thead>
+    <tbody>
+
+      <% if(products.length==0){ %>
+        <tr>
+          <td colspan="7" class="text-center fw-bold text-danger">Product not found</td>
+        </tr>
+      <% }else %>
+
+      <% products.forEach(product=>{ %>
+      <tr>
+        <td>
+          <img
+            src="/uploads/<%= product.images[0]  %>"
+            alt="Product Image"
+            class="product-image"
+          />
+        </td>
+        <!-- <td>Sample Product</td> -->
+        <td><%= product.name %></td>
+        <td><%= product.brand.name%></td>
+        <td><%= product.categoryId.name %></td>
+        <td><%= product.offer  %></td>
+
+        <td><% product.variants.forEach(variant=>{ %><%= variant.volume %>ml</td>
+        <% }) %>
+        <!-- <td>
+          <button class="btn btn-danger">
+            <a href="#" class="text-white text-decoration-none">Block</a>
+          </button>
+          <button class="btn btn-success">
+            <a href="#" class="text-white text-decoration-none">Unblock</a>
+          </button>
+        </td> -->
+
+        <!-- <td>
+          <button 
+            class="btn status-toggle-btn" 
+            data-product-id="<%= product._id %>"
+            data-active="<%= product.isActive %>"
+            onclick="toggleProductStatus(this)"
+          >
+            <span class="status-text">
+              <%= product.isActive ? 'Active' : 'Inactive' %>
+            </span>
+          </button>
+        </td> -->
+        <td>
+          <button class="btn toggle-status <%= product.isActive ? 'btn-danger' : 'btn-success' %>" 
+              data-id="<%= product._id %>" 
+              style="width: 80px;">
+              <span><%= product.isActive ? 'Block' : 'Unblock' %></span>
+          </button>
+      </td>
+       
+
+        <!-- Edit Button to Trigger Modal -->
+        <td>
+          <button
+          class="btn btn-info text-white" onclick="redirectEdit('<%= product._id%>')">
+          Edit
+        </button>
+        
+          
+        </td>
+
+      </tr>
+      <% }) %>
+    </tbody>
+  </table>
+</div>
+
+<div class="pagination-container d-flex justify-content-center mt-4">
+  <nav>
+    <ul class="pagination">
+      <% if (currentPage > 1) { %>
+        <li class="page-item">
+          <a class="page-link" href="?page=<%= currentPage - 1 %>&search=<%= searchQuery %>">Previous</a>
+        </li>
+      <% } %>
+
+      <% for (let i = 1; i <= totalPages; i++) { %>
+        <li class="page-item <%= i === currentPage ? 'active' : '' %>">
+          <a class="page-link" href="?page=<%= i %>&search=<%= searchQuery %>"><%= i %></a>
+        </li>
+      <% } %>
+
+      <% if (currentPage < totalPages) { %>
+        <li class="page-item">
+          <a class="page-link" href="?page=<%= currentPage + 1 %>&search=<%= searchQuery %>">Next</a>
+        </li>
+      <% } %>
+    </ul>
+  </nav>
+</div>
+
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@10/dist/sweetalert2.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+
+<%- include("partials/footer") %>
+
+<script>
+  
+
+async function redirectEdit(productid){
+  console.log(productid)
+  const result = await Swal.fire({
+            title: "EDIT PRODUCT",
+            text: 'Are you sure you want to edit the product?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: "YES",
+            cancelButtonText: 'Cancel'
+          });
+          if(result.isConfirmed){
+            try {
+                window.location.href=`/admin/editProducts/${productid}`
+            } catch (error) {
+                console.log(error)
+            }
+          }
+}
+
+  
+
+ async function fetchCategoriesandBrand(params) {
+    try {
+        const categoryResponse=await fetch("/admin/getCatagories")
+        const brandResponse=await fetch("/admin/getBrand")
+
+        const categoryResult=await categoryResponse.json()
+        const brandResult=await brandResponse.json()
+
+        console.log("catres:",categoryResult)
+        console.log("brandres:",brandResult)
+
+        //category dropdown
+
+        const catagorySelect=document.getElementById("category")
+        catagorySelect.innerHTML=""
+        categoryResult.forEach(category=>{
+            const option=document.createElement("option")
+            option.value=category._id
+            option.textContent=category.name
+            catagorySelect.appendChild(option)
+        })
+
+        //brand dropdown
+        const brandSelect=document.getElementById("brand")
+        brandSelect.innerHTML=""
+        brandResult.forEach(brand=>{
+            const option=document.createElement("option")
+            option.value=brand._id
+            option.textContent=brand.name
+            brandSelect.appendChild(option)
+        })
+      
+
+    } catch (error) {
+        console.log(error.message)
+    }
+ }
+
+ fetchCategoriesandBrand()
+
+ document.addEventListener("DOMContentLoaded", fetchCategoriesandBrand);
+
+
+
+ document.getElementById("clearSearch").addEventListener("click", function () {
+    document.getElementById("searchInput").value = ""; // Clear input field
+    window.location.href = "/admin/products"; // Reload page without search query
+
+    
+});
+
+
+
+
+
+document.querySelectorAll(".toggle-status").forEach(button => {
+        button.addEventListener("click", function () {
+            const productId = this.getAttribute("data-id");
+            const currentButton = this;
+            const currentStatus = this.querySelector("span").textContent.trim();
+            const actionType = currentStatus === 'Block' ? 'block' : 'unblock';
+
+            // Use SweetAlert or standard confirm
+            const confirmAction = () => {
+                fetch(`/admin/productStatus/${productId}`, {
+                    method: "POST",
+                    headers: { 
+                        "Content-Type": "application/json",
+                        // Optional: Add CSRF token if your app uses it
+                        // "X-CSRF-Token": document.querySelector('meta[name="csrf-token"]').content
+                    }
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        // Toggle button classes and text
+                        currentButton.classList.toggle("btn-danger");
+                        currentButton.classList.toggle("btn-success");
+                        currentButton.querySelector("span").textContent = data.isActive ? "Block" : "Unblock";
+
+                        // Show success message
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Status Updated',
+                            text: data.message || `Product successfully ${actionType}d`,
+                            timer: 1500,
+                            showConfirmButton: false
+                        });
+                    } else {
+                        // Show error message
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Update Failed',
+                            text: data.message || `Failed to ${actionType} product`
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: error.message || "An unexpected error occurred"
+                    });
+                });
+            };
+
+            // Confirmation dialog
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    title: `Are you sure you want to ${actionType} this product?`,
+                    text: "You can change this status again later.",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: actionType === 'block' ? '#d33' : '#3085d6',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: `Yes, ${actionType} it!`
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        confirmAction();
+                    }
+                });
+            } else {
+                // Fallback to standard confirm if SweetAlert is not available
+                if (confirm(`Are you sure you want to ${actionType} this product?`)) {
+                    confirmAction();
+                }
+            }
+        });
+    });
+ 
+
+</script>

@@ -1,0 +1,45 @@
+const express = require("express")
+const admin_route = express()
+const adminController = require("../controller/admin/adminController")
+const productController = require("../controller/admin/productController")
+const categoryController = require("../controller/admin/categoryController")
+const brandController = require("../controller/admin/brandController")
+const customerController = require("../controller/admin/customerController")
+const orderController = require("../controller/admin/orderController")
+const upload = require("../config/multer")
+const { isAdminAuthenticated, isAdminNotAuthenticated } = require("../middlware/adminAuth")
+
+const Category = require("../models/category")
+const userProductController = require("../controller/user/userProductController")
+
+// Routes accessible only when admin is NOT logged in
+admin_route.get("/adminLogin", isAdminNotAuthenticated, adminController.loadAdminLogin)
+admin_route.post("/verifyLogin", isAdminNotAuthenticated, adminController.verifyLogin)
+
+// Routes that require admin authentication
+admin_route.get("/loadDashboard", isAdminAuthenticated, adminController.loadDashboard)
+admin_route.get("/category", isAdminAuthenticated, categoryController.loadCategory)
+admin_route.post("/createCategory", isAdminAuthenticated, upload.single("image"), categoryController.createCategory)
+admin_route.post("/editCategory/:id", isAdminAuthenticated, upload.single("image"), categoryController.editCategory)
+admin_route.get("/brands", isAdminAuthenticated, brandController.loadBrands)
+admin_route.post("/addBrand", isAdminAuthenticated, upload.single("image"), brandController.addBrand)
+admin_route.post("/editBrand/:id", isAdminAuthenticated, upload.single("image"), brandController.editBrand)
+admin_route.get("/products", isAdminAuthenticated, productController.loadProducts)
+admin_route.get("/addProduct", isAdminAuthenticated, productController.addProduct)
+admin_route.post("/productStatus/:id", isAdminAuthenticated, productController.productStatus)
+admin_route.post("/addProducts", isAdminAuthenticated, upload.array("images"), productController.addProducts)
+admin_route.get("/getCatagories", isAdminAuthenticated, productController.getCatagories)
+admin_route.get("/getBrand", isAdminAuthenticated, productController.getBrand)
+admin_route.get("/editProducts/:id", isAdminAuthenticated, productController.loadEditProduct)
+admin_route.patch("/editedProducts", isAdminAuthenticated, upload.array("newImages"), productController.editedProducts)
+admin_route.delete("/removeImage", isAdminAuthenticated, productController.removeImage)
+admin_route.get("/users", isAdminAuthenticated, customerController.loadCustomers)
+admin_route.post("/customerStatus/:id", isAdminAuthenticated, customerController.customerStatus)
+admin_route.get("/orderList", isAdminAuthenticated, orderController.loadOrderList)
+admin_route.post("/updateStatus", isAdminAuthenticated, orderController.updateStatus)
+admin_route.post("/updateItemStatus", isAdminAuthenticated, orderController.updateItemStatus)
+admin_route.get("/orderDetail", isAdminAuthenticated, orderController.orderDetail)
+admin_route.get("/logout",adminController.logout)
+
+
+module.exports = admin_route

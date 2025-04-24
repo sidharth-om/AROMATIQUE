@@ -1,0 +1,192 @@
+<%- include("partials/header") %>
+<div class="content-header row">
+    <div class="d-flex justify-content-between align-items-center">
+        <h2 class="content-title card-title">Customers</h2>
+       
+    </div>
+</div>         
+        </div>
+        
+        <header class="card-header text-center mb-20">
+            <form action="/admin/users/" method="get" class="d-inline">
+                <div class="input-group input-group-sm border border-1 border-grey rounded-pill" 
+                     style="width: 500px; margin-left: 230px; display: flex;">
+                     
+                    <input type="text" class="form-control border-0 rounded-pill" 
+                           placeholder="Search customers..." 
+                           name="search" 
+                           id="searchInput"
+                           value="<%= searchQuery %>">
+                    
+                    <button class="btn border-0" type="submit">Search</button>
+                    
+                    <button type="button" class="btn border-0 text-danger" id="clearSearch">✖</button>
+                </div>
+            </form>
+        </header>
+        
+            <div class="right mt-5">
+                <table class="table table-striped">
+                    <thead>
+                      <tr>
+                        <th scope="col"><b>Slno</b></th>
+                        <th scope="col"><b>Name</b></th>
+                        <th scope="col"><b>Email</b></th>
+                        <th scope="col"><b>Phone No</b></th>
+                        <th scope="col"><b>Action</b></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+
+                        <% if(users.length==0){ %>
+                            <tr>
+                              <td colspan="7" class="text-center fw-bold text-danger">User not found</td>
+                            </tr>
+                          <% }else %>
+
+                        <% users.forEach((user,index)=>{ %>
+                            <tr>
+                                <td><%= (currentPage-1)*5 +index +1  %></td>
+                                <td><%= user.fullname  %></td>
+                                <td><%= user.email  %></td>
+                                <td><%= user.phoneNumber  %></td>
+                              
+                                <td>
+                                    <button class="btn toggle-status <%= user.isActive ? 'btn-danger' : 'btn-success' %>" 
+                                        data-id="<%= user._id %>" 
+                                        style="width: 80px;">
+                                        <span><%= user.isActive ? 'Block' : 'Unblock' %></span>
+                                    </button>
+                                </td>
+                                
+                                
+                                
+                            </tr>
+                            <% }) %>
+                    </tbody>
+                  </table>
+        </div>
+      
+        <div class="container mt-3">
+            <nav aria-label="Page navigation">
+                <ul class="pagination justify-content-center mb-20">
+                    <% if (currentPage > 1) { %>
+                        <li class="page-item">
+                            <a class="page-link" href="/admin/users?page=<%= currentPage - 1 %>&search=<%= searchQuery %>">Previous</a>
+                        </li>
+                    <% } %>
+        
+                    <% for (let i = 1; i <= totalPages; i++) { %>
+                        <li class="page-item <%= i === currentPage ? 'active' : '' %>">
+                            <a class="page-link" href="/admin/users?page=<%= i %>&search=<%= searchQuery %>"><%= i %></a>
+                        </li>
+                    <% } %>
+        
+                    <% if (currentPage < totalPages) { %>
+                        <li class="page-item">
+                            <a class="page-link" href="/admin/users?page=<%= currentPage + 1 %>&search=<%= searchQuery %>">Next</a>
+                        </li>
+                    <% } %>
+                </ul>
+            </nav>
+        </div>
+        
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+        <%- include("partials/footer") %>
+   
+
+
+        <script>
+             if (typeof Swal === 'undefined') {
+        console.error('SweetAlert is not loaded. Falling back to standard confirmation.');
+    }
+
+    document.querySelectorAll(".toggle-status").forEach(button => {
+        button.addEventListener("click", function () {
+            const userId = this.getAttribute("data-id");
+            const currentButton = this;
+            const currentStatus = this.querySelector("span").textContent.trim();
+            const actionType = currentStatus === 'Block' ? 'block' : 'unblock';
+
+            // Use SweetAlert or standard confirm
+            const confirmAction = () => {
+                fetch(`/admin/customerStatus/${userId}`, {
+                    method: "POST",
+                    headers: { 
+                        "Content-Type": "application/json",
+                        // Optional: Add CSRF token if your app uses it
+                        // "X-CSRF-Token": document.querySelector('meta[name="csrf-token"]').content
+                    }
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        // Toggle button classes and text
+                        currentButton.classList.toggle("btn-danger");
+                        currentButton.classList.toggle("btn-success");
+                        currentButton.querySelector("span").textContent = data.isActive ? "Block" : "Unblock";
+
+                        // Show success message
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Status Updated',
+                            text: data.message || `User successfully ${actionType}d`,
+                            timer: 1500,
+                            showConfirmButton: false
+                        });
+                    } else {
+                        // Show error message
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Update Failed',
+                            text: data.message || `Failed to ${actionType} user`
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: error.message || "An unexpected error occurred"
+                    });
+                });
+            };
+
+            // Confirmation dialog
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    title: `Are you sure you want to ${actionType} this user?`,
+                    text: "You can change this status again later.",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: actionType === 'block' ? '#d33' : '#3085d6',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: `Yes, ${actionType} it!`
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        confirmAction();
+                    }
+                });
+            } else {
+                // Fallback to standard confirm if SweetAlert is not available
+                if (confirm(`Are you sure you want to ${actionType} this user?`)) {
+                    confirmAction();
+                }
+            }
+        });
+    });
+
+
+            document.getElementById("clearSearch").addEventListener("click", function () {
+    document.getElementById("searchInput").value = ""; // Clear input field
+    window.location.href = "/admin/users"; // Reload page without search query
+});
+
+        </script>
+        

@@ -1,0 +1,247 @@
+<%- include("partials/header") %>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Wishlist</title>
+    <!-- Tailwind CSS via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50">
+    <div class="container mx-auto px-4 py-8">
+        <h1 class="text-3xl font-bold text-gray-800 mb-6">My Wishlist</h1>
+        
+        <% if (wishlist && wishlist.products && wishlist.products.length > 0) { %>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <% wishlist.products.forEach(item => { %>
+                    <% const product = item.productId; %>
+                    <% if (product) { %>
+                        <div class="bg-white rounded-lg shadow-md overflow-hidden border border-gray-200 hover:shadow-lg transition-shadow duration-300">
+                            <div class="relative">
+                                <% if (product.images && product.images.length > 0) { %>
+                                    <img src="/uploads/<%= product.images[0] %>" alt="<%= product.name %>" class="w-full h-48 object-cover">
+                                <% } else { %>
+                                    <div class="w-full h-48 bg-gray-200 flex items-center justify-center">
+                                        <span class="text-gray-500">No image available</span>
+                                    </div>
+                                <% } %>
+                                <button 
+                                    onclick="removeFromWishlist('<%= product._id %>')" 
+                                    class="absolute top-2 right-2 bg-white rounded-full p-2 shadow-md hover:bg-gray-100"
+                                    title="Remove from wishlist">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                </button>
+                            </div>
+                            
+                            <div class="p-4">
+                                <h2 class="text-xl font-semibold text-gray-800 mb-2"><%= product.name %></h2>
+                                <p class="text-gray-600 text-sm mb-3"><%= product.description ? product.description.substring(0, 100) + '...' : 'No description available' %></p>
+                                
+                                <% if (product.variants && product.variants.length > 0) { %>
+                                    <!-- Volume Dropdown -->
+                                    <div class="mb-3">
+                                        <select class="w-full bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-indigo-500 focus:border-indigo-500 p-2 product-volume" 
+                                                data-product-id="<%= product._id %>"
+                                                onchange="updatePrice(this, '<%= product._id %>')">
+                                            <option value="" disabled>Select Volume</option>
+                                            <% product.variants.forEach((variant, index) => { %>
+                                                <option value="<%= variant.volume %>" 
+                                                        data-price="<%= variant.regularPrice %>"
+                                                        data-variant-index="<%= index %>"
+                                                        data-stock="<%= variant.quantity %>"
+                                                        <%= index === 0 ? 'selected' : '' %>>
+                                                    <%= variant.volume %>
+                                                </option>
+                                            <% }) %>
+                                        </select>
+                                    </div>
+
+                                    <!-- Price Display -->
+                                    <div class="flex justify-between items-center mb-3">
+                                        <div id="price-container-<%= product._id %>">
+                                            <% const variant = product.variants[0]; %>
+                                            <% const discountedPrice = variant.regularPrice - (variant.regularPrice * product.offer / 100); %>
+                                            
+                                            <% if (product.offer > 0) { %>
+                                                <span class="text-sm line-through text-gray-500">$<%= variant.regularPrice.toFixed(2) %></span>
+                                                <span class="text-lg font-bold text-gray-900 ml-2">$<%= discountedPrice.toFixed(2) %></span>
+                                                <span class="text-sm text-red-600 ml-2">(<%= product.offer %>% off)</span>
+                                            <% } else { %>
+                                                <span class="text-lg font-bold text-gray-900">$<%= variant.regularPrice.toFixed(2) %></span>
+                                            <% } %>
+                                        </div>
+                                        
+                                        <span id="stock-status-<%= product._id %>" class="text-sm <%= variant.quantity > 0 ? 'text-green-600 bg-green-100' : 'text-red-600 bg-red-100' %> px-2 py-1 rounded-full">
+                                            <%= variant.quantity > 0 ? 'In Stock' : 'Out of Stock' %>
+                                        </span>
+                                    </div>
+                                    
+                                    <div class="flex flex-col gap-2">
+                                        <a href="/user/productView/<%= product._id %>" class="text-center text-gray-700 bg-gray-100 hover:bg-gray-200 py-2 rounded-md transition-colors duration-300">
+                                            View Details
+                                        </a>
+                                        
+                                        <button 
+                                            id="add-to-cart-btn-<%= product._id %>"
+                                            onclick="addToCartAndRemoveFromWishlist('<%= product._id %>')" 
+                                            class="<%= variant.quantity > 0 ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-gray-400 cursor-not-allowed' %> text-white py-2 rounded-md transition-colors duration-300"
+                                            <%= variant.quantity > 0 ? '' : 'disabled' %>>
+                                            <%= variant.quantity > 0 ? 'Add to Cart' : 'Out of Stock' %>
+                                        </button>
+                                    </div>
+                                <% } else { %>
+                                    <p class="text-yellow-600">Product variant information not available</p>
+                                <% } %>
+                            </div>
+                        </div>
+                    <% } %>
+                <% }) %>
+            </div>
+        <% } else { %>
+            <div class="bg-white rounded-lg shadow-md p-8 text-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                </svg>
+                <h2 class="text-2xl font-semibold text-gray-700 mb-2">Your wishlist is empty</h2>
+                <p class="text-gray-500 mb-6">Browse our products and add items to your wishlist</p>
+                <a href="/user/shopping" class="inline-block bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded-md transition-colors duration-300">
+                    Explore Products
+                </a>
+            </div>
+        <% } %>
+    </div>
+
+    
+  <%- include("partials/footer") %>
+
+    <script>
+        // Function to update price and stock status when volume is selected
+        function updatePrice(selectElement, productId) {
+            const selectedOption = selectElement.options[selectElement.selectedIndex];
+            const price = selectedOption.getAttribute('data-price');
+            const isInStock = parseInt(selectedOption.getAttribute('data-stock')) > 0;
+            const volume = selectedOption.value;
+            
+            // Get elements to update
+            const priceContainer = document.getElementById(`price-container-${productId}`);
+            const stockStatus = document.getElementById(`stock-status-${productId}`);
+            const addToCartBtn = document.getElementById(`add-to-cart-btn-${productId}`);
+            
+            // Update stock status
+            stockStatus.textContent = isInStock ? 'In Stock' : 'Out of Stock';
+            stockStatus.className = `text-sm ${isInStock ? 'text-green-600 bg-green-100' : 'text-red-600 bg-red-100'} px-2 py-1 rounded-full`;
+            
+            // Update add to cart button
+            if (isInStock) {
+                addToCartBtn.textContent = 'Add to Cart';
+                addToCartBtn.className = 'bg-emerald-600 hover:bg-emerald-700 text-white py-2 rounded-md transition-colors duration-300';
+                addToCartBtn.disabled = false;
+            } else {
+                addToCartBtn.textContent = 'Out of Stock';
+                addToCartBtn.className = 'bg-gray-400 cursor-not-allowed text-white py-2 rounded-md';
+                addToCartBtn.disabled = true;
+            }
+            
+            // For now, we're just updating the display price without considering discounts
+            // You might want to calculate discounts as well in a real implementation
+            if (price) {
+                // Get the parent product to check for offers
+                // This would need to be implemented with the actual product data structure
+                const offerElement = priceContainer.querySelector('.text-red-600');
+                const offer = offerElement ? parseFloat(offerElement.textContent.match(/\d+/)[0]) : 0;
+                
+                if (offer > 0) {
+                    const discountedPrice = (price - (price * offer / 100)).toFixed(2);
+                    priceContainer.innerHTML = `
+                        <span class="text-sm line-through text-gray-500">$${price}</span>
+                        <span class="text-lg font-bold text-gray-900 ml-2">$${discountedPrice}</span>
+                        <span class="text-sm text-red-600 ml-2">(${offer}% off)</span>
+                    `;
+                } else {
+                    priceContainer.innerHTML = `<span class="text-lg font-bold text-gray-900">$${price}</span>`;
+                }
+            }
+        }
+
+        function removeFromWishlist(productId) {
+            // Send request to remove item from wishlist
+            fetch(`/user/removeFromWishlist/${productId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => {
+                if (response.ok) {
+                    // Reload the page to reflect changes
+                    window.location.reload();
+                }
+            })
+            .catch(error => console.error('Error removing from wishlist:', error));
+        }
+
+        function addToCartAndRemoveFromWishlist(productId) {
+            // Get the selected volume for this product
+            const volumeSelector = document.querySelector(`.product-volume[data-product-id="${productId}"]`);
+            
+            if (!volumeSelector) {
+                alert('Error: Could not find volume selection for this product');
+                return;
+            }
+            
+            const selectedOption = volumeSelector.options[volumeSelector.selectedIndex];
+            const volume = selectedOption.value;
+            
+            // First add to cart
+            fetch(`/user/addtoCart/${productId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ 
+                    volume: volume,
+                    quantity: 1 
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // If successfully added to cart, remove from wishlist
+                    return fetch(`/user/removeFromWishlist/${productId}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                } else {
+                    throw new Error(data.message || 'Failed to add to cart');
+                }
+            })
+            .then(response => {
+                if (response.ok) {
+                    // Show success message and reload the page
+                    alert('Product added to cart and removed from wishlist!');
+                    window.location.reload();
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert(error.message || 'An error occurred');
+            });
+        }
+
+        // Initialize all product volume dropdowns
+        document.addEventListener('DOMContentLoaded', function() {
+            // Trigger the change event on all volume selectors to set initial states
+            document.querySelectorAll('.product-volume').forEach(select => {
+                const event = new Event('change');
+                select.dispatchEvent(event);
+            });
+        });
+    </script>
+</body>
+</html>
