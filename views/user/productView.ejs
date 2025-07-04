@@ -84,13 +84,17 @@
                     </div>
                     
                     <!-- Price and Stock Section - Will be updated by JavaScript -->
-                    <div id="priceSection" class="flex items-center mt-4">
-                        <% const variant = products.variants[0]; %>
-                        <% const discountedPrice = Math.round(variant.regularPrice - (variant.regularPrice * products.offer / 100)); %>
-                        <span class="text-3xl font-bold text-red-600" id="currentPrice">₹<%= discountedPrice%></span>
-                        <span class="ml-2 text-xl text-gray-500 line-through" id="originalPrice">₹<%= variant.regularPrice %></span>
-                        <span class="ml-2 bg-red-100 text-red-700 px-2 py-1 rounded text-sm"><%= products.offer  %>% off</span>
-                    </div>
+                   <!-- Price and Stock Section - Updated to use highest offer -->
+<div id="priceSection" class="flex items-center mt-4">
+    <% const variant = products.variants[0]; %>
+    <% const discountedPrice = Math.round(variant.regularPrice - (variant.regularPrice * highestOffer / 100)); %>
+    <span class="text-3xl font-bold text-red-600" id="currentPrice">₹<%= discountedPrice%></span>
+    <span class="ml-2 text-xl text-gray-500 line-through" id="originalPrice">₹<%= variant.regularPrice %></span>
+    <span class="ml-2 bg-red-100 text-red-700 px-2 py-1 rounded text-sm"><%= highestOffer %>% off</span>
+    <% if (products.offer && products.categoryId.offer && products.categoryId.offer > products.offer) { %>
+        <span class="ml-2 text-xs text-gray-600">(Category Offer Applied)</span>
+    <% } %>
+</div>
                     
                     <div class="mt-4 flex items-center">
                         <span class="text-green-600 font-medium" id="stockInfo"><i class="fa-solid fa-check mr-1"></i> <span id="currentStock"><%= products.variants[0].quantity %></span> In Stock</span>
@@ -393,45 +397,68 @@
         </div>
     </div>
 
-    <!-- Related Products -->
-    <div class="container mx-auto px-4 py-8">
-        <div class="border-b pb-4 mb-6">
-            <h3 class="text-2xl font-bold text-gray-800">You May Also Like</h3>
-        </div>
-        
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
-            <% relatedProduct.forEach(related => { %>
-                <div class="bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-md transition group">
-                    <a href="/user/productView/<%= related._id %>" class="block relative">
-                        <div class="absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-1 rounded">-15%</div>
-                        <img src="/uploads/<%= related.images[0] %>" class="w-full h-48 object-cover group-hover:scale-105 transition duration-300" alt="Related Product">
-                        <div class="p-4">
-                            <h5 class="font-medium text-gray-800 truncate"><%= related.name %></h5>
-                            <div class="flex items-center mt-1">
-                                <div class="flex text-yellow-400 text-xs">
-                                    <i class="fa-solid fa-star"></i>
-                                    <i class="fa-solid fa-star"></i>
-                                    <i class="fa-solid fa-star"></i>
-                                    <i class="fa-solid fa-star"></i>
-                                    <i class="fa-regular fa-star"></i>
-                                </div>
-                                <span class="text-xs text-gray-500 ml-1">(42)</span>
-                            </div>
-                            <div class="mt-2 flex items-center justify-between">
-                                <div>
-                                    <span class="font-bold text-gray-800">₹1,299</span>
-                                    <span class="text-sm text-gray-500 line-through ml-1">₹1,499</span>
-                                </div>
-                                <button class="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center hover:bg-blue-50 hover:text-blue-600 transition">
-                                    <i class="fa-solid fa-cart-plus"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </a>
-                </div>
-            <% }) %>
-        </div>
+   <!-- Related Products -->
+<div class="container mx-auto px-4 py-8">
+    <div class="border-b pb-4 mb-6">
+        <h3 class="text-2xl font-bold text-gray-800">You May Also Like</h3>
     </div>
+    
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+        <% relatedProduct.forEach(related => { %>
+            <% 
+                // Calculate highest offer for each related product
+                let productOffer = related.offer || 0;
+                let categoryOffer = 0;
+                
+                // Check if categoryId exists and is populated correctly
+                if (related.categoryId && typeof related.categoryId === 'object' && related.categoryId.offer) {
+                    categoryOffer = related.categoryId.offer;
+                }
+                
+                // Determine the highest offer for this related product
+                const relatedHighestOffer = Math.max(productOffer, categoryOffer);
+                
+                // Get regular price from first variant (if exists)
+                const regularPrice = related.variants && related.variants.length > 0 ? related.variants[0].regularPrice : 0;
+                
+                // Calculate discounted price using the highest offer
+                const discountedPrice = Math.round(regularPrice - (regularPrice * relatedHighestOffer / 100));
+            %>
+            <div class="bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-md transition group">
+                <a href="/user/productView/<%= related._id %>" class="block relative">
+                    <% if(relatedHighestOffer > 0) { %>
+                        <div class="absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-1 rounded">-<%= relatedHighestOffer %>%</div>
+                    <% } %>
+                    <img src="/uploads/<%= related.images[0] %>" class="w-full h-48 object-cover group-hover:scale-105 transition duration-300" alt="Related Product">
+                    <div class="p-4">
+                        <h5 class="font-medium text-gray-800 truncate"><%= related.name %></h5>
+                        <div class="flex items-center mt-1">
+                            <div class="flex text-yellow-400 text-xs">
+                                <i class="fa-solid fa-star"></i>
+                                <i class="fa-solid fa-star"></i>
+                                <i class="fa-solid fa-star"></i>
+                                <i class="fa-solid fa-star"></i>
+                                <i class="fa-regular fa-star"></i>
+                            </div>
+                            <span class="text-xs text-gray-500 ml-1">(42)</span>
+                        </div>
+                        <div class="mt-2 flex items-center justify-between">
+                            <div>
+                                <span class="font-bold text-gray-800">₹<%= discountedPrice %></span>
+                                <% if(relatedHighestOffer > 0) { %>
+                                    <span class="text-sm text-gray-500 line-through ml-1">₹<%= regularPrice %></span>
+                                <% } %>
+                            </div>
+                            <button class="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center hover:bg-blue-50 hover:text-blue-600 transition" onclick="addtoCart('<%= related._id %>')">
+                                <i class="fa-solid fa-cart-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        <% }) %>
+    </div>
+</div>
     <!-- Recently Viewed -->
     <div class="container mx-auto px-4 py-8">
         <div class="border-b pb-4 mb-6">
@@ -571,14 +598,13 @@
 
 
 
-
-        // Store product variant information
+// Store product variant information with highest offer
 const variants = [
   <% products.variants.forEach((variant, index) => { %>
     {
       index: <%= index %>,
       regularPrice: <%= variant.regularPrice %>,
-      discountedPrice: <%= Math.round(variant.regularPrice - (variant.regularPrice * products.offer / 100)) %>,
+      discountedPrice: <%= Math.round(variant.regularPrice - (variant.regularPrice * highestOffer / 100)) %>,
       quantity: <%= variant.quantity %>,
       volume: '<%= variant.volume %>'
     },
@@ -589,14 +615,16 @@ const variants = [
 let currentVariantIndex = 0;
 let currentMaxQuantity = variants[0].quantity;
 
-// Function to select a variant
+// Updated selectVariant function to use highest offer
 function selectVariant(index, regularPrice, originalPrice, quantity, volume) {
   // Update the current variant index
   currentVariantIndex = index;
   currentMaxQuantity = quantity;
   
-  // Update price display
-  const discountedPrice = Math.round(regularPrice - (regularPrice * <%= products.offer %> / 100));
+  // Update price display using the highest offer
+  const highestOffer = <%= highestOffer %>;
+  const discountedPrice = Math.round(regularPrice - (regularPrice * highestOffer / 100));
+  
   document.getElementById('currentPrice').textContent = `₹${discountedPrice}`;
   document.getElementById('originalPrice').textContent = `₹${regularPrice}`;
   

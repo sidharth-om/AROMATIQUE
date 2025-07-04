@@ -1,27 +1,65 @@
 const Order=require("../../models/orderModel")
 const User=require("../../models/userModel")
 const Cart=require("../../models/cartModel")
+const Product=require("../../models/productModel")
+const userAddress = require("../../models/userAdressModel");
 const PDFDocument = require('pdfkit')
 
 const orderController={
+myOrders: async (req, res) => {
+  try {
+    const userId = req.session.user.userId;
+    const searchQuery = req.query.search ? req.query.search.trim() : "";
 
-    myOrders:async (req,res) => {
-        try {
+    // Log the search query for debugging
+    console.log("Search Query:", searchQuery);
 
-            const userId=req.session.user.userId
-            // const orders=await Order.findOne({userId}).populate("items.productId")
-            const orders = await Order.find({ userId }).populate("items.productId").sort({orderDate:-1});
+    // Base filter for logged-in user's orders
+    const filter = { userId };
 
-            // console.log("orderrrrrrr",orders)
+    if (searchQuery) {
+      const searchRegex = new RegExp(searchQuery, "i");
+      filter.$or = [
+        { orderId: searchRegex },
+        { status: searchRegex },
+      ];
+    }
 
-            const email=req.session.user.email
-            const user=await User.findOne({email:email})
-             const cart=await Cart.findOne({userId})
-            res.render("user/myOrders",{orders,user,cart})
-        } catch (error) {
-            console.log(error.message)
-        }
-    },
+    // Log the filter for debugging
+    console.log("MongoDB Filter:", JSON.stringify(filter, null, 2));
+
+    // Fetch orders with populated productId
+    const orders = await Order.find(filter)
+      .populate({
+        path: "items.productId",
+        match: searchQuery ? { name: { $regex: searchQuery, $options: "i" } } : null,
+        select: "name images variants" // Include fields needed by the template
+      })
+      .sort({ createdAt: -1 }); // Changed to sort by createdAt to match frontend
+
+    // Log raw orders for debugging
+    console.log("Raw Orders:", JSON.stringify(orders, null, 2));
+
+    // Filter orders to ensure at least one item has a valid productId
+    const filteredOrders = orders.filter((order) =>
+      order.items.some((item) => item.productId !== null)
+    );
+
+    // Log filtered orders for debugging
+    console.log("Filtered Orders:", filteredOrders.length);
+
+    const email = req.session.user.email;
+    const user = await User.findOne({ email });
+    const cart = await Cart.findOne({ userId });
+
+    res.render("user/myOrders", { orders: filteredOrders, user, cart, searchQuery });
+  } catch (error) {
+    console.error("Error in myOrders:", error.message);
+    res.status(500).render("error", {
+      message: "Failed to load orders. Please try again later.",
+    });
+  }
+},
     viewOrder: async (req, res) => {
         try {
             const { orderId, itemIndex } = req.params;
@@ -29,9 +67,16 @@ const orderController={
             const userId=req.session.user.userId
             
             // Find the order by its orderId field (not MongoDB _id)
-            const order = await Order.findOne({ orderId: orderId ,})
-                .populate("items.productId")
-                .populate("address");
+           const order = await Order.findOne({ orderId: orderId })
+    .populate({
+        path: "items.productId",
+        populate: {
+            path: "categoryId",
+            model: "Category"
+        }
+    })
+    .populate("address");
+
                 
             if (!order) {
                 return res.status(404).render("error", { 
@@ -54,11 +99,8 @@ const orderController={
                 const price=item.regularPrice
                 subtotal += price * quantity
             });
-            let discount=0
-            if(subtotal>1000){
-                discount=40
-            }
-            let totalAmount=subtotal-discount
+           
+            let totalAmount=subtotal
 
             // console.log("sub::",subtotal)
             // console.log("orderItem::",orderItem)
@@ -90,6 +132,7 @@ console.log("ordd::",order)
                 pricing: {
                     // Calculate any pricing information needed by your view
                     totalAmount: order.total,
+                     couponDiscount: order.couponDiscount || 0
                     // Other pricing details...
                 }
             };
@@ -98,7 +141,7 @@ console.log("ordd::",order)
 
             const email=req.session.user.email
             const user=await User.findOne({email:email})
-            res.render("user/viewOrder", {viewData,subtotal,discount,totalAmount,user,cart});
+            res.render("user/viewOrder", {viewData,subtotal,totalAmount,user,cart});
         } catch (error) {
             console.log(error.message);
            
@@ -136,6 +179,21 @@ console.log("ordd::",order)
                     message: 'This item cannot be cancelled as it is already shipped or delivered'
                 });
             }
+
+             // ✅ Update product stock
+        const product = await Product.findById(orderItem.productId);
+        if (!product) {
+            return res.status(404).json({ success: false, message: 'Product not found for stock update' });
+        }
+
+        const variant = product.variants.find(v => v.volume === orderItem.volume);
+        if (!variant) {
+            return res.status(404).json({ success: false, message: 'Product variant not found for stock update' });
+        }
+
+        variant.quantity += orderItem.quantity;
+        await product.save();
+        console.log(`Stock updated for ${product.name} (${variant.volume})`);
             
             // Update the item status to cancelled
             orderItem.itemStatus = 'cancelled';
@@ -263,187 +321,265 @@ console.log("ordd::",order)
         }
     },
 
-    generateInvoice: async (req, res) => {
-        try {
-          const { orderId, itemId } = req.params; // Add itemId parameter
-          const userId = req.session.user.userId;
-          
-          // Find the order
-          const order = await Order.findOne({ orderId: orderId, userId: userId })
-            .populate("items.productId")
+   generateInvoice: async (req, res) => {
+    try {
+        const { orderId, itemId } = req.params;
+        const userId = req.session.user.userId;
+        
+        // Find the order with populated product and category data
+        const order = await Order.findOne({ orderId: orderId, userId: userId })
+            .populate({
+                path: "items.productId",
+                populate: {
+                    path: "categoryId",
+                    model: "Category"
+                }
+            })
             .populate("address");
             
-          if (!order) {
+        if (!order) {
             return res.status(404).render("error", { 
-              message: "Order not found" 
+                message: "Order not found" 
             });
-          }
-          
-          // Find the specific item in the order
-          const orderItem = itemId ? order.items.find(item => item._id.toString() === itemId) : null;
-          
-          // If itemId is provided but item not found
-          if (itemId && !orderItem) {
+        }
+        
+        // Find the specific item in the order
+        const orderItem = itemId ? order.items.find(item => item._id.toString() === itemId) : null;
+        
+        // If itemId is provided but item not found
+        if (itemId && !orderItem) {
             return res.status(404).render("error", { 
-              message: "Item not found in this order" 
+                message: "Item not found in this order" 
             });
-          }
-          
-          // Create a PDF document
-          const doc = new PDFDocument({ margin: 50 });
-          
-          // Set response headers for PDF download
-          res.setHeader('Content-Type', 'application/pdf');
-          res.setHeader('Content-Disposition', `attachment; filename=invoice-${orderId}${itemId ? '-item-' + itemId : ''}.pdf`);
-          
-          // Pipe the PDF directly to the response
-          doc.pipe(res);
-          
-          // Add company logo or name
-          doc.fontSize(20).text('Aromatique', { align: 'center' });
-          doc.moveDown();
-          
-          // Add invoice title
-          doc.fontSize(16).text('INVOICE', { align: 'center' });
-          doc.moveDown();
-          
-          // Add order details
-          doc.fontSize(12).text(`Invoice No: INV-${orderId}${itemId ? '-' + itemId.substring(0, 8) : ''}`);
-          doc.text(`Order Date: ${order.orderDate}`);
-          doc.text(`Order Status: ${itemId ? orderItem.itemStatus : order.status}`);
-          doc.moveDown();
-          
-          // Add customer details
-          doc.fontSize(14).text('Customer Details:');
-          doc.fontSize(12).text(`Name: ${order.address.name}`);
-          doc.text(`Address: ${order.address.address}`);
-          doc.text(`Phone: ${order.address.phoneNumber}`);
-          doc.text(`Pincode: ${order.address.pincode}`);
-          doc.moveDown();
-          
-          // Add item details
-          doc.fontSize(14).text('Order Items:');
-          doc.moveDown(0.5);
-          
-          // Create table headers
-          let yPos = doc.y;
-          doc.fontSize(10);
-          doc.text('Item', 50, yPos);
-          doc.text('Quantity', 300, yPos);
-          doc.text('Price', 400, yPos);
-          doc.text('Total', 470, yPos);
-          
-          doc.moveTo(50, yPos + 15).lineTo(550, yPos + 15).stroke();
-          doc.moveDown();
-          
-          // Add items to table - either just the specific item or all items
-          let subtotal = 0;
-          yPos = doc.y;
-          
-          // Filter items based on whether itemId is provided
-          const itemsToProcess = itemId ? [orderItem] : order.items;
-          
-          itemsToProcess.forEach((item, index) => {
-            const itemName = item.productId.name;
+        }
+        
+        // Helper function to calculate the best offer price
+        const calculateOfferPrice = (product, volume, regularPrice) => {
+            const productOffer = product.offer || 0;
+            const categoryOffer = product.categoryId?.offer || 0;
+            
+            // Get the highest offer between product and category
+            const bestOffer = Math.max(productOffer, categoryOffer);
+            
+            // Calculate the discounted price
+            const discountAmount = (regularPrice * bestOffer) / 100;
+            const offerPrice = regularPrice - discountAmount;
+            
+            return {
+                regularPrice,
+                offerPrice,
+                discountAmount,
+                bestOffer,
+                offerType: productOffer >= categoryOffer ? 'Product Offer' : 'Category Offer'
+            };
+        };
+        
+        // Create a PDF document
+        const doc = new PDFDocument({ margin: 50 });
+        
+        // Set response headers for PDF download
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', `attachment; filename=invoice-${orderId}${itemId ? '-item-' + itemId : ''}.pdf`);
+        
+        // Pipe the PDF directly to the response
+        doc.pipe(res);
+        
+        // Add company logo or name
+        doc.fontSize(20).text('Aromatique', { align: 'center' });
+        doc.moveDown();
+        
+        // Add invoice title
+        doc.fontSize(16).text('INVOICE', { align: 'center' });
+        doc.moveDown();
+        
+        // Add order details
+        doc.fontSize(12).text(`Invoice No: INV-${orderId}${itemId ? '-' + itemId.substring(0, 8) : ''}`);
+        doc.text(`Order Date: ${order.orderDate}`);
+        doc.text(`Order Status: ${itemId ? orderItem.itemStatus : order.status}`);
+        doc.moveDown();
+        
+        // Add customer details
+        doc.fontSize(14).text('Customer Details:');
+        doc.fontSize(12).text(`Name: ${order.address.name}`);
+        doc.text(`Address: ${order.address.address}`);
+        doc.text(`Phone: ${order.address.phoneNumber}`);
+        doc.text(`Pincode: ${order.address.pincode}`);
+        doc.moveDown();
+        
+        // Add item details
+        doc.fontSize(14).text('Order Items:');
+        doc.moveDown(0.5);
+        
+        // Create table headers
+        let yPos = doc.y;
+        doc.fontSize(10);
+        doc.text('Item', 50, yPos);
+        doc.text('Volume', 200, yPos);
+        doc.text('Qty', 260, yPos);
+        doc.text('Regular Price', 300, yPos);
+        doc.text('Offer Price', 380, yPos);
+        doc.text('Total', 460, yPos);
+        
+        doc.moveTo(50, yPos + 15).lineTo(550, yPos + 15).stroke();
+        doc.moveDown();
+        
+        // Add items to table
+        let subtotalRegular = 0;
+        let subtotalOffer = 0;
+        let totalDiscount = 0;
+        yPos = doc.y;
+        
+        // Filter items based on whether itemId is provided
+        const itemsToProcess = itemId ? [orderItem] : order.items;
+        
+        itemsToProcess.forEach((item, index) => {
+            const product = item.productId;
+            const volume = item.volume;
             const quantity = item.quantity;
-            const price = item.itemSalePrice || item.productId.variants[0].regularPrice;
-            const total = price * quantity;
             
-            subtotal += total;
+            // Find the variant with matching volume
+            const variant = product.variants.find(v => v.volume === volume);
+            const regularPrice = variant ? variant.regularPrice : 0;
             
-            doc.text(itemName, 50, yPos, { width: 240 });
-            doc.text(quantity.toString(), 300, yPos);
-            doc.text(`₹${price.toFixed(2)}`, 400, yPos);
-            doc.text(`₹${total.toFixed(2)}`, 470, yPos);
+            // Calculate offer pricing
+            const pricing = calculateOfferPrice(product, volume, regularPrice);
+            
+            const regularTotal = regularPrice * quantity;
+            const offerTotal = pricing.offerPrice * quantity;
+            const itemDiscount = regularTotal - offerTotal;
+            
+            subtotalRegular += regularTotal;
+            subtotalOffer += offerTotal;
+            totalDiscount += itemDiscount;
+            
+            // Add item row to PDF
+            const itemName = product.name.length > 25 ? product.name.substring(0, 25) + '...' : product.name;
+            doc.fontSize(9);
+            doc.text(itemName, 50, yPos, { width: 140 });
+            doc.text(volume, 200, yPos);
+            doc.text(quantity.toString(), 260, yPos);
+            doc.text(`₹${regularPrice.toFixed(2)}`, 300, yPos);
+            doc.text(`₹${pricing.offerPrice.toFixed(2)}`, 380, yPos);
+            doc.text(`₹${offerTotal.toFixed(2)}`, 460, yPos);
+            
+            // Show offer information if there's a discount
+            if (pricing.bestOffer > 0) {
+                yPos += 12;
+                doc.fontSize(8).fillColor('green');
+                doc.text(`${pricing.offerType}: ${pricing.bestOffer}% off`, 50, yPos);
+                doc.fillColor('black');
+            }
             
             yPos += 20;
             
             // If we're running out of space on the page, add a new page
-            if (yPos > 700) {
-              doc.addPage();
-              yPos = 50;
+            if (yPos > 680) {
+                doc.addPage();
+                yPos = 50;
             }
-          });
-          
-          // Add a line separator
-          doc.moveTo(50, yPos + 5).lineTo(550, yPos + 5).stroke();
-          yPos += 15;
-          
-          // Calculate totals - adjust for single item if necessary
-          let discount = 0;
-          if (itemId) {
-            // For single item, calculate proportional discount or use item-specific discount
-            if (orderItem.discount) {
-              discount = orderItem.discount;
-            } else if (subtotal > 1000) {
-              discount = 40;
-            }
-          } else {
+        });
+        
+        // Add a line separator
+        doc.moveTo(50, yPos + 5).lineTo(550, yPos + 5).stroke();
+        yPos += 15;
+        
+        // Calculate additional discounts (system discount, coupon, etc.)
+        let systemDiscount = 0;
+        let couponDiscount = 0;
+        
+        if (itemId) {
+            // For single item, calculate proportional discounts
+            const itemProportion = subtotalOffer / order.total;
+            systemDiscount = (order.systemDiscount || 0) * itemProportion;
+            couponDiscount = (order.couponDiscount || 0) * itemProportion;
+        } else {
             // For full order
-            if (subtotal > 1000) {
-              discount = 40;
-            }
-          }
-          
-          // Calculate proportional delivery fee and tax for single item if needed
-          const deliveryFee = itemId ? 0 : (order.deliveryFee || 0); // Usually don't charge delivery fee again for single item
-          const tax = itemId ? (subtotal * 0.18) : (order.tax || 0); // Example: 18% tax
-          const totalAmount = subtotal - discount + deliveryFee + tax;
-          
-          // Add totals
-          doc.fontSize(10);
-          doc.text('Subtotal:', 350, yPos);
-          doc.text(`₹${subtotal.toFixed(2)}`, 470, yPos);
-          yPos += 15;
-          
-          doc.text('Discount:', 350, yPos);
-          doc.text(`₹${discount.toFixed(2)}`, 470, yPos);
-          yPos += 15;
-          
-          if (deliveryFee > 0) {
+            systemDiscount = order.systemDiscount || 0;
+            couponDiscount = order.couponDiscount || 0;
+        }
+        
+        const deliveryFee = itemId ? 0 : (order.shipping || 0);
+        const finalTotal = subtotalOffer - systemDiscount - couponDiscount + deliveryFee;
+        
+        // Add pricing breakdown
+        doc.fontSize(10);
+        doc.text('Subtotal (Regular Price):', 350, yPos);
+        doc.text(`₹${subtotalRegular.toFixed(2)}`, 470, yPos);
+        yPos += 15;
+        
+        if (totalDiscount > 0) {
+            doc.text('Offer Discount:', 350, yPos);
+            doc.text(`-₹${totalDiscount.toFixed(2)}`, 470, yPos);
+            yPos += 15;
+        }
+        
+        doc.text('Subtotal (After Offers):', 350, yPos);
+        doc.text(`₹${subtotalOffer.toFixed(2)}`, 470, yPos);
+        yPos += 15;
+        
+        if (systemDiscount > 0) {
+            doc.text('Additional Discount:', 350, yPos);
+            doc.text(`-₹${systemDiscount.toFixed(2)}`, 470, yPos);
+            yPos += 15;
+        }
+        
+        if (couponDiscount > 0) {
+            doc.text('Coupon Discount:', 350, yPos);
+            doc.text(`-₹${couponDiscount.toFixed(2)}`, 470, yPos);
+            yPos += 15;
+        }
+        
+        if (deliveryFee > 0) {
             doc.text('Delivery Fee:', 350, yPos);
             doc.text(`₹${deliveryFee.toFixed(2)}`, 470, yPos);
             yPos += 15;
-          }
-          
-          if (tax > 0) {
-            doc.text('Tax:', 350, yPos);
-            doc.text(`₹${tax.toFixed(2)}`, 470, yPos);
-            yPos += 15;
-          }
-          
-          // Add a line before the total
-          doc.moveTo(350, yPos).lineTo(550, yPos).stroke();
-          yPos += 10;
-          
-          // Add total
-          doc.fontSize(12).font('Helvetica-Bold');
-          doc.text('Total Amount:', 350, yPos);
-          doc.text(`₹${totalAmount.toFixed(2)}`, 470, yPos);
-          
-          // Add payment information
-          doc.moveDown(2);
-          doc.fontSize(10).font('Helvetica');
-          doc.text('Payment Information:');
-          doc.text(`Payment Method: ${order.paymentMethod}`);
-          doc.text(`Payment Status: ${itemId ? orderItem.paymentStatus || order.paymentStatus : order.paymentStatus}`);
-          
-          // Add footer with terms
-          doc.fontSize(10);
-          doc.text('Thank you for shopping with us!', 50, 700);
-          doc.text('For any queries related to this invoice, please contact our support.', 50, 715);
-          
-          // Finalize the PDF
-          doc.end();
-          
-        } catch (error) {
-          console.log(error.message);
-          res.status(500).render("error", { 
-            message: "Failed to generate invoice" 
-          });
         }
-      }
-      
+        
+        // Add a line before the total
+        doc.moveTo(350, yPos).lineTo(550, yPos).stroke();
+        yPos += 10;
+        
+        // Add total
+        doc.fontSize(12).font('Helvetica-Bold');
+        doc.text('Total Amount:', 350, yPos);
+        doc.text(`₹${finalTotal.toFixed(2)}`, 470, yPos);
+        
+        // Add savings summary
+        const totalSavings = totalDiscount + systemDiscount + couponDiscount;
+        if (totalSavings > 0) {
+            yPos += 20;
+            doc.fontSize(10).font('Helvetica').fillColor('green');
+            doc.text(`Total Savings: ₹${totalSavings.toFixed(2)}`, 350, yPos);
+            doc.fillColor('black');
+        }
+        
+        // Add payment information
+        doc.moveDown(2);
+        doc.fontSize(10).font('Helvetica');
+        doc.text('Payment Information:');
+        doc.text(`Payment Method: ${order.paymentMethod}`);
+        doc.text(`Payment Status: ${itemId ? orderItem.paymentStatus || order.paymentStatus : order.paymentStatus}`);
+        
+        // Add coupon information if used
+        if (order.couponUsed) {
+            doc.text(`Coupon Used: ${order.couponUsed}`);
+        }
+        
+        // Add footer with terms
+        doc.fontSize(10);
+        doc.text('Thank you for shopping with us!', 50, 700);
+        doc.text('For any queries related to this invoice, please contact our support.', 50, 715);
+        
+        // Finalize the PDF
+        doc.end();
+        
+    } catch (error) {
+        console.log(error.message);
+        res.status(500).render("error", { 
+            message: "Failed to generate invoice" 
+        });
+    }
+}
 
 
 }

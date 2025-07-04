@@ -81,6 +81,14 @@
                   <div id="image-error" class="text-red-500 text-xs mt-1"></div>
                 </div>
                 
+                <div>
+                  <label for="offer" class="block text-sm font-medium text-gray-700 mb-1">Offer (%)</label>
+                  <input type="number" name="offer" placeholder="Enter discount percentage" 
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+                        id="offer" min="0" max="100" value="0" />
+                  <div id="offer-error" class="text-red-500 text-xs mt-1"></div>
+                </div>
+                
                 <button class="w-full py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-md shadow-sm transition duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50" 
                         type="submit">
                   Create Category
@@ -95,15 +103,11 @@
               <table class="min-w-full divide-y divide-gray-200">
                 <thead class="bg-gray-50">
                   <tr>
-                    <!-- <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"></th> -->
                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Image</th>
                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
-                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Regular Price</th>
-                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Offer Price</th>
-                 
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Offer (%)</th>
                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                    <!-- <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">List/Unlist</th> -->
                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Edit</th>
                   </tr>
                 </thead>
@@ -111,7 +115,7 @@
 
                   <% if(categories.length==0){ %>
                     <tr>
-                      <td colspan="7" class="text-center fw-bold text-danger">Category not found</td>
+                      <td colspan="6" class="text-center fw-bold text-danger">Category not found</td>
                     </tr>
                   <% }else %>
 
@@ -120,36 +124,10 @@
                 
                     <td class="px-6 py-4 whitespace-nowrap"><img src="/<%= category.image %>" alt="Category Image" class="h-10 w-10 rounded-full object-cover"></td>
                   
-
-                    <!-- <td class="px-6 py-4 whitespace-nowrap">
-                      <div class="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
-                        <svg class="h-6 w-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                        </svg>
-                      </div>
-                    </td> -->
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900"><%= category.name %></td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"><%= category.description %></td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"><%= category.regularPrice %></td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"><%= category.offerPrice %></td>
-                    <!-- <td class="px-6 py-4 whitespace-nowrap">
-                      <div class="flex flex-col space-y-2">
-                        <a href="#" class="inline-flex items-center justify-center px-3 py-1.5 bg-cyan-500 text-white text-xs font-medium rounded hover:bg-cyan-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cyan-500">
-                          Add Offer
-                        </a>
-                        <a href="#" class="inline-flex items-center justify-center px-3 py-1.5 bg-cyan-500 text-white text-xs font-medium rounded hover:bg-cyan-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cyan-500">
-                          Remove
-                        </a>
-                      </div>
-                    </td> -->
-                    <!-- <td class="px-6 py-4 whitespace-nowrap">
-                      <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                        Listed
-                      </span>
-                      <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800 hidden">
-                        Unlisted
-                      </span>
-                    </td> -->
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"><%= category.offer %>%</td>
+                    
                     <td class="px-6 py-4 whitespace-nowrap">
                       <div class="flex flex-col space-y-2">
                           <!-- Show "List" button when status is true -->
@@ -179,8 +157,7 @@
                 data-id="<%= category._id %>" 
                 data-name="<%= category.name %>" 
                 data-description="<%= category.description %>"
-                data-regularPrice="<%= category.regularPrice %>"
-                data-offerPrice="<%= category.offerPrice %>"
+                data-offer="<%= category.offer %>"
                 data-status="<%= category.status %>"> 
                 Edit
             </a>
@@ -192,15 +169,7 @@
                             <div class="bg-white p-6 rounded-lg shadow-lg w-1/3">
                                 <h2 class="text-lg font-semibold mb-4" style="margin-right: 500px;">Edit Category</h2>
 
-                                <!-- Image Upload
-                                <div class="mb-4">
-                                    <label class="block text-sm font-medium text-gray-700">Product Image</label>
-                                    <input type="file" id="productImage" class="w-full border p-2 rounded">
-                                    <img id="previewImage" src="" class="mt-2 w-24 h-24 object-cover hidden" alt="Product Preview">
-                                </div> -->
-
-
-                                                  <!-- Existing Image Display -->
+                                <!-- Existing Image Display -->
                           <div class="mb-4">
                             <label class="block text-sm font-medium text-gray-700" style="margin-right: 500px;">Current Image</label>
                             <img id="currentImage" src="" class="mt-2 w-24 h-24 object-cover" alt="Current Category Image">
@@ -238,16 +207,10 @@
                                     <textarea id="productDescription" name="description" class="w-full border p-2 rounded" placeholder="Enter description"></textarea>
                                 </div>
 
-                                <!-- Regular Price -->
+                                <!-- Offer -->
                                 <div class="mb-4">
-                                    <label class="block text-sm font-medium text-gray-700">Regular Price</label>
-                                    <input type="number" id="regularPrice" name="regularprice" class="w-full border p-2 rounded" placeholder="Enter regular price">
-                                </div>
-
-                                <!-- Offer Price -->
-                                <div class="mb-4">
-                                    <label class="block text-sm font-medium text-gray-700">Offer Price</label>
-                                    <input type="number" id="offerPrice" name="offerprice" class="w-full border p-2 rounded" placeholder="Enter offer price">
+                                    <label class="block text-sm font-medium text-gray-700">Offer (%)</label>
+                                    <input type="number" id="editOffer" name="offer" class="w-full border p-2 rounded" placeholder="Enter discount percentage" min="0" max="100">
                                 </div>
 
                                 <!-- Status -->
@@ -320,139 +283,16 @@
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10/dist/sweetalert2.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
 <%- include("partials/footer") %>
-<!-- 
-<script>
-    document.getElementById("addCategory").addEventListener("submit",async function (event) {
-        event.preventDefault()
-        // const formData=Object.fromEntries(new FormData(this).entries())
-        const formData=new FormData(this)
-        console.log(formData)
-        try {
-            const response=await fetch("/admin/createCategory",{
-                method:"POST",
-                // headers:{"Content-Type":"application/json"},
-                // body:JSON.stringify(formData)
-                body:formData
-               
-               
-            })
-            const result=await response.json()
-            if (result.success) {
-            Swal.fire({
-                icon: 'success',
-                title: 'Category Created!',
-                text: result.message || 'Category created successfully!',
-                timer: 1500,
-                showConfirmButton: false
-            }).then(() => {
-                window.location.href = result.redirectUrl;
-            });
-        } else {
-            Swal.fire({
-                icon: 'error',
-                title: 'Failed to Create Category',
-                text: result.message || 'Something went wrong!'
-            });
-        }
-            
-            
-        } catch (error) {
-            console.log(error.message)
-        }
-    })
-
-    document.getElementById("image").addEventListener("change",function(e){
-      const fileName=e.target.files[0]?.name
-      if(fileName){
-        // const fileNameElement = this.parentElement.querySelector("p")
-        const fileNameElement = this.closest("label").querySelector("p");
-        fileNameElement.textContent=fileName
-      }
-    })
-
-
-document.addEventListener("DOMContentLoaded", function() {
-    const editButtons = document.querySelectorAll(".editBtn");
-    const editModal = document.getElementById("editModal");
-    const currentImage=document.getElementById("currentImage")
-    const previewImage=document.getElementById("previewImage")
-
-    editButtons.forEach(button => {
-        button.addEventListener("click", function() {
-            const id = this.getAttribute("data-id");
-            document.getElementById("productName").value = this.getAttribute("data-name");
-            document.getElementById("productDescription").value = this.getAttribute("data-description");
-            document.getElementById("regularPrice").value=this.getAttribute("data-regularPrice")
-            document.getElementById("offerPrice").value = this.getAttribute("data-offerPrice");
-            document.getElementById("productStatus").value = this.getAttribute("data-status");
-            document.getElementById("saveProduct").setAttribute("data-id", id);
-            editModal.classList.remove("hidden");
-        });
-    });
-
-    document.getElementById("saveProduct").addEventListener("click", function() {
-        const id = this.getAttribute("data-id");
-        const updatedData = {
-            name: document.getElementById("productName").value,
-            description: document.getElementById("productDescription").value,
-            regularPrice:document.getElementById("regularPrice").value,
-            offerPrice: document.getElementById("offerPrice").value,
-            status: document.getElementById("productStatus").value
-        };
-
-        fetch(`/admin/editCategory/${id}`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(updatedData)
-        })
-        .then(response => response.json())  
-        .then(data => {
-        if (data.success) {
-            Swal.fire({
-                icon: 'success',
-                title: 'Category Updated!',
-                text: data.message || 'Category updated successfully!',
-                timer: 1500,
-                showConfirmButton: false
-            }).then(() => {
-                location.reload();
-            });
-        } else {
-            Swal.fire({
-                icon: 'error',
-                title: 'Update Failed',
-                text: data.message || 'Error updating category.',
-            });
-        }
-    })
-        .catch(error => console.error("Error:", error));
-    });
-
-    document.getElementById("closeModal").addEventListener("click", function() {
-        editModal.classList.add("hidden");
-    });
-});
-
-</script> -->
 
 <script>
-
-
 document.getElementById("addCategory").addEventListener("submit",async function (event) {
         event.preventDefault()
-        // const formData=Object.fromEntries(new FormData(this).entries())
         const formData=new FormData(this)
         console.log(formData)
         try {
             const response=await fetch("/admin/createCategory",{
                 method:"POST",
-                // headers:{"Content-Type":"application/json"},
-                // body:JSON.stringify(formData)
                 body:formData
-               
-               
             })
             const result=await response.json()
             if (result.success) {
@@ -482,19 +322,10 @@ document.getElementById("addCategory").addEventListener("submit",async function 
     document.getElementById("image").addEventListener("change",function(e){
       const fileName=e.target.files[0]?.name
       if(fileName){
-        // const fileNameElement = this.parentElement.querySelector("p")
         const fileNameElement = this.closest("label").querySelector("p");
         fileNameElement.textContent=fileName
       }
     })
-
-
-
-
-
-
-
-
 
   document.addEventListener("DOMContentLoaded", function() {
       const editButtons = document.querySelectorAll(".editBtn");
@@ -507,8 +338,7 @@ document.getElementById("addCategory").addEventListener("submit",async function 
               const id = this.getAttribute("data-id");
               const name = this.getAttribute("data-name");
               const description = this.getAttribute("data-description");
-              const regularPrice = this.getAttribute("data-regularPrice");
-              const offerPrice = this.getAttribute("data-offerPrice");
+              const offer = this.getAttribute("data-offer");
               const status = this.getAttribute("data-status");
               
               // Assuming the image path is stored in a data attribute or you can modify to get it from the table
@@ -517,8 +347,7 @@ document.getElementById("addCategory").addEventListener("submit",async function 
               // Populate input fields
               document.getElementById("productName").value = name;
               document.getElementById("productDescription").value = description;
-              document.getElementById("regularPrice").value = regularPrice;
-              document.getElementById("offerPrice").value = offerPrice;
+              document.getElementById("editOffer").value = offer;
               document.getElementById("productStatus").value = status;
   
               // Set current image
@@ -559,8 +388,7 @@ document.getElementById("addCategory").addEventListener("submit",async function 
           // Add text fields
           formData.append('name', document.getElementById("productName").value);
           formData.append('description', document.getElementById("productDescription").value);
-          formData.append('regularPrice', document.getElementById("regularPrice").value);
-          formData.append('offerPrice', document.getElementById("offerPrice").value);
+          formData.append('offer', document.getElementById("editOffer").value);
           formData.append('status', document.getElementById("productStatus").value);
           
           // Add image if a new one is selected
@@ -570,15 +398,11 @@ document.getElementById("addCategory").addEventListener("submit",async function 
           }
 
           formData.forEach((value, key) => {
-    console.log(key, value);
-});
-
-
-
+            console.log(key, value);
+          });
   
           fetch(`/admin/editCategory/${id}`, {
               method: "POST",
-            
               body: formData  // Use FormData instead of JSON
           })
           .then(response => response.json())  

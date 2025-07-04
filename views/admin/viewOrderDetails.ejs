@@ -1,3 +1,5 @@
+<%- include("partials/header") %>
+
 <!-- view-order.ejs -->
 <!DOCTYPE html>
 <html lang="en">
@@ -10,21 +12,7 @@
 </head>
 <body class="bg-gray-50">
   <div class="min-h-screen flex flex-col">
-    <!-- Header -->
-    <header class="bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg">
-      <div class="container mx-auto px-6 py-4 flex justify-between items-center">
-        <div class="flex items-center">
-          <i class="fas fa-shopping-bag text-2xl mr-3"></i>
-          <h1 class="text-2xl font-bold">OrderPro Admin</h1>
-        </div>
-        <div class="flex items-center space-x-4">
-          <div class="flex items-center">
-            <img src="https://randomuser.me/api/portraits/men/1.jpg" alt="Admin" class="w-10 h-10 rounded-full border-2 border-white">
-            <span class="ml-2">Admin</span>
-          </div>
-        </div>
-      </div>
-    </header>
+
 
     <!-- Main content -->
     <div class="container mx-auto px-6 py-8 flex-grow">
@@ -312,22 +300,7 @@
 
 
     </div>
-
-    <!-- Footer -->
-    <footer class="bg-gray-800 text-white py-6">
-      <div class="container mx-auto px-6">
-        <div class="flex flex-col md:flex-row justify-between items-center">
-          <div class="mb-4 md:mb-0">
-            <p>&copy; 2025 OrderPro Admin. All rights reserved.</p>
-          </div>
-          <div class="flex space-x-4">
-            <a href="#" class="text-gray-300 hover:text-white">Privacy Policy</a>
-            <a href="#" class="text-gray-300 hover:text-white">Terms of Service</a>
-            <a href="#" class="text-gray-300 hover:text-white">Support</a>
-          </div>
-        </div>
-      </div>
-    </footer>
+ <%- include("partials/footer") %>
   </div>
 
  

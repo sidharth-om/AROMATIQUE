@@ -32,194 +32,164 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 
-<body class="bg-gray-100 font-sans">
+<body class="bg-gray-50 font-sans text-gray-800 antialiased min-h-screen">
    
-    
     <!-- Main Content -->
-    <main class="container mx-auto px-4 py-6">
+    <main class="container mx-auto px-4 py-8 max-w-6xl">
         <!-- Breadcrumb -->
-        <div class="mb-4 text-sm">
-            <ul class="flex text-gray-600">
-                <li><a href="/" class="hover:text-primary">Home</a></li>
-                <li class="mx-2">&gt;</li>
-                <li><a href="/account" class="hover:text-primary">My Account</a></li>
-                <li class="mx-2">&gt;</li>
-                <li class="text-gray-900 font-medium">My Orders</li>
+        <div class="mb-6 text-sm bg-white px-4 py-3 rounded-lg shadow-sm">
+            <ul class="flex text-gray-600 items-center">
+                <li><a href="/" class="hover:text-primary transition-colors duration-200">Home</a></li>
+                <li class="mx-2 text-gray-400"><i class="fas fa-chevron-right text-xs"></i></li>
+                <li><a href="/account" class="hover:text-primary transition-colors duration-200">My Account</a></li>
+                <li class="mx-2 text-gray-400"><i class="fas fa-chevron-right text-xs"></i></li>
+                <li class="text-primary font-medium">My Orders</li>
             </ul>
         </div>
 
         <div class="flex flex-col md:flex-row gap-6">
-            <!-- Left Sidebar - Filters -->
-            <!-- <div class="md:w-1/4 lg:w-1/5">
-                <div class="bg-white p-4 rounded shadow mb-4">
-                    <h2 class="text-lg font-medium mb-4">Filters</h2>
-                    
-                    <div class="mb-6">
-                        <h3 class="font-medium uppercase text-sm text-gray-600 mb-2">ORDER STATUS</h3>
-                        <div class="space-y-2">
-                            <div class="flex items-center">
-                                <input type="checkbox" id="on-the-way" class="h-4 w-4 text-primary focus:ring-primary">
-                                <label for="on-the-way" class="ml-2 text-gray-700">On the way</label>
-                            </div>
-                            <div class="flex items-center">
-                                <input type="checkbox" id="delivered" class="h-4 w-4 text-primary focus:ring-primary">
-                                <label for="delivered" class="ml-2 text-gray-700">Delivered</label>
-                            </div>
-                            <div class="flex items-center">
-                                <input type="checkbox" id="cancelled" class="h-4 w-4 text-primary focus:ring-primary">
-                                <label for="cancelled" class="ml-2 text-gray-700">Cancelled</label>
-                            </div>
-                            <div class="flex items-center">
-                                <input type="checkbox" id="returned" class="h-4 w-4 text-primary focus:ring-primary">
-                                <label for="returned" class="ml-2 text-gray-700">Returned</label>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div>
-                        <h3 class="font-medium uppercase text-sm text-gray-600 mb-2">ORDER TIME</h3>
-                        <div class="space-y-2">
-                            <div class="flex items-center">
-                                <input type="checkbox" id="last-30-days" class="h-4 w-4 text-primary focus:ring-primary">
-                                <label for="last-30-days" class="ml-2 text-gray-700">Last 30 days</label>
-                            </div>
-                            <div class="flex items-center">
-                                <input type="checkbox" id="2024" class="h-4 w-4 text-primary focus:ring-primary">
-                                <label for="2024" class="ml-2 text-gray-700">2024</label>
-                            </div>
-                            <div class="flex items-center">
-                                <input type="checkbox" id="2023" class="h-4 w-4 text-primary focus:ring-primary">
-                                <label for="2023" class="ml-2 text-gray-700">2023</label>
-                            </div>
-                            <div class="flex items-center">
-                                <input type="checkbox" id="2022" class="h-4 w-4 text-primary focus:ring-primary">
-                                <label for="2022" class="ml-2 text-gray-700">2022</label>
-                            </div>
-                            <div class="flex items-center">
-                                <input type="checkbox" id="2021" class="h-4 w-4 text-primary focus:ring-primary">
-                                <label for="2021" class="ml-2 text-gray-700">2021</label>
-                            </div>
-                            <div class="flex items-center">
-                                <input type="checkbox" id="older" class="h-4 w-4 text-primary focus:ring-primary">
-                                <label for="older" class="ml-2 text-gray-700">Older</label>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div> -->
-            
             <!-- Right Content - Orders -->
-            <div class="md:w-3/4 lg:w-5/5">
-                <!-- Search Bar -->
-                <div class="flex mb-4">
-                    <input type="text" placeholder="Search your orders here" class="flex-grow p-3 border border-gray-300 rounded-l focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary">
-                    <button class="bg-primary hover:bg-primary-dark text-white px-6 py-3 rounded-r transition font-medium">
-                        <i class="fas fa-search mr-2"></i> Search Orders
-                    </button>
+            <div class="w-full">
+                <!-- Page Title -->
+                <div class="mb-6">
+                    <h1 class="text-2xl md:text-3xl font-bold text-gray-800">My Orders</h1>
+                    <p class="text-gray-600 mt-1">Track, manage, and review your orders</p>
                 </div>
-                 <!-- Cancel Order Button -->
-
-               
                 
-                <!-- Orders List -->
-                 
-                <!-- Orders List -->
-<div class="space-y-4">
-    <% if (orders && orders.length > 0) { %>
-        <% orders.forEach((order) => { %>
-            <% order.items.forEach((item, index) => { %>
-                <input type="hidden" id="orderID" value='<%= order.orderId %>'>
-                <!-- Order item -->
-                <div class="bg-white rounded shadow overflow-hidden">
-                    <div class="flex flex-col sm:flex-row p-4 items-start sm:items-center border-b border-gray-200">
-                        <div class="sm:w-20 h-20 mr-4 flex-shrink-0">
-                            <img src="/uploads/<%= item.productId.images[0] %>" alt="<%= item.productId.name %>" class="w-full h-full object-contain">
-                        </div>
-                        <div class="flex-grow">
-                            <h3 class="font-medium"><%= item.productId.name %></h3>
-                            <div class="text-sm text-gray-500 flex flex-wrap gap-2 mt-1">
-                                <% if (item.volume) { %>
-                                    <span>Volume: <%= item.volume %></span>
-                                    <span class="hidden sm:inline">|</span>
-                                <% } %>
-                                <span>Qty: <%= item.quantity %></span>
-                            </div>
-                            
-                            <!-- Status indicator - Desktop view -->
-                            <div class="hidden sm:flex items-center mt-2">
-                                <p><%= item.itemStatus  %></p>
-                            </div>
-                        </div>
-                        
-                        <% 
-                        // Find the variant that matches the volume in the cart item
-                        const variant = item.productId.variants.find(v => v.volume === item.volume);
-                        const regularPrice = variant ? variant.regularPrice : 0;
-                        %>
-                        <div class="font-medium mt-2 sm:mt-0 text-right">
-                            <div>₹<%= regularPrice %></div>
-                            
-                            <!-- View Details link - Desktop -->
-                            <button type="button"
-                            class="bg-blue-600 text-white text-sm font-medium px-4 py-2 rounded hover:bg-blue-700 transition duration-200 flex items-center"
-                            onclick='viewOrder(<%- JSON.stringify(order.orderId) %>, <%- JSON.stringify(index) %>)'>
-                            View Details
-                            <i class="fas fa-chevron-right text-xs ml-2"></i>
-                            </button>
-                        </div>
-                    </div>
-                    
-                    <!-- Action buttons -->
-                    <div class="p-4 flex flex-wrap gap-3 justify-end bg-white">
-                        <% if (item.itemStatus === 'delivered') { %>
-                            <a href="#" class="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded text-sm hover:bg-gray-50 transition">
-                                Buy Again
-                            </a>
-                            <a href="#" class="px-4 py-2 bg-primary text-white rounded text-sm hover:bg-primary-dark transition">
-                                Write a Review
-                            </a>
-                        <% } else if (item.itemStatus === 'shipped') { %>
-                            <a href="#" class="px-4 py-2 bg-primary text-white rounded text-sm hover:bg-primary-dark transition">
-                                Track Package
-                            </a>
-                        <% } else if (item.itemStatus === 'pending' || item.itemStatus === 'processing') { %>
-                            <button 
-                                class="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded text-sm hover:bg-gray-50 transition"
-                                onclick="cancelOrderItem('<%= order._id %>', '<%= index %>')">
-                                Cancel Item
-                            </button>
-                        <% } %>
-                    </div>
-                </div>
-            <% }); %>
-            
-            <!-- Cancel Entire Order button (per order) -->
-            <% if (order.status === 'pending') { %>
-                <button type="button" 
-                    class="bg-red-500 hover:bg-red-600 text-white text-sm font-medium py-2 px-4 rounded mt-4 mb-8"
-                    onclick="cancelEntireOrder('<%= order.orderId %>')">
-                    Cancel Order #<%= order.orderId %>
-                </button>
-            <% } %>
-            
-            <div class="mb-8 border-b border-gray-300"></div>
-        <% }); %>
-    <% } else { %>
-        <!-- Empty state -->
-        <div class="bg-white rounded-lg shadow-md p-8 text-center">
-            <div class="w-24 h-24 mx-auto mb-4 text-gray-400">
-                <i class="fas fa-shopping-bag text-6xl"></i>
-            </div>
-            <h2 class="text-xl font-semibold text-gray-800 mb-2">No orders yet</h2>
-            <p class="text-gray-600 mb-6">Looks like you haven't placed any orders yet.</p>
-            <a href="/" class="inline-block py-3 px-6 bg-primary text-white rounded-md hover:bg-primary-dark transition">
-                Start Shopping
-            </a>
-        </div>
-    <% } %>
+              <!-- Search Bar -->
+<div class="flex mb-6 bg-white p-2 rounded-lg shadow-sm">
+    <form action="/user/myOrders" method="GET" class="flex w-full">
+        <input type="text" id="orderSearch" name="search" placeholder="Search your orders here" value="<%= searchQuery || '' %>" class="flex-grow p-3 border border-gray-200 rounded-l-md focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all duration-200 placeholder-gray-400">
+        <button id="searchBtn" type="submit" class="bg-primary hover:bg-primary-dark text-white px-6 py-3 rounded-r-md transition duration-200 font-medium flex items-center">
+            <i class="fas fa-search mr-2"></i> Search
+        </button>
+    </form>
 </div>
-                
-              
+                <!-- Orders List -->
+                <div class="space-y-6">
+                    <% if (orders && orders.length > 0) { %>
+                        <% orders.forEach((order) => { %>
+                            <div class="bg-white rounded-lg shadow-sm overflow-hidden border border-gray-100 hover:shadow-md transition-shadow duration-200">
+                                <!-- Order Header -->
+                                <div class="bg-gray-50 p-4 border-b border-gray-100">
+                                    <div class="flex flex-wrap justify-between items-center">
+                                        <div>
+                                            <h3 class="font-semibold text-gray-800">Order #<span class="text-primary"><%= order.orderId %></span></h3>
+                                            <p class="text-sm text-gray-500 mt-1">Placed on <%= new Date(order.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) %></p>
+                                        </div>
+                                        <% if (order.status === 'pending') { %>
+                                            <button type="button" 
+                                                class="bg-red-50 text-red-600 hover:bg-red-100 text-sm font-medium py-2 px-4 rounded-full mt-2 sm:mt-0 transition-colors duration-200 flex items-center"
+                                                onclick="cancelEntireOrder('<%= order.orderId %>')">
+                                                <i class="fas fa-times-circle mr-2"></i> Cancel Order
+                                            </button>
+                                        <% } %>
+                                    </div>
+                                </div>
+                                
+                                <% order.items.forEach((item, index) => { %>
+                                    <input type="hidden" id="orderID" value='<%= order.orderId %>'>
+                                    <!-- Order item -->
+                                    <div class="p-4 border-b border-gray-100 hover:bg-gray-50 transition-colors duration-200">
+                                        <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                                            <div class="sm:w-20 h-20 flex-shrink-0 bg-gray-50 p-2 rounded-md border border-gray-100">
+                                                <img src="/uploads/<%= item.productId.images[0] %>" alt="<%= item.productId.name %>" class="w-full h-full object-contain">
+                                            </div>
+                                            <div class="flex-grow">
+                                                <h3 class="font-medium text-gray-800 hover:text-primary transition-colors duration-200"><%= item.productId.name %></h3>
+                                                <div class="text-sm text-gray-500 flex flex-wrap gap-2 mt-2">
+                                                    <% if (item.volume) { %>
+                                                        <span class="bg-gray-100 px-2 py-1 rounded-full text-xs">Volume: <%= item.volume %></span>
+                                                    <% } %>
+                                                    <span class="bg-gray-100 px-2 py-1 rounded-full text-xs">Qty: <%= item.quantity %></span>
+                                                </div>
+                                                
+                                                <!-- Status indicator -->
+                                                <div class="flex items-center mt-3">
+                                                    <% 
+                                                    let statusColor = 'gray';
+                                                    let statusIcon = 'circle-info';
+                                                    
+                                                    if (item.itemStatus === 'delivered') {
+                                                        statusColor = 'green';
+                                                        statusIcon = 'check-circle';
+                                                    } else if (item.itemStatus === 'shipped') {
+                                                        statusColor = 'blue';
+                                                        statusIcon = 'truck';
+                                                    } else if (item.itemStatus === 'processing') {
+                                                        statusColor = 'yellow';
+                                                        statusIcon = 'clock';
+                                                    } else if (item.itemStatus === 'cancelled') {
+                                                        statusColor = 'red';
+                                                        statusIcon = 'times-circle';
+                                                    }
+                                                    %>
+                                                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-<%= statusColor %>-100 text-<%= statusColor %>-800">
+                                                        <i class="fas fa-<%= statusIcon %> mr-1.5"></i>
+                                                        <%= item.itemStatus.charAt(0).toUpperCase() + item.itemStatus.slice(1) %>
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            
+                                            <% 
+                                            // Find the variant that matches the volume in the cart item
+                                            const variant = item.productId.variants.find(v => v.volume === item.volume);
+                                            const regularPrice = variant ? variant.regularPrice : 0;
+                                            %>
+                                            <div class="sm:text-right">
+                                                <div class="text-lg font-semibold text-gray-800 mb-3">₹<%= regularPrice.toLocaleString('en-IN') %></div>
+                                                
+                                                <!-- View Details button -->
+                                                <button type="button"
+                                                    class="bg-primary text-white text-sm font-medium px-4 py-2 rounded-md hover:bg-primary-dark transition duration-200 flex items-center"
+                                                    onclick="viewOrder('<%= order.orderId %>', <%= index %>)">
+                                                    View Details
+                                                    <i class="fas fa-chevron-right text-xs ml-2"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Action buttons -->
+                                        <div class="mt-4 flex flex-wrap gap-3 justify-end">
+                                            <% if (item.itemStatus === 'delivered') { %>
+                                                <a href="#" class="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-md text-sm hover:bg-gray-50 transition-colors duration-200 flex items-center">
+                                                    <i class="fas fa-shopping-cart mr-2"></i> Buy Again
+                                                </a>
+                                                <a href="#" class="px-4 py-2 bg-primary text-white rounded-md text-sm hover:bg-primary-dark transition-colors duration-200 flex items-center">
+                                                    <i class="fas fa-star mr-2"></i> Write a Review
+                                                </a>
+                                            <% } else if (item.itemStatus === 'shipped') { %>
+                                                <a href="#" class="px-4 py-2 bg-primary text-white rounded-md text-sm hover:bg-primary-dark transition-colors duration-200 flex items-center">
+                                                    <i class="fas fa-map-marker-alt mr-2"></i> Track Package
+                                                </a>
+                                            <% } else if (item.itemStatus === 'pending' || item.itemStatus === 'processing') { %>
+                                                <button 
+                                                    class="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-md text-sm hover:bg-gray-50 transition-colors duration-200 flex items-center"
+                                                    onclick="cancelOrderItem('<%= order._id %>', '<%= index %>')">
+                                                    <i class="fas fa-ban mr-2"></i> Cancel Item
+                                                </button>
+                                            <% } %>
+                                        </div>
+                                    </div>
+                                <% }); %>
+                            </div>
+                            
+                            <div class="mb-8"></div>
+                        <% }); %>
+                    <% } else { %>
+                        <!-- Empty state -->
+                        <div class="bg-white rounded-lg shadow-sm p-12 text-center border border-gray-100">
+                            <div class="w-24 h-24 mx-auto mb-6 text-gray-300">
+                                <i class="fas fa-shopping-bag text-6xl"></i>
+                            </div>
+                            <h2 class="text-2xl font-semibold text-gray-800 mb-3">No orders yet</h2>
+                            <p class="text-gray-600 mb-8 max-w-md mx-auto">Looks like you haven't placed any orders yet. Start shopping to see your orders here.</p>
+                            <a href="/" class="inline-block py-3 px-8 bg-primary text-white rounded-md hover:bg-primary-dark transition-colors duration-200 shadow-sm hover:shadow">
+                                <i class="fas fa-shopping-cart mr-2"></i> Start Shopping
+                            </a>
+                        </div>
+                    <% } %>
+                </div>
             </div>
         </div>
     </main>
@@ -229,6 +199,7 @@
 <%- include("partials/footer") %>
 <script>
     function viewOrder(orderId, index) {
+        console.log('Navigating to order:', orderId, 'item index:', index);
         // Navigate to the order details page
         window.location.href = `/user/orders/${orderId}/item/${index}`;
     }
@@ -253,58 +224,107 @@
     }
     
     function cancelOrderItem(orderId, itemIndex) {
-    // Show SweetAlert confirmation dialog
-    Swal.fire({
-        title: 'Cancel Item',
-        text: 'Are you sure you want to cancel this item?',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#ef4444', // Tailwind red-500
-        cancelButtonColor: '#6b7280', // Tailwind gray-500
-        confirmButtonText: 'Yes, cancel it!',
-        cancelButtonText: 'No, keep it'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            // If confirmed, submit the cancellation request to the backend
-            submitCancelItem(orderId, itemIndex);
-        }
-    });
-}
+        // Show SweetAlert confirmation dialog
+        Swal.fire({
+            title: 'Cancel Item',
+            text: 'Are you sure you want to cancel this item?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444', // Tailwind red-500
+            cancelButtonColor: '#6b7280', // Tailwind gray-500
+            confirmButtonText: 'Yes, cancel it!',
+            cancelButtonText: 'No, keep it'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // If confirmed, submit the cancellation request to the backend
+                submitCancelItem(orderId, itemIndex);
+            }
+        });
+    }
     
     async function submitCancelOrder(orderId) {
-        const response = await fetch(`/user/cancelEntireOrder/${orderId}`, {
-            method: "POST",
-            headers: {"Content-Type": "application/json"},
-        });
+        try {
+            const response = await fetch(`/user/cancelEntireOrder/${orderId}`, {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+            });
     
-        const result = await response.json();
-        if (result.success) {
+            const result = await response.json();
+            if (result.success) {
+                Swal.fire({
+                    title: 'Cancelled!',
+                    text: result.message || 'Your order has been cancelled successfully.',
+                    icon: 'success',
+                    confirmButtonColor: '#3b82f6'
+                }).then(() => {
+                    window.location.reload();
+                });
+            } else {
+                Swal.fire({
+                    title: 'Error!',
+                    text: result.message || 'Failed to cancel order',
+                    icon: 'error',
+                    confirmButtonColor: '#3b82f6'
+                });
+            }
+        } catch (error) {
+            console.error('Error cancelling order:', error);
             Swal.fire({
-                title: 'Cancelled!',
-                text: result.message || 'Your order has been cancelled successfully.',
-                icon: 'success',
+                title: 'Error!',
+                text: 'An error occurred while cancelling the order',
+                icon: 'error',
                 confirmButtonColor: '#3b82f6'
             });
-            window.location.reload();
         }
     }
     
     async function submitCancelItem(orderId, itemIndex) {
-    const response = await fetch(`/user/cancelOrder/${orderId}`, {
-        method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({ itemIndex: itemIndex })  // Send itemIndex in the request body
-    });
+        try {
+            const response = await fetch(`/user/cancelOrder/${orderId}`, {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({ itemIndex: itemIndex })  // Send itemIndex in the request body
+            });
 
-    const result = await response.json();
-    if (result.success) {
-        Swal.fire({
-            title: 'Cancelled!',
-            text: result.message || 'Your item has been cancelled successfully.',
-            icon: 'success',
-            confirmButtonColor: '#3b82f6'
-        });
-        window.location.reload();
+            const result = await response.json();
+            if (result.success) {
+                Swal.fire({
+                    title: 'Cancelled!',
+                    text: result.message || 'Your item has been cancelled successfully.',
+                    icon: 'success',
+                    confirmButtonColor: '#3b82f6'
+                }).then(() => {
+                    window.location.reload();
+                });
+            } else {
+                Swal.fire({
+                    title: 'Error!',
+                    text: result.message || 'Failed to cancel item',
+                    icon: 'error',
+                    confirmButtonColor: '#3b82f6'
+                });
+            }
+        } catch (error) {
+            console.error('Error cancelling item:', error);
+            Swal.fire({
+                title: 'Error!',
+                text: 'An error occurred while cancelling the item',
+                icon: 'error',
+                confirmButtonColor: '#3b82f6'
+            });
+        }
     }
-}
-    </script>
+
+
+    document.getElementById("searchBtn").addEventListener("click", function () {
+    const query = document.getElementById("orderSearch").value.trim();
+    window.location.href = `/user/myOrders?search=${encodeURIComponent(query)}`;
+});
+
+document.getElementById("orderSearch").addEventListener("keypress", function (e) {
+    if (e.key === "Enter") {
+        e.preventDefault();
+        document.getElementById("searchBtn").click();
+    }
+});
+</script>

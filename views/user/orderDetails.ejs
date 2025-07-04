@@ -27,6 +27,18 @@
         .shadow-custom {
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
         }
+        .text-strikethrough {
+            text-decoration: line-through;
+        }
+        .badge-offer {
+            background-color: #FF4500;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: bold;
+            margin-left: 5px;
+        }
     </style>
 </head>
 <body class="bg-gradient min-h-screen">
@@ -75,8 +87,7 @@
                         <% cart.items.forEach(item=>{ %>
                         <div class="flex flex-col sm:flex-row border-b border-gray-100 pb-6">
                             <div class="sm:w-24 sm:h-24 bg-gray-100 rounded-md flex items-center justify-center mb-4 sm:mb-0">
-                                <!-- <i class="fas fa-spray-can-sparkles text-2xl text-gray-400"></i> -->
-                                <img  src="/uploads/<%= item.productId.images[0] %>" alt="Product" class="fas fa-spray-can-sparkles text-2xl text-gray-400" >
+                                <img src="/uploads/<%= item.productId.images[0] %>" alt="Product" class="fas fa-spray-can-sparkles text-2xl text-gray-400">
                             </div>
                             <div class="sm:ml-6 flex-1">
                                 <div class="flex flex-col sm:flex-row justify-between">
@@ -84,17 +95,45 @@
                                         <h4 class="font-medium text-gray-800"><%= item.productId.name %></h4>
 
                                         <% 
-                                        const variant=item.productId.variants.find(v=>v.volume===item.volume)
-                                        const regularPrice=variant ? variant.regularPrice : 0;
-                                        const volume=variant ? variant.volume : 0
+                                        const variant = item.productId.variants.find(v => v.volume === item.volume);
+                                        const regularPrice = variant ? variant.regularPrice : 0;
+                                        const volume = variant ? variant.volume : 0;
+                                        
+                                        // Get product offer percentage
+                                        const productOffer = item.productId.offer || 0;
+                                        
+                                        // Get category offer percentage (assuming category data is available)
+                                        let categoryOffer = 0;
+                                        if (item.productId.categoryId && item.productId.categoryId.offer) {
+                                            categoryOffer = item.productId.categoryId.offer;
+                                        }
+                                        
+                                        // Calculate the maximum offer
+                                        const maxOffer = Math.max(productOffer, categoryOffer);
+                                        
+                                        // Calculate discounted price
+                                        const discountAmount = regularPrice * (maxOffer / 100);
+                                        const discountedPrice = regularPrice - discountAmount;
+                                        const finalPrice = Math.floor(discountedPrice-couponDiscount.toFixed(2));
                                         %>
 
                                         <p class="text-sm text-gray-500 mt-1"><%= volume %></p>
                                         <div class="mt-2 flex items-center">
                                             <span class="text-sm text-gray-500">Qty: <%= item.quantity %></span>
                                             <span class="mx-2 text-gray-300">|</span>
-                                            <span class="text-sm font-medium">₹<%= regularPrice %></span>
+                                            <% if (maxOffer > 0) { %>
+                                                <span class="text-sm text-gray-400 text-strikethrough mr-2">₹<%= regularPrice %></span>
+                                                <span class="text-sm font-medium">₹<%= finalPrice %></span>
+                                                <span class="badge-offer">-<%= maxOffer %>%</span>
+                                            <% } else { %>
+                                                <span class="text-sm font-medium">₹<%= regularPrice %></span>
+                                            <% } %>
                                         </div>
+                                        <% if (productOffer > 0 && categoryOffer > 0) { %>
+                                            <div class="mt-1 text-xs text-green-600">
+                                                <span>Best offer applied: <%= maxOffer === productOffer ? 'Product' : 'Category' %> offer (<%= maxOffer %>%)</span>
+                                            </div>
+                                        <% } %>
                                     </div>
                                     <div class="mt-4 sm:mt-0 space-y-2">
                                         <button class="text-perfume hover:text-perfume-dark text-sm font-medium">Buy Again</button>
@@ -193,30 +232,81 @@
                 <div class="bg-white rounded-lg shadow-custom p-6 mb-6">
                     <h3 class="font-semibold text-gray-800 mb-4">Price Details</h3>
                     <div class="space-y-3">
-                        <div class="flex justify-between">
-                            <p class="text-gray-600">Price (2 items)</p>
-                            <p class="font-medium"><%= subtotal %></p>
-                        </div>
-                        <div class="flex justify-between">
-                            <p class="text-gray-600">Shipping</p>
-                            <p class="font-medium"><%= shipping %></p>
-                        </div>
-                        <!-- <div class="flex justify-between">
-                            <p class="text-gray-600">Tax</p>
-                            <p class="font-medium">></p>
-                        </div> -->
-                        <% if (locals.discount) { %>
-                        <div class="flex justify-between text-green-600">
-                            <p>Discount</p>
-                            <p>-<%= discount %></p>
+    <div class="flex justify-between">
+        <p class="text-gray-600">Price (<%= cart.items.length %> items)</p>
+        <p class="font-medium"><%= subtotal %></p>
+    </div>
+    
+    <% if (cart.items.some(item => item.productId.offer > 0 || (item.productId.categoryId && item.productId.categoryId.offer > 0))) { %>
+    <div class="flex justify-between text-green-600">
+        <p>Product Offers</p>
+        <p>-<%= 
+            cart.items.reduce((total, item) => {
+                const variant = item.productId.variants.find(v => v.volume === item.volume);
+                const regularPrice = variant ? variant.regularPrice : 0;
+                const productOffer = item.productId.offer || 0;
+                const categoryOffer = (item.productId.categoryId && item.productId.categoryId.offer) || 0;
+                const maxOffer = Math.max(productOffer, categoryOffer);
+                const discountAmount = regularPrice * (maxOffer / 100) * item.quantity;
+                return total + discountAmount;
+            }, 0).toFixed(2) 
+        %></p>
+    </div>
+    <% } %>
+
+    <div class="flex justify-between">
+        <p class="text-gray-600">Shipping</p>
+        <p class="font-medium"><%= shipping %></p>
+    </div>
+
+    <% if (locals.discount) { %>
+    <div class="flex justify-between text-green-600">
+        <p>Additional Discount</p>
+        <p>-<%= discount %></p>
+    </div>
+    <% } %>
+
+    <% if (couponDiscount && couponDiscount > 0) { %>
+<div class="flex justify-between text-green-600">
+    <p>Coupon Discount</p>
+    <p>-<%= couponDiscount %></p>
+</div>
+<% } %>
+
+     <div class="border-t border-gray-200 pt-3 mt-3">
+    <div class="flex justify-between font-bold">
+        <p>Total</p>
+        <p class="text-perfume">
+            <%= cart.items.reduce((total, item) => {
+                const variant = item.productId.variants.find(v => v.volume === item.volume);
+                const regularPrice = variant ? variant.regularPrice : 0;
+                const productOffer = item.productId.offer || 0;
+                const categoryOffer = (item.productId.categoryId && item.productId.categoryId.offer) || 0;
+                const maxOffer = Math.max(productOffer, categoryOffer);
+                const discountAmount = regularPrice * (maxOffer / 100) * item.quantity;
+                return subtotal - discountAmount -couponDiscount;
+            }, 0).toFixed(2) %>
+        </p>
+    </div>
+</div>
+
+
+                        <% if (cart.items.some(item => item.productId.offer > 0 || (item.productId.categoryId && item.productId.categoryId.offer > 0))) { %>
+                        <div class="text-green-600 text-sm text-right">
+                            <p>You saved ₹<%= 
+                                cart.items.reduce((total, item) => {
+                                    const variant = item.productId.variants.find(v => v.volume === item.volume);
+                                    const regularPrice = variant ? variant.regularPrice : 0;
+                                    const productOffer = item.productId.offer || 0;
+                                    const categoryOffer = (item.productId.categoryId && item.productId.categoryId.offer) || 0;
+                                    const maxOffer = Math.max(productOffer, categoryOffer);
+                                    const discountAmount = regularPrice * (maxOffer / 100) * item.quantity ;
+                                    
+                                    return total + discountAmount + couponDiscount;
+                                }, 0).toFixed(2) 
+                            %> on this order</p>
                         </div>
                         <% } %>
-                        <div class="border-t border-gray-200 pt-3 mt-3">
-                            <div class="flex justify-between font-bold">
-                                <p>Total</p>
-                                <p class="text-perfume"><%= total %></p>
-                            </div>
-                        </div>
                     </div>
                 </div>
 
@@ -258,79 +348,7 @@
             </div>
         </div>
 
-        <!-- You May Also Like Section -->
-        <div class="mt-12">
-            <h2 class="text-2xl font-semibold mb-6">You May Also Like</h2>
-            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
-                <!-- Product 1 -->
-                <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition duration-300">
-                    <div class="h-48 bg-gray-100 flex items-center justify-center">
-                        <i class="fas fa-spray-can-sparkles text-4xl text-gray-400"></i>
-                    </div>
-                    <div class="p-4">
-                        <h3 class="font-semibold">Amber Elixir</h3>
-                        <p class="text-sm text-gray-600 mb-2">Eau de Parfum · 75ml</p>
-                        <div class="flex justify-between items-center mt-2">
-                            <p class="font-bold">$95.00</p>
-                            <button class="text-perfume hover:text-perfume-dark">
-                                <i class="fas fa-shopping-bag"></i>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Product 2 -->
-                <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition duration-300">
-                    <div class="h-48 bg-gray-100 flex items-center justify-center">
-                        <i class="fas fa-spray-can-sparkles text-4xl text-gray-400"></i>
-                    </div>
-                    <div class="p-4">
-                        <h3 class="font-semibold">Floral Dreams</h3>
-                        <p class="text-sm text-gray-600 mb-2">Eau de Toilette · 50ml</p>
-                        <div class="flex justify-between items-center mt-2">
-                            <p class="font-bold">$65.00</p>
-                            <button class="text-perfume hover:text-perfume-dark">
-                                <i class="fas fa-shopping-bag"></i>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Product 3 -->
-                <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition duration-300">
-                    <div class="h-48 bg-gray-100 flex items-center justify-center">
-                        <i class="fas fa-spray-can-sparkles text-4xl text-gray-400"></i>
-                    </div>
-                    <div class="p-4">
-                        <h3 class="font-semibold">Ocean Breeze</h3>
-                        <p class="text-sm text-gray-600 mb-2">Body Mist · 200ml</p>
-                        <div class="flex justify-between items-center mt-2">
-                            <p class="font-bold">$42.00</p>
-                            <button class="text-perfume hover:text-perfume-dark">
-                                <i class="fas fa-shopping-bag"></i>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Product 4 -->
-                <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition duration-300">
-                    <div class="h-48 bg-gray-100 flex items-center justify-center">
-                        <i class="fas fa-spray-can-sparkles text-4xl text-gray-400"></i>
-                    </div>
-                    <div class="p-4">
-                        <h3 class="font-semibold">Midnight Rose</h3>
-                        <p class="text-sm text-gray-600 mb-2">Eau de Parfum · 100ml</p>
-                        <div class="flex justify-between items-center mt-2">
-                            <p class="font-bold">$110.00</p>
-                            <button class="text-perfume hover:text-perfume-dark">
-                                <i class="fas fa-shopping-bag"></i>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+        
     </main>
 
 </body>

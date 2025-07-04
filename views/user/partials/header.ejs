@@ -34,7 +34,7 @@
                 <div class="col-lg-6 col-md-6 flex justify-center">
                     <nav class="header__menu mobile-menu">
                         <ul class="flex space-x-6">
-                            <li class="active"><a href="/user/home">Home</a></li>
+                            <li class="active"><a href="/user/userHome">Home</a></li>
                             <li><a href="/user/shopping">Shop</a></li>
                         </ul>
                     </nav>
@@ -71,7 +71,9 @@
                     <!-- Cart Icon -->
                     <a href="/user/cart" class="relative">
                         <i class="fas fa-shopping-cart text-xl text-gray-700"></i>
-                        <span class="absolute -top-2 -right-2 bg-red-500 text-white text-xs px-2 py-1 rounded-full"><%= cart.items.length %></span>
+                       <span class="absolute -top-2 -right-2 bg-red-500 text-white text-xs px-2 py-1 rounded-full">
+    <%= cart?.items?.length || 0 %>
+</span>
                     </a>
                 </div>
             </div>

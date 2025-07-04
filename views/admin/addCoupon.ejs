@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add New Coupon - Admin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-50">
+    <!-- Include Admin Header -->
+    <!-- <%- include("partials/header") %> -->
+    
+    <div class="flex">
+        <!-- Include Admin Sidebar -->
+  
+        
+        <!-- Main Content -->
+        <div class="flex-1 p-6">
+            <div class="max-w-4xl mx-auto">
+                <!-- Page Header -->
+                <div class="flex items-center justify-between mb-6">
+                    <div>
+                        <div class="flex items-center space-x-3">
+                            <a href="/admin/coupons" class="text-gray-600 hover:text-gray-800">
+                                <i class="fas fa-arrow-left"></i>
+                            </a>
+                            <h1 class="text-2xl font-bold text-gray-800">Add New Coupon</h1>
+                        </div>
+                        <p class="text-gray-600 mt-1">Create a new discount coupon for your customers</p>
+                    </div>
+                </div>
+                
+                <!-- Error Messages -->
+                <!-- <% if (errors && errors.length > 0) { %>
+                    <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6" role="alert">
+                        <div class="flex items-center">
+                            <i class="fas fa-exclamation-triangle mr-2"></i>
+                            <span class="font-medium">Please fix the following errors:</span>
+                        </div>
+                        <ul class="mt-2 ml-6 list-disc">
+                            <% errors.forEach(error => { %>
+                                <li><%= error %></li>
+                            <% }); %>
+                        </ul>
+                    </div>
+                <% } %> -->
+                
+                <!-- Add Coupon Form -->
+                <div class="bg-white rounded-lg shadow-md">
+                    <div class="px-6 py-4 border-b border-gray-200">
+                        <h2 class="text-lg font-semibold text-gray-800">Coupon Information</h2>
+                    </div>
+                    
+                    <!-- <form action="/admin/coupons/add" method="POST" class="p-6 space-y-6"> -->
+                        <form id="couponForm" class="p-6 space-y-6">
+                        <!-- Basic Information -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- Coupon Code -->
+                            <div>
+                                <label for="code" class="block text-sm font-medium text-gray-700 mb-2">
+                                    Coupon Code <span class="text-red-500">*</span>
+                                </label>
+                                <input type="text" 
+                                       id="code" 
+                                       name="code" 
+                                       value="<%= formData.code || '' %>"
+                                       placeholder="Enter coupon code (e.g., SAVE20)"
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 uppercase"
+                                       required>
+                                <p class="text-xs text-gray-500 mt-1">Only letters and numbers allowed, will be converted to uppercase</p>
+                            </div>
+                            
+                            <!-- Coupon Type -->
+                            <div>
+                                <label for="type" class="block text-sm font-medium text-gray-700 mb-2">
+                                    Discount Type <span class="text-red-500">*</span>
+                                </label>
+                                <select id="type" 
+                                        name="type" 
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        required
+                                        onchange="handleTypeChange()">
+                                    <option value="">Select discount type</option>
+                                    <option value="percentage" <%= formData.type === 'percentage' ? 'selected' : '' %>>Percentage (%)</option>
+                                    <option value="fixed" <%= formData.type === 'fixed' ? 'selected' : '' %>>Fixed Amount (₹)</option>
+                                    <option value="freeship" <%= formData.type === 'freeship' ? 'selected' : '' %>>Free Shipping</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <!-- Description -->
+                        <div>
+                            <label for="description" class="block text-sm font-medium text-gray-700 mb-2">
+                                Description <span class="text-red-500">*</span>
+                            </label>
+                            <textarea id="description" 
+                                      name="description" 
+                                      rows="3"
+                                      placeholder="Enter a brief description of this coupon..."
+                                      class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                      required><%= formData.description || '' %></textarea>
+                            <p class="text-xs text-gray-500 mt-1">Minimum 10 characters required</p>
+                        </div>
+                        
+                        <!-- Discount Value and Max Discount -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- Discount Value -->
+                            <div id="valueContainer">
+                                <label for="value" class="block text-sm font-medium text-gray-700 mb-2">
+                                    <span id="valueLabel">Discount Value</span> <span class="text-red-500">*</span>
+                                </label>
+                                <div class="relative">
+                                    <input type="number" 
+                                           id="value" 
+                                           name="value" 
+                                           value="<%= formData.value || '' %>"
+                                           placeholder="Enter discount value"
+                                           min="0"
+                                           step="0.01"
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                           required>
+                                    <span id="valueUnit" class="absolute right-3 top-2 text-gray-500"></span>
+                                </div>
+                                <p id="valueHelp" class="text-xs text-gray-500 mt-1"></p>
+                            </div>
+                            
+                            <!-- Maximum Discount (for percentage only) -->
+                            <div id="maxDiscountContainer" style="display: none;">
+                                <label for="maxDiscount" class="block text-sm font-medium text-gray-700 mb-2">
+                                    Maximum Discount Amount
+                                </label>
+                                <div class="relative">
+                                    <span class="absolute left-3 top-2 text-gray-500">₹</span>
+                                    <input type="number" 
+                                           id="maxDiscount" 
+                                           name="maxDiscount" 
+                                           value="<%= formData.maxDiscount || '' %>"
+                                           placeholder="0"
+                                           min="0"
+                                           step="0.01"
+                                           class="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                </div>
+                                <p class="text-xs text-gray-500 mt-1">Optional: Maximum discount amount for percentage coupons</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Minimum Order and Usage Limit -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- Minimum Order Amount -->
+                            <div>
+                                <label for="minOrder" class="block text-sm font-medium text-gray-700 mb-2">
+                                    Minimum Order Amount
+                                </label>
+                                <div class="relative">
+                                    <span class="absolute left-3 top-2 text-gray-500">₹</span>
+                                    <input type="number" 
+                                           id="minOrder" 
+                                           name="minOrder" 
+                                           value="<%= formData.minOrder || '' %>"
+                                           placeholder="0"
+                                           min="0"
+                                           step="0.01"
+                                           class="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                </div>
+                                <p class="text-xs text-gray-500 mt-1">Minimum cart value required to use this coupon</p>
+                            </div>
+                            
+                            <!-- Usage Limit -->
+                            <div>
+                                <label for="usageLimit" class="block text-sm font-medium text-gray-700 mb-2">
+                                    Usage Limit
+                                </label>
+                                <input type="number" 
+                                       id="usageLimit" 
+                                       name="usageLimit" 
+                                       value="<%= formData.usageLimit || '' %>"
+                                       placeholder="Unlimited"
+                                       min="1"
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                <p class="text-xs text-gray-500 mt-1">Total number of times this coupon can be used (leave empty for unlimited)</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Validity Period -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- Start Date -->
+                            <div>
+                                <label for="startDate" class="block text-sm font-medium text-gray-700 mb-2">
+                                    Start Date <span class="text-red-500">*</span>
+                                </label>
+                                <input type="date" 
+                                       id="startDate" 
+                                       name="startDate" 
+                                       value="<%= formData.startDate || '' %>"
+                                       min="<%= new Date().toISOString().split('T')[0] %>"
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                       required>
+                                <p class="text-xs text-gray-500 mt-1">When the coupon becomes active</p>
+                            </div>
+                            
+                            <!-- End Date -->
+                            <div>
+                                <label for="endDate" class="block text-sm font-medium text-gray-700 mb-2">
+                                    End Date <span class="text-red-500">*</span>
+                                </label>
+                                <input type="date" 
+                                       id="endDate" 
+                                       name="endDate" 
+                                       value="<%= formData.endDate || '' %>"
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                       required>
+                                <p class="text-xs text-gray-500 mt-1">When the coupon expires</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Form Actions -->
+                        <div class="flex items-center justify-between pt-6 border-t border-gray-200">
+                            <a href="/admin/coupons" class="bg-gray-500 text-white px-6 py-2 rounded-md hover:bg-gray-600 transition-colors">
+                                <i class="fas fa-times mr-2"></i>Cancel
+                            </a>
+                            
+                            <div class="space-x-3">
+                                <button type="button" 
+                                        onclick="previewCoupon()"
+                                        class="bg-blue-100 text-blue-700 px-6 py-2 rounded-md hover:bg-blue-200 transition-colors">
+                                    <i class="fas fa-eye mr-2"></i>Preview
+                                </button>
+                                <button type="submit" id="createCoupon" class="bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700 transition-colors">
+                                    <i class="fas fa-save mr-2"></i>Create Coupon
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script>
+        // Handle coupon type change
+        function handleTypeChange() {
+            const type = document.getElementById('type').value;
+            const valueLabel = document.getElementById('valueLabel');
+            const valueUnit = document.getElementById('valueUnit');
+            const valueHelp = document.getElementById('valueHelp');
+            const valueInput = document.getElementById('value');
+            const maxDiscountContainer = document.getElementById('maxDiscountContainer');
+            const valueContainer = document.getElementById('valueContainer');
+            
+            if (type === 'percentage') {
+                valueLabel.textContent = 'Discount Percentage';
+                valueUnit.textContent = '%';
+                valueHelp.textContent = 'Enter percentage value (1-100)';
+                valueInput.max = '100';
+                valueInput.placeholder = 'Enter percentage (e.g., 20)';
+                maxDiscountContainer.style.display = 'block';
+                valueContainer.classList.remove('md:col-span-2');
+            } else if (type === 'fixed') {
+                valueLabel.textContent = 'Discount Amount';
+                valueUnit.textContent = '₹';
+                valueHelp.textContent = 'Enter fixed discount amount';
+                valueInput.max = '10000';
+                valueInput.placeholder = 'Enter amount (e.g., 100)';
+                maxDiscountContainer.style.display = 'none';
+                valueContainer.classList.add('md:col-span-2');
+            } else if (type === 'freeship') {
+                valueLabel.textContent = 'Shipping Discount';
+                valueUnit.textContent = '₹';
+                valueHelp.textContent = 'Enter shipping cost to waive';
+                valueInput.max = '1000';
+                valueInput.placeholder = 'Enter shipping cost';
+                maxDiscountContainer.style.display = 'none';
+                valueContainer.classList.add('md:col-span-2');
+            } else {
+                valueLabel.textContent = 'Discount Value';
+                valueUnit.textContent = '';
+                valueHelp.textContent = '';
+                valueInput.removeAttribute('max');
+                valueInput.placeholder = 'Enter discount value';
+                maxDiscountContainer.style.display = 'none';
+                valueContainer.classList.add('md:col-span-2');
+            }
+        }
+        
+        // Preview coupon function
+        function previewCoupon() {
+            const form = document.querySelector('form');
+            const formData = new FormData(form);
+            
+            const code = formData.get('code');
+            const description = formData.get('description');
+            const type = formData.get('type');
+            const value = formData.get('value');
+            const maxDiscount = formData.get('maxDiscount');
+            const minOrder = formData.get('minOrder');
+            const usageLimit = formData.get('usageLimit');
+            const startDate = formData.get('startDate');
+            const endDate = formData.get('endDate');
+            
+            if (!code || !description || !type || !value || !startDate || !endDate) {
+                Swal.fire({
+                    title: 'Incomplete Information',
+                    text: 'Please fill in all required fields to preview the coupon.',
+                    icon: 'warning'
+                });
+                return;
+            }
+            
+            let valueDisplay = '';
+            if (type === 'percentage') {
+                valueDisplay = `${value}%`;
+                if (maxDiscount) {
+                    valueDisplay += ` (Max: ₹${maxDiscount})`;
+                }
+            } else if (type === 'fixed') {
+                valueDisplay = `₹${value}`;
+            } else {
+                valueDisplay = 'Free Shipping';
+            }
+            
+            const startDateFormatted = new Date(startDate).toLocaleDateString();
+            const endDateFormatted = new Date(endDate).toLocaleDateString();
+            
+            Swal.fire({
+                title: `Coupon Preview: ${code.toUpperCase()}`,
+                html: `
+                    <div class="text-left space-y-3">
+                        <div><strong>Code:</strong> ${code.toUpperCase()}</div>
+                        <div><strong>Description:</strong> ${description}</div>
+                        <div><strong>Type:</strong> ${type.charAt(0).toUpperCase() + type.slice(1)}</div>
+                        <div><strong>Value:</strong> ${valueDisplay}</div>
+                        <div><strong>Minimum Order:</strong> ₹${minOrder || '0'}</div>
+                        <div><strong>Usage Limit:</strong> ${usageLimit || 'Unlimited'}</div>
+                        <div><strong>Valid Period:</strong> ${startDateFormatted} to ${endDateFormatted}</div>
+                        <div><strong>Status:</strong> <span class="text-green-600">Active</span></div>
+                    </div>
+                `,
+                icon: 'info',
+                confirmButtonText: 'Continue Editing',
+                showCancelButton: true,
+                cancelButtonText: 'Create Coupon',
+                cancelButtonColor: '#10b981',
+                width: '500px'
+            }).then((result) => {
+                if (result.dismiss === Swal.DismissReason.cancel) {
+                    form.submit();
+                }
+            });
+        }
+        
+        // Form validation
+        document.querySelector('form').addEventListener('submit', function(e) {
+            const type = document.getElementById('type').value;
+            const value = parseFloat(document.getElementById('value').value);
+            const startDate = new Date(document.getElementById('startDate').value);
+            const endDate = new Date(document.getElementById('endDate').value);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            let errors = [];
+            
+            // Validate value based on type
+            if (type === 'percentage' && (value <= 0 || value > 100)) {
+                errors.push('Percentage discount must be between 1 and 100');
+            }
+            if (type === 'fixed' && value > 10000) {
+                errors.push('Fixed discount cannot exceed ₹10,000');
+            }
+            
+            // Validate dates
+            if (startDate < today) {
+                errors.push('Start date cannot be in the past');
+            }
+            if (endDate <= startDate) {
+                errors.push('End date must be after start date');
+            }
+            
+            if (errors.length > 0) {
+                e.preventDefault();
+                Swal.fire({
+                    title: 'Validation Error',
+                    html: errors.map(error => `• ${error}`).join('<br>'),
+                    icon: 'error'
+                });
+            }
+        });
+        
+        // Set minimum end date when start date changes
+        document.getElementById('startDate').addEventListener('change', function() {
+            const startDate = this.value;
+            const endDateInput = document.getElementById('endDate');
+            
+            if (startDate) {
+                const minEndDate = new Date(startDate);
+                minEndDate.setDate(minEndDate.getDate() + 1);
+                endDateInput.min = minEndDate.toISOString().split('T')[0];
+                
+                if (endDateInput.value && new Date(endDateInput.value) <= new Date(startDate)) {
+                    endDateInput.value = '';
+                }
+            }
+        });
+        
+        // Replace the existing form submission script with this:
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Set today as minimum start date
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('startDate').min = today;
+    
+    // Handle type change if there's a pre-selected value
+    handleTypeChange();
+    
+    // Convert code to uppercase on input
+    document.getElementById('code').addEventListener('input', function() {
+        this.value = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+    });
+
+    // Handle form submission with AJAX
+    document.querySelector('form').addEventListener('submit', async function(event) {
+        event.preventDefault(); // Prevent default form submission
+        
+        // Get form data
+        const formData = new FormData(this);
+        const formObject = Object.fromEntries(formData.entries());
+        
+        // Show loading state
+        const submitButton = document.getElementById('createCoupon');
+        const originalText = submitButton.innerHTML;
+        submitButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Creating...';
+        submitButton.disabled = true;
+        
+        try {
+            const response = await fetch('/admin/createCoupon', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(formObject)
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                // Show success message and redirect
+                Swal.fire({
+                    title: 'Success!',
+                    text: 'Coupon created successfully',
+                    icon: 'success',
+                    timer: 2000,
+                    showConfirmButton: false
+                }).then(() => {
+                    window.location.href = result.redirectUrl || '/admin/coupon';
+                });
+            } else {
+                // Show error message
+                Swal.fire({
+                    title: 'Error!',
+                    text: result.message || 'Failed to create coupon',
+                    icon: 'error'
+                });
+            }
+            
+        } catch (error) {
+            console.error('Error:', error);
+            Swal.fire({
+                title: 'Error!',
+                text: 'An error occurred while creating the coupon',
+                icon: 'error'
+            });
+        } finally {
+            // Reset button state
+            submitButton.innerHTML = originalText;
+            submitButton.disabled = false;
+        }
+    });
+});
+
+// Remove the old event listener that was attached to the button
+    </script>
+</body>
+</html>

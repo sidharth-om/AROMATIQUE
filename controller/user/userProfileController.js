@@ -35,6 +35,81 @@ const userProfileController = {
         }
     },
 
+    // ADD THIS NEW METHOD
+    updateProfile: async (req, res) => {
+        try {
+            const userId = req.session.user?.userId;
+            const { fullname, phoneNumber } = req.body;
+
+            // Validation
+            if (!fullname || !phoneNumber) {
+                return res.status(400).json({ 
+                    success: false, 
+                    message: "Please fill all required fields" 
+                });
+            }
+
+            // Validate fullname (letters, spaces, hyphens, apostrophes, 2-50 characters)
+            const nameRegex = /^[a-zA-ZÀ-ÖØ-öø-ÿ\s'-]{2,50}$/;
+            if (!nameRegex.test(fullname.trim())) {
+                return res.status(400).json({ 
+                    success: false, 
+                    message: "Name should contain only letters, spaces, hyphens, or apostrophes (2-50 characters)" 
+                });
+            }
+
+            // Validate phone number (10 digits)
+            const phoneRegex = /^\d{10}$/;
+            if (!phoneRegex.test(phoneNumber.trim())) {
+                return res.status(400).json({ 
+                    success: false, 
+                    message: "Please enter a valid 10-digit mobile number" 
+                });
+            }
+
+            // Check if user exists
+            const user = await User.findById(userId);
+            if (!user) {
+                return res.status(404).json({ 
+                    success: false, 
+                    message: "User not found" 
+                });
+            }
+
+            // Update user profile
+            const updatedUser = await User.findByIdAndUpdate(
+                userId,
+                {
+                    fullname: fullname.trim(),
+                    phoneNumber: parseInt(phoneNumber.trim())
+                },
+                { new: true }
+            );
+
+            // Update session data
+            req.session.user.fullname = updatedUser.fullname;
+
+            console.log("Profile updated successfully for user:", userId);
+            
+            return res.status(200).json({ 
+                success: true, 
+                message: "Profile updated successfully",
+                user: {
+                    fullname: updatedUser.fullname,
+                    phoneNumber: updatedUser.phoneNumber,
+                    email: updatedUser.email
+                }
+            });
+
+        } catch (error) {
+            console.log("Error updating profile:", error.message);
+            return res.status(500).json({ 
+                success: false, 
+                message: "Internal server error. Please try again." 
+            });
+        }
+    },
+
     addAddress: async (req, res) => {
         try {
 
@@ -65,7 +140,7 @@ const userProfileController = {
                 nameRegex: /^[a-zA-ZÀ-ÖØ-öø-ÿ\s'-]{2,50}$/,
                 addressRegex: /^[a-zA-Z0-9\s,.\-\/]{5,}$/,
                 phoneRegex: /^[\d]{10,15}$/,
-                pincodeRegex: /^[\d]{4,10}$/
+                pincodeRegex: /^[\d]{6}$/
             };
 
             // Validate inputs
@@ -220,7 +295,7 @@ const userProfileController = {
             const expiresAt=Date.now() + 60 * 1000
             req.session.otpData={otp,expiresAt}
             console.log(otp)
-            await sendOtpByEmail(currentEmail,otp)
+            await sendOtpByEmail(newEmail,otp)
 
            
             console.log("otp sended successfully");
@@ -285,41 +360,63 @@ const userProfileController = {
             console.log(error.message)
         }
     },
-    changePasswordOtp:async (req,res) => {
+    changePasswordOtp: async (req, res) => {
         try {
+            const { currentPassword, newPassword, confirmPassword } = req.body;
+            console.log("naan", currentPassword);
+            const email = req.session.user.email;
 
-            const {newPassword,confirmPassword}=req.body
+            // Validate inputs
+            if (!currentPassword || !newPassword || !confirmPassword) {
+                return res.status(400).json({ message: "Please fill all password fields" });
+            }
 
-            console.log("naan",newPassword)
-            const email= req.session.user.email
+            // Fetch user
+            const user = await User.findOne({ email });
+            if (!user) {
+                return res.status(404).json({ message: "User not found" });
+            }
 
-            req.session.changePassword={
-                newPassword:newPassword,
-                confirmPassword:confirmPassword
-               }
+            // Check if current password matches
+            const isPasswordMatch = await bcrypt.compare(currentPassword, user.password);
+            if (!isPasswordMatch) {
+                return res.status(400).json({ message: "Current password is incorrect" });
+            }
 
+            // Validate new password and confirm password
+            if (newPassword !== confirmPassword) {
+                return res.status(400).json({ message: "New password and confirm password must match" });
+            }
 
+            const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,20}$/;
+            if (!passwordRegex.test(newPassword)) {
+                return res.status(400).json({
+                    message: "New password must be 8-20 characters, include at least one letter, one number, and one special character"
+                });
+            }
 
-               console.log("sabu:",req.session.changePassword)
-            //    console.log("sabu:>>>>>>>>>>>>>>>>>>>>>>",req.session)
-            // newPassword:newPassword
-            const otp=generateOtpCode()
-            const expiresAt=Date.now() + 60 * 1000
-            req.session.otpData={otp,expiresAt}
-            console.log(otp)
-            await sendOtpByEmail(email,otp)
+            // Store new password in session
+            req.session.changePassword = {
+                newPassword: newPassword,
+                confirmPassword: confirmPassword
+            };
 
-        
+            // Generate and send OTP
+            const otp = generateOtpCode();
+            const expiresAt = Date.now() + 60 * 1000;
+            req.session.otpData = { otp, expiresAt };
+            console.log(otp);
+            await sendOtpByEmail(email, otp);
 
             console.log("otp sended successfully");
-            // console.log("userrr:::",user)
-            return res.status(200).json({success:true,message:"otp sended successfully"})
-
+            return res.status(200).json({ success: true, message: "otp sended successfully" });
 
         } catch (error) {
-            console.log(error.message)
+            console.log(error.message);
+            return res.status(500).json({ message: "Internal server error" });
         }
-    },
+    }, 
+    
     verifyChangePasswordOtp:async (req,res) => {
         try {
             const email= req.session.user.email
@@ -368,6 +465,20 @@ const userProfileController = {
             await user.save()
             
            return res.status(200).json({success:true,message:"Password changed successfully"})
+        } catch (error) {
+            console.log(error.message)
+        }
+    },
+    loadEditProfile:async (req,res) => {
+        try {
+             const userId = req.session.user?.userId;
+        const user = await User.findById(userId); // Fetch user details from DB
+        console.log("edd", user);
+         const address=await userAddress.find({userId:userId,status:"active"})
+            console.log(("addr",address))
+             const cart=await Cart.findOne({userId})
+
+        res.render("user/editProfile", { user,address,cart });
         } catch (error) {
             console.log(error.message)
         }

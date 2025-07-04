@@ -3,6 +3,7 @@ const Product=require("../../models/productModel")
 const Brand=require("../../models/brandModel")
 const Categories=require("../../models/category")
 const Cart=require("../../models/cartModel")
+const Coupon=require("../../models/couponModel") // Add this import
 const bcrypt=require("bcrypt")
 
 const nodemailer=require("nodemailer")
@@ -12,9 +13,38 @@ const session = require("express-session")
 const {OAuth2Client} = require("google-auth-library")
 const client =new OAuth2Client("142815468591-rc6ar61c1r1sd4sm1nsv0h5cos2r6hk6.apps.googleusercontent.com")
 
-
-
 const generateOtpCode=()=>Math.floor(100000 +Math.random() * 900000).toString()
+
+// Function to create referral reward coupon
+const createReferralRewardCoupon = async (referrerUserId, referredUser) => {
+    try {
+        const couponCode = await Coupon.generateUniqueCouponCode();
+        const expiryDate = new Date();
+        expiryDate.setMonth(expiryDate.getMonth() + 3); // 3 months validity
+
+        const newCoupon = new Coupon({
+            code: couponCode,
+            type: 'percentage',
+            value: 10, // 10% discount
+            minOrderAmount: 500, // Minimum order amount
+            maxDiscount: 200, // Maximum discount amount
+            expiryDate: expiryDate,
+            userId: referrerUserId,
+            description: `Referral reward coupon for referring ${referredUser.fullname}`,
+            isReferralReward: true,
+            referralDetails: {
+                referredUser: referredUser._id,
+                referralDate: new Date()
+            }
+        });
+
+        await newCoupon.save();
+        return newCoupon;
+    } catch (error) {
+        console.log("Error creating referral coupon:", error);
+        throw error;
+    }
+};
 
 const userController={
     loadRegisterPage:async (req,res) => {
@@ -29,11 +59,8 @@ const userController={
     verifyRegister:async (req,res) => {
         try {
             console.log("verify register req.body",req.body)
-            const{fullname,email,password,phone,confirmPassword}=req.body
-            console.log("fullname:",fullname,"email:",email)
-            // if(fullname==="sidharth"){
-            //     return res.status(400).json({message:"name is not correct",success:false})
-            // }
+            const{fullname,email,password,phone,confirmPassword,referralCode}=req.body // Add referralCode
+            console.log("fullname:",fullname,"email:",email,"referralCode:",referralCode)
 
             const regexPatterns = {
                 fullname: /^[A-Za-z\s]{3,50}$/,
@@ -70,6 +97,17 @@ const userController={
                 return res.status(400).json({message:"password and confirm password must be match"})
             }
 
+            // Validate referral code if provided
+            let referrerUser = null;
+            if(referralCode && referralCode.trim()){
+                referrerUser = await User.findOne({referralCode: referralCode.trim().toUpperCase()});
+                if(!referrerUser){
+                    return res.status(400).json({message:"Invalid referral code"})
+                }
+                if(referrerUser.email === email){
+                    return res.status(400).json({message:"You cannot use your own referral code"})
+                }
+            }
 
             const existingUser=await User.findOne({email})
             if(existingUser){
@@ -79,12 +117,11 @@ const userController={
 
             console.log(hashedPassword)
             
-          
             req.session.name=fullname,
             req.session.phone=phone,
             req.session.email=email,
             req.session.password=hashedPassword
-            
+            req.session.referrerUserId = referrerUser ? referrerUser._id : null; // Store referrer ID
 
             const otp = generateOtpCode()
             const expiresAt=Date.now() + 60  * 1000
@@ -94,12 +131,11 @@ const userController={
             
             return res.status(200).json({success:true,redirectUrl:"/user/enterOtp"})
 
-
-           
         } catch (error) {
             console.log(error.message)
         }
     },
+
     loadOtpPage:async (req,res) => {
         try {
             res.render("user/otp")
@@ -116,7 +152,6 @@ const userController={
             console.log("session data of user : ","email:",req.session.email,"\n","phone:",req.session.phone,"\n","name:",req.session.name,"\n","password:",req.session.password)
 
             const otpRegex = /^\d{6}$/;
-
 
             if(!otp.trim()){
                 return res.status(400).json({message:"otp is required"})
@@ -143,16 +178,44 @@ const userController={
             }
 
             delete req.session.otpData
-            // return res.status(200).json({success:true ,message:"OTP verified successfully"})
 
+            // Create new user with referral information
             const newUser=new User({
                 email:req.session.email,
                 password:req.session.password,
                 fullname:req.session.name,
-                phoneNumber:req.session.phone
+                phoneNumber:req.session.phone,
+                referredBy: req.session.referrerUserId || null
             })
             
             await newUser.save()
+
+            // Handle referral rewards if user was referred
+            if(req.session.referrerUserId){
+                try {
+                    const referrerUser = await User.findById(req.session.referrerUserId);
+                    if(referrerUser){
+                        // Update referrer's statistics
+                        referrerUser.referralCount += 1;
+                        referrerUser.referredUsers.push({
+                            user: newUser._id,
+                            dateReferred: new Date()
+                        });
+                        await referrerUser.save();
+
+                        // Create reward coupon for referrer
+                        await createReferralRewardCoupon(referrerUser._id, newUser);
+                        
+                        console.log(`Referral reward created for user ${referrerUser.fullname}`);
+                    }
+                } catch (referralError) {
+                    console.log("Error processing referral reward:", referralError);
+                    // Don't fail the registration if referral processing fails
+                }
+            }
+
+            // Clear referral session data
+            delete req.session.referrerUserId;
 
            return res.status(200).json({success:true,redirectUrl:"/user/userLogin"})
 
@@ -160,6 +223,7 @@ const userController={
             console.log(error.message)
         }
     },
+
     resendOtp:async (req,res) => {
         try {
             const email=req.session.email
@@ -175,11 +239,11 @@ const userController={
             await sendOtpByEmail(email,otp)
             return res.status(200).json({message:"otp send successfully"})
 
-
         } catch (error) {
             console.log(error.message)
         }
     },
+
     loadUserLogin:async (req,res) => {
         try {
             res.render("user/userLogin")
@@ -188,6 +252,7 @@ const userController={
         }
         
     },
+
     verifyLogin:async (req,res) => {
         try {
             console.log("verify login req.body:",req.body)
@@ -195,10 +260,8 @@ const userController={
             console.log("email:",email,"password:",password)
 
             const regexPatterns = {
-               
                 email: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
                 password: /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,20}$/,
-                
             };
 
             if(!email.trim()||!password.trim()){
@@ -206,7 +269,7 @@ const userController={
             }
 
             if(!regexPatterns.email.test(email)){
-                returnres.status(400).json({message:"Name is invalid,only letters and spaces are allowed"})
+                return res.status(400).json({message:"Invalid email format"})
             }
 
             if(!regexPatterns.password.test(password)){
@@ -242,6 +305,7 @@ const userController={
             console.log(error.message)
         }
     },
+
     loadUserHome:async (req,res) => {
         try {
             const user=req.session.user
@@ -259,6 +323,64 @@ const userController={
             console.log(error.message)
         }
     },
+
+    // New method to load referral page
+    loadReferralPage: async (req, res) => {
+        try {
+            if (!req.session.user) {
+                return res.redirect('/user/userLogin');
+            }
+
+            const userId = req.session.user.userId;
+            const user = await User.findById(userId)
+                .populate('referredUsers.user', 'fullname email createdAt')
+                .exec();
+
+            const referralCoupons = await Coupon.find({
+                userId: userId,
+                isReferralReward: true
+            }).populate('referralDetails.referredUser', 'fullname email').sort({createdAt: -1});
+
+            res.render('user/referral', {
+                user: req.session.user,
+                userDetails: user,
+                referralCoupons
+            });
+        } catch (error) {
+            console.log(error.message);
+            res.status(500).render('error', { message: 'Something went wrong' });
+        }
+    },
+
+    // API to check referral code validity
+    checkReferralCode: async (req, res) => {
+        try {
+            const { referralCode } = req.body;
+            
+            if (!referralCode || !referralCode.trim()) {
+                return res.json({ valid: false, message: 'Referral code is required' });
+            }
+
+            const referrerUser = await User.findOne({ 
+                referralCode: referralCode.trim().toUpperCase() 
+            });
+
+            if (!referrerUser) {
+                return res.json({ valid: false, message: 'Invalid referral code' });
+            }
+
+            return res.json({ 
+                valid: true, 
+                message: `Valid referral code from ${referrerUser.fullname}`,
+                referrerName: referrerUser.fullname 
+            });
+
+        } catch (error) {
+            console.log(error.message);
+            return res.json({ valid: false, message: 'Error validating referral code' });
+        }
+    },
+
     googleLogin:async (req,res) => {
         try {
             const {token} = req.body
@@ -279,17 +401,23 @@ const userController={
             let user = await User.findOne({email})
 
             if(!user){
-                user = new User({email,name,profilePic:picture,googleAuth:true})
+                user = new User({email,fullname:name,image:picture,googleId:payload.sub})
                 await user.save()
             }
 
-            req.session.user=user
+            req.session.user={
+                fullname:user.fullname,
+                userId:user._id,
+                isActive:user.isActive,
+                email:user.email
+            }
             return res.status(200).json({success:true,message:"user verified successfully",redirectUrl:"/user/userHome"})
 
         } catch (error) {
             console.log(error.message)
         }
     },
+
     loadForgotPassword:async (req,res) => {
         try {
             res.render("user/forgot")
@@ -297,6 +425,7 @@ const userController={
             console.log(error.message)
         }
     },
+
     sendForgotOtp:async (req,res) => {
         try {
             const {email}=req.body
@@ -315,13 +444,13 @@ const userController={
                 await user.save()
                 await sendOtpByEmail(email,otp)
                
-                
     res.json({ success: true, message: "OTP sent to your email" });
             
         } catch (error) {
             console.log(error.message)
         }
     },
+
     loadResetPassword:async (req,res) => {
         try {
             res.render("user/resetPassword")
@@ -329,6 +458,7 @@ const userController={
             console.log(error.message)
         }
     },
+
     enterNewPassword:async (req,res) => {
         try {
             const {email,otp,newPassword,confirmPassword}=req.body
@@ -353,7 +483,6 @@ const userController={
             const passwordRegex=/^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,20}$/
             const otpRegex=/^\d{6}$/
 
-
             if(!passwordRegex.test(newPassword)||!passwordRegex.test(confirmPassword)){
                 return res.status(400).json({message:"Password must be 8-20 characters, include at least one letter, one number, and one special character"})
             }
@@ -362,10 +491,6 @@ const userController={
                 return res.status(400).json({message: "Invalid OTP, it should be a 6-digit number"})
             }
 
-
-
-            
-            
             const user=await User.findOne({email:req.session.userEmail})
             console.log("user found:",user)
             if(!user) return res.json({success:false,message:"Invalid or expired OTP"})
@@ -375,23 +500,21 @@ const userController={
                 user.expiresAt=undefined
                 await user.save()
 
-                
     res.json({ success: true, redirectUrl: '/user/userLogin' });
             
         } catch (error) {
             console.log(error.message)
         }
     },
+
     logout:async (req,res) => {
         try {
             req.session.destroy()
-
             return res.status(200).json({redirectUrl:"/userLogin" })
         } catch (error) {
             console.log(error.message)
         }
     }
 }
-
 
 module.exports=userController

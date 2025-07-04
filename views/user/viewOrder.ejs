@@ -16,192 +16,457 @@
     }
   </style>
 </head>
-<body class="bg-gray-100">
+<body class="bg-gray-50 text-gray-800 antialiased min-h-screen">
  
-
   <!-- Main Content -->
-  <main class="container mx-auto px-4 py-6">
+  <main class="container mx-auto px-4 py-8 max-w-6xl">
+    <!-- Breadcrumb -->
+    <div class="flex items-center text-sm text-gray-600 mb-6">
+      <a href="/" class="hover:text-blue-600 transition-colors duration-200">Home</a>
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mx-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+      </svg>
+      <a href="/user/orders" class="hover:text-blue-600 transition-colors duration-200">My Orders</a>
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mx-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+      </svg>
+      <span class="text-blue-600 font-medium">Order Details</span>
+    </div>
+
     <!-- Order Status -->
-    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
-      <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-4">
+    <div class="bg-white rounded-xl shadow-sm p-6 mb-8 border border-gray-100">
+      <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
         <div>
-          <h1 class="text-xl font-bold text-gray-800">Order #<%= viewData.order.orderId%></h1>
+          <h1 class="text-2xl font-bold text-gray-800 mb-1">Order #<%= viewData.order.orderId%></h1>
           <p class="text-gray-600">Placed on <%= viewData.order.orderDate %></p>
         </div>
-        <div class="mt-2 md:mt-0">
-          <span class="px-3 py-1 bg-green-100 text-green-800 rounded-full font-medium">
-            <%= viewData.order.status %>
+        <div class="mt-4 md:mt-0">
+          <% 
+          let statusColor = 'green';
+          if (viewData.order.status === 'pending') statusColor = 'yellow';
+          else if (viewData.order.status === 'cancelled') statusColor = 'red';
+          else if (viewData.order.status === 'processing') statusColor = 'blue';
+          %>
+          <span class="px-4 py-1.5 bg-<%= statusColor %>-100 text-<%= statusColor %>-800 rounded-full font-medium text-sm inline-flex items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <%= viewData.order.status.charAt(0).toUpperCase() + viewData.order.status.slice(1) %>
           </span>
         </div>
       </div>
       
       <!-- Order Progress -->
-      <div class="relative pt-8">
-        <div class="flex mb-2">
-          <div class="w-1/4 text-center">
-            <div class="relative">
-              <div class="h-3 w-3 bg-green-500 rounded-full mx-auto z-10 relative"></div>
-              <div class="absolute top-0 left-1/2 w-full h-1 bg-green-500 -translate-y-1/2"></div>
-            </div>
-            <p class="text-xs mt-2 font-medium text-green-600">Order Placed</p>
-          </div>
-          <div class="w-1/4 text-center">
-            <div class="relative">
-              <div class="h-3 w-3 bg-green-500 rounded-full mx-auto z-10 relative"></div>
-              <div class="absolute top-0 left-0 w-full h-1 bg-green-500 -translate-y-1/2"></div>
-            </div>
-            <p class="text-xs mt-2 font-medium text-green-600">Processing</p>
-          </div>
-          <div class="w-1/4 text-center">
-            <div class="relative">
-              <div class="h-3 w-3 bg-green-500 rounded-full mx-auto z-10 relative"></div>
-              <div class="absolute top-0 left-0 w-full h-1 bg-green-500 -translate-y-1/2"></div>
-            </div>
-            <p class="text-xs mt-2 font-medium text-green-600">Shipped</p>
-          </div>
-          <div class="w-1/4 text-center">
-            <div class="relative">
-              <div class="h-3 w-3 bg-gray-300 rounded-full mx-auto z-10 relative"></div>
-              <div class="absolute top-0 left-0 w-full h-1 bg-gray-300 -translate-y-1/2"></div>
-            </div>
-            <p class="text-xs mt-2 font-medium text-gray-500">Delivered</p>
-          </div>
+      <!-- Order Progress Section - Replace the existing progress section with this -->
+<div class="relative pt-8">
+  <% 
+    // Define the order status progression
+    const statusProgression = ['pending', 'confirmed', 'shipped', 'delivered'];
+    const statusLabels = {
+      'pending': 'Order Placed',
+      'confirmed': 'Processing', 
+      'shipped': 'Shipped',
+      'delivered': 'Delivered'
+    };
+    
+    // Get current status and find its position in progression
+    const currentStatus = viewData.orderItem.itemStatus || viewData.order.status;
+    let currentStatusIndex = statusProgression.indexOf(currentStatus);
+    
+    // Handle special cases
+    if (currentStatus === 'cancelled') {
+      currentStatusIndex = 0; // Show only first step for cancelled orders
+    } else if (currentStatus === 'returned' || currentStatus === 'return request') {
+      currentStatusIndex = 3; // Show all steps for return cases
+    } else if (currentStatusIndex === -1) {
+      // If status not in progression (like 'processing'), map it to confirmed
+      if (currentStatus === 'processing') currentStatusIndex = 1;
+      else currentStatusIndex = 0;
+    }
+  %>
+  
+  <div class="flex mb-4">
+    <% statusProgression.forEach((status, index) => { %>
+      <div class="w-1/4 text-center">
+        <div class="relative">
+          <% 
+            let circleClass = 'h-4 w-4 rounded-full mx-auto z-10 relative';
+            let textClass = 'text-xs mt-3 font-medium';
+            let lineClass = 'absolute top-0 w-full h-1 -translate-y-1/2';
+            
+            if (currentStatus === 'cancelled' && index === 0) {
+              // First step for cancelled orders
+              circleClass += ' bg-red-500 ring-2 ring-red-200 ring-opacity-60';
+              textClass += ' text-red-600';
+              lineClass += ' bg-red-500';
+            } else if (currentStatus === 'cancelled' && index > 0) {
+              // Remaining steps for cancelled orders
+              circleClass += ' bg-gray-300';
+              textClass += ' text-gray-500';
+              lineClass += ' bg-gray-300';
+            } else if (index <= currentStatusIndex) {
+              // Completed steps
+              circleClass += ' bg-green-500 ring-2 ring-green-200 ring-opacity-60';
+              textClass += ' text-green-600';
+              lineClass += ' bg-green-500';
+            } else {
+              // Future steps
+              circleClass += ' bg-gray-300';
+              textClass += ' text-gray-500';
+              lineClass += ' bg-gray-300';
+            }
+            
+            // Handle line positioning
+            if (index === 0) {
+              lineClass += ' left-1/2';
+            } else {
+              lineClass += ' left-0';
+            }
+          %>
+          
+          <div class="<%= circleClass %>"></div>
+          <% if (index < statusProgression.length - 1) { %>
+            <div class="<%= lineClass %>"></div>
+          <% } %>
         </div>
-        <p class="text-sm text-gray-600 mt-4">
-          Your order is on the way! Expected delivery by <span class="font-semibold"><%= "10.12.13  " %></span>
+        <p class="<%= textClass %>"><%= statusLabels[status] %></p>
+      </div>
+    <% }); %>
+  </div>
+  
+  <!-- Status message based on current order status -->
+  <div class="mt-6">
+    <% if (currentStatus === 'cancelled') { %>
+      <div class="bg-red-50 border border-red-100 rounded-lg p-4 flex items-center">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-red-500 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16c-.77.833.192 2.5 1.732 2.5z" />
+        </svg>
+        <p class="text-sm text-red-800">
+          <span class="font-semibold">Order Cancelled:</span> This order has been cancelled.
         </p>
       </div>
-    </div>
+    <% } else if (currentStatus === 'returned') { %>
+      <div class="bg-orange-50 border border-orange-100 rounded-lg p-4 flex items-center">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-orange-500 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 15v-1a4 4 0 00-4-4H8m0 0l3 3m-3-3l3-3m9 14V5a2 2 0 00-2-2H6a2 2 0 00-2 2v16l4-2 4 2 4-2 4 2z" />
+        </svg>
+        <p class="text-sm text-orange-800">
+          <span class="font-semibold">Order Returned:</span> This item has been returned successfully.
+        </p>
+      </div>
+    <% } else if (currentStatus === 'return request') { %>
+      <div class="bg-yellow-50 border border-yellow-100 rounded-lg p-4 flex items-center">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-yellow-500 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <p class="text-sm text-yellow-800">
+          <span class="font-semibold">Return Request Pending:</span> Your return request is being processed.
+        </p>
+      </div>
+    <% } else if (currentStatus === 'delivered') { %>
+      <div class="bg-green-50 border border-green-100 rounded-lg p-4 flex items-center">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-500 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <p class="text-sm text-green-800">
+          <span class="font-semibold">Order Delivered:</span> Your order has been delivered successfully!
+        </p>
+      </div>
+    <% } else if (currentStatus === 'shipped') { %>
+      <div class="bg-blue-50 border border-blue-100 rounded-lg p-4 flex items-center">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-500 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <p class="text-sm text-blue-800">
+          Your order is on the way! 
+          <% if (viewData.order.estimatedDelivery) { %>
+            Expected delivery by <span class="font-semibold"><%= new Date(viewData.order.estimatedDelivery).toLocaleDateString() %></span>
+          <% } else { %>
+            Expected delivery within 3-5 business days.
+          <% } %>
+        </p>
+      </div>
+    <% } else if (currentStatus === 'confirmed' || currentStatus === 'processing') { %>
+      <div class="bg-blue-50 border border-blue-100 rounded-lg p-4 flex items-center">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-500 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <p class="text-sm text-blue-800">
+          <span class="font-semibold">Order Confirmed:</span> Your order is being processed and will be shipped soon.
+        </p>
+      </div>
+    <% } else { %>
+      <div class="bg-gray-50 border border-gray-100 rounded-lg p-4 flex items-center">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-500 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <p class="text-sm text-gray-800">
+          <span class="font-semibold">Order Placed:</span> Your order has been received and is pending confirmation.
+        </p>
+      </div>
+    <% } %>
+  </div>
+</div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
       <!-- Order Items -->
       <div class="lg:col-span-2">
-        <div class="bg-white rounded-lg shadow-md overflow-hidden">
-          <div class="border-b px-6 py-4">
+        <div class="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100">
+          <div class="border-b px-6 py-4 bg-gray-50">
             <h2 class="text-lg font-semibold text-gray-800">Order Items</h2>
           </div>
           
-        
-            <div class="p-6 border-b last:border-b-0">
-              <div class="flex flex-col md:flex-row">
-                <div class="w-full md:w-20 h-20 flex-shrink-0 mb-4 md:mb-0">
-                    <img  src="/uploads/<%= viewData.orderItem.productId.images[0] %>" alt="Product" class="object-cover rounded-full mr-10" >
+          <div class="p-6">
+            <div class="flex flex-col md:flex-row items-start gap-6">
+              <div class="w-24 h-24 flex-shrink-0 bg-gray-50 rounded-lg p-2 border border-gray-100">
+                <img src="/uploads/<%= viewData.orderItem.productId.images[0] %>" alt="Product" class="w-full h-full object-contain">
+              </div>
+              <div class="flex-grow">
+                <h3 class="text-lg font-medium text-gray-800 mb-2"><%= viewData.orderItem.productId.name %></h3>
+                <div class="flex flex-wrap gap-2 mb-3">
+                  <% if (viewData.orderItem.volume) { %>
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                      Volume: <%= viewData.orderItem.volume %>
+                    </span>
+                  <% } %>
+                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                    Quantity: <%= viewData.orderItem.quantity %>
+                  </span>
                 </div>
-                <div class="flex-grow md:ml-6">
-                   
-
-                  <h3 class="text-base font-medium text-gray-800 mb-1"><%= viewData.orderItem.productId.name %></h3>
-                  <p class="text-sm text-gray-600 mb-2">
-                   
-                    <% if (viewData.orderItem.volume) { %> • Volume: <%= viewData.orderItem.volume %><% } %>
-                  </p>
-                 
-                  <div class="flex items-center justify-between mt-2">
-                    <div class="flex items-center">
-                      <span class="text-lg font-semibold"></span>
-                      <% if (viewData.orderItem.itemSalePrice) { %>
-                        <span class="text-sm text-gray-500 line-through ml-2"></span>
-                        <!-- <span class="text-sm text-green-600 ml-2"><%= "discount" %>% off</span> -->
-                        
+                
+                <div class="flex items-center justify-between mt-4">
+                  <div class="flex items-center">
+                    <% 
+                      // Finding the variant that matches the order item's volume
+                      const variant = viewData.orderItem.productId.variants.find(v => v.volume === viewData.orderItem.volume) || viewData.orderItem.productId.variants[0];
+                      
+                      // Get regular price from the variant
+                      const regularPrice = variant.regularPrice;
+                      
+                      // Calculate product offer amount
+                      const productOfferPercent = viewData.orderItem.productId.offer || 0;
+                      const productDiscountAmount = (regularPrice * productOfferPercent / 100);
+                      
+                      // Get category offer amount (assuming category is populated)
+                      const categoryOfferPercent = viewData.orderItem.productId.categoryId?.offer || 0;
+                      const categoryDiscountAmount = (regularPrice * categoryOfferPercent / 100);
+                      
+                      // Compare and use the higher discount
+                      const maxOfferPercent = Math.max(productOfferPercent, categoryOfferPercent);
+                      const maxDiscountAmount = Math.max(productDiscountAmount, categoryDiscountAmount) +(viewData.pricing.couponDiscount) ;
+                      
+                      // Calculate final sale price
+                      const finalPrice = regularPrice - maxDiscountAmount ;
+                    %>
+                    
+                    <div class="flex flex-col">
+                      <div class="flex items-center">
+                        <span class="text-sm text-gray-500 line-through mr-2">₹<%= regularPrice.toLocaleString() %></span>
+                        <span class="font-semibold text-gray-900">₹<%= finalPrice.toLocaleString() %></span>
+                        <% if (maxOfferPercent > 0) { %>
+                          <span class="ml-2 text-xs font-medium text-green-600 bg-green-50 px-2 py-0.5 rounded">
+                            <%= maxOfferPercent %>% OFF
+                          </span>
+                        <% } %>
+                      </div>
+                      
+                      <% if (maxOfferPercent > 0) { %>
+                        <div class="text-xs text-green-600 mt-1">
+                          You saved ₹<%= maxDiscountAmount.toLocaleString() %> on this item
+                        </div>
                       <% } %>
+                      
+                    <% if (viewData.pricing.couponDiscount > 0) { %>
+                    <div class="text-xs text-blue-600 mt-1">
+                      Additional coupon applied at order-level
                     </div>
-                    <div class="text-sm mb-15">Quantity: <%= viewData.orderItem.quantity %></div>
+                    <% } %>
+
+                    </div>
                   </div>
-                  
                 </div>
               </div>
             </div>
+          </div>
           
-            <!-- Return and Invoice Buttons -->
-            <div class="flex justify-end mt-4 mb-6 px-6 space-x-4">
-              <button id="downloadInvoiceButton" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded">
-                Download Invoice
-              </button>
-              <button id="returnItemButton" class="bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded">
-                Return Order
-              </button>
-            </div>
+          <!-- Return and Invoice Buttons -->
+          <div class="flex justify-end mt-4 mb-6 px-6 space-x-4">
+            <button id="downloadInvoiceButton" class="bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-medium py-2.5 px-5 rounded-lg transition-colors duration-200 flex items-center">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
+              </svg>
+              Download Invoice
+            </button>
+            <button id="returnItemButton" class="bg-red-600 hover:bg-red-700 text-white font-medium py-2.5 px-5 rounded-lg transition-colors duration-200 flex items-center shadow-sm hover:shadow">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 15v-1a4 4 0 00-4-4H8m0 0l3 3m-3-3l3-3m9 14V5a2 2 0 00-2-2H6a2 2 0 00-2 2v16l4-2 4 2 4-2 4 2z" />
+              </svg>
+              Return Order
+            </button>
+          </div>
         </div>
       </div>
 
       <!-- Order Summary -->
-      <div class="lg:col-span-1">
-        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
-          <h2 class="text-lg font-semibold text-gray-800 mb-4">Price Details</h2>
+      <div class="lg:col-span-1 space-y-8">
+        <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+          <h2 class="text-lg font-semibold text-gray-800 mb-4 pb-2 border-b border-gray-100">Price Details</h2>
           <div class="space-y-3 text-sm">
-            <div class="flex justify-between">
+            <% 
+              // Recalculate subtotal, discounts and total based on the offers
+              let subtotal = 0;
+              let totalDiscount = 0;
+              
+              // Get the variant matching the order item's volume
+              const itemVariant = viewData.orderItem.productId.variants.find(v => v.volume === viewData.orderItem.volume) || viewData.orderItem.productId.variants[0];
+              const regularItemPrice = itemVariant.regularPrice;
+              
+              // Calculate total original price
+              subtotal = regularItemPrice * viewData.orderItem.quantity;
+              
+              // Calculate product & category offers to find maximum
+              const productOffer = viewData.orderItem.productId.offer || 0;
+              const categoryOffer = viewData.orderItem.productId.categoryId?.offer || 0;
+              const maxOffer = Math.max(productOffer, categoryOffer);
+              
+              // Calculate discount amount
+              const offerDiscount = (subtotal * maxOffer / 100);
+              
+              // Additional discount (if any, like from coupons)
+            // Additional discount (if any, like from coupons)
+const additionalDiscount = viewData.pricing.couponDiscount || 0;
+
+totalDiscount = offerDiscount + additionalDiscount;
+
+// Calculate final amount
+const finalAmount = subtotal - offerDiscount - additionalDiscount + (viewData.order.deliveryFee || 0) + (viewData.order.tax || 0);
+
+            %>
+            
+            <div class="flex justify-between py-1">
               <span class="text-gray-600">Price (<%= viewData.order.items.length %> items)</span>
-              <span><%= subtotal %></span>
+              <span class="font-medium">₹<%= subtotal.toLocaleString() %></span>
             </div>
-            <div class="flex justify-between">
-              <span class="text-gray-600">Discount</span>
-              <span class="text-green-600"><%= discount %></span>
+            
+            <% if (maxOffer > 0) { %>
+            <div class="flex justify-between py-1">
+              <span class="text-gray-600">Offer Discount (<%= maxOffer %>%)</span>
+              <span class="text-green-600 font-medium">- ₹<%= offerDiscount.toLocaleString() %></span>
             </div>
-            <div class="flex justify-between">
+            <% } %>
+            
+            <!-- <% if (additionalDiscount > 0) { %>
+            <div class="flex justify-between py-1">
+              <span class="text-gray-600">Additional Discount</span>
+              <span class="text-green-600 font-medium">- ₹<%= additionalDiscount.toLocaleString() %></span>
+            </div>
+            <% } %> -->
+            <% if (viewData.pricing.couponDiscount > 0) { %>
+<div class="flex justify-between py-1">
+  <span class="text-gray-600">Coupon Discount</span>
+  <span class="text-green-600 font-medium">- ₹<%= viewData.pricing.couponDiscount.toLocaleString() %></span>
+</div>
+<% } %>
+            
+            <div class="flex justify-between py-1">
               <span class="text-gray-600">Delivery Charges</span>
               <% if (viewData.order.deliveryFee > 0) { %>
-                <span>₹<%= order.deliveryFee.toLocaleString() %></span>
+                <span class="font-medium">₹<%= viewData.order.deliveryFee.toLocaleString() %></span>
               <% } else { %>
-                <span class="text-green-600">FREE</span>
+                <span class="text-green-600 font-medium">FREE</span>
               <% } %>
             </div>
+            
             <% if (viewData.order.tax > 0) { %>
-              <div class="flex justify-between">
+              <div class="flex justify-between py-1">
                 <span class="text-gray-600">Tax</span>
-                <span>₹<%= order.tax.toLocaleString() %></span>
+                <span class="font-medium">₹<%= viewData.order.tax.toLocaleString() %></span>
               </div>
             <% } %>
+            
             <div class="border-t pt-3 mt-3">
-              <div class="flex justify-between font-semibold">
+              <div class="flex justify-between font-semibold text-base">
                 <span>Total Amount</span>
-                <span>₹<%= totalAmount %></span>
+                <span class="text-lg">₹<%= finalAmount.toLocaleString() %></span>
               </div>
             </div>
-            <div class="text-green-600 font-medium pt-2">
-              You saved <%= discount  %> on this order
-            </div>
+            
+            <% if (totalDiscount > 0) { %>
+              <div class="bg-green-50 text-green-700 font-medium p-3 rounded-lg mt-3 text-center">
+                You saved ₹<%= totalDiscount.toLocaleString() %> on this order
+              </div>
+            <% } %>
           </div>
         </div>
 
         <!-- Shipping Info -->
-        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
-          <h2 class="text-lg font-semibold text-gray-800 mb-4">Shipping Address</h2>
-          <div class="text-sm text-gray-700">
-            <p class="font-medium mb-1"><%=  viewData.order.address.name %></p>
-            <p class="mb-1"><%= viewData.order.address.address %></p>
-            <p class="mb-1">Phone: <%= viewData.order.address.phoneNumber %></p>
-            <p class="mb-1">Pin: <%= viewData.order.address.pincode %></p>
+        <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+          <h2 class="text-lg font-semibold text-gray-800 mb-4 pb-2 border-b border-gray-100 flex items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+            Shipping Address
+          </h2>
+          <div class="text-sm text-gray-700 bg-gray-50 p-4 rounded-lg">
+            <p class="font-medium text-gray-900 mb-2"><%=  viewData.order.address.name %></p>
+            <p class="mb-2 leading-relaxed"><%= viewData.order.address.address %></p>
+            <div class="flex flex-col gap-1 mt-3 text-gray-600">
+              <p class="flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                </svg>
+                <%= viewData.order.address.phoneNumber %>
+              </p>
+              <p class="flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                PIN: <%= viewData.order.address.pincode %>
+              </p>
+            </div>
           </div>
         </div>
 
         <!-- Payment Info -->
-        <div class="bg-white rounded-lg shadow-md p-6">
-          <h2 class="text-lg font-semibold text-gray-800 mb-4">Payment Information</h2>
-          <div class="text-sm text-gray-700">
-            <div class="flex justify-between mb-2">
-              <span>Payment Method</span>
-              <span class="font-medium"><%= viewData.order.paymentMethod %></span>
+        <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+          <h2 class="text-lg font-semibold text-gray-800 mb-4 pb-2 border-b border-gray-100 flex items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+            </svg>
+            Payment Information
+          </h2>
+          <div class="text-sm text-gray-700 space-y-2">
+            <div class="flex justify-between py-2 border-b border-gray-100">
+              <span class="text-gray-600">Payment Method</span>
+              <span class="font-medium text-gray-900"><%= viewData.order.paymentMethod %></span>
             </div>
-            <div class="flex justify-between mb-2">
-                <span>Status</span>
-                <span class="font-medium"><%= viewData.order.status %></span>
-              </div>
-              <div class="flex justify-between mb-2">
-                <span>Payment Status</span>
-                <span class="font-medium"><%= viewData.order.paymentStatus %></span>
-              </div>
-              <div class="flex justify-between mb-2">
-                <span>Amount Paid</span>
-                <span class="font-medium"><%= totalAmount %></span>
-              </div>
-              <div class="flex justify-between mb-2">
-                <span>Order Date</span>
-                <span class="font-medium"><%= viewData.order.orderDate %></span>
-              </div>
-            <% if (viewData.order.payment    === 'Card') { %>
-              <div class="flex justify-between">
-                <span>Card</span>
-                <span class="font-medium">xxxx xxxx xxxx <%= order.payment.cardLast4 %></span>
+            <div class="flex justify-between py-2 border-b border-gray-100">
+              <span class="text-gray-600">Status</span>
+              <span class="font-medium text-gray-900"><%= viewData.order.status %></span>
+            </div>
+            <div class="flex justify-between py-2 border-b border-gray-100">
+              <span class="text-gray-600">Payment Status</span>
+              <% 
+              let paymentStatusColor = 'green';
+              if (viewData.order.paymentStatus === 'pending') paymentStatusColor = 'yellow';
+              else if (viewData.order.paymentStatus === 'failed') paymentStatusColor = 'red';
+              %>
+              <span class="font-medium text-<%= paymentStatusColor %>-600"><%= viewData.order.paymentStatus %></span>
+            </div>
+            <div class="flex justify-between py-2 border-b border-gray-100">
+              <span class="text-gray-600">Amount Paid</span>
+              <span class="font-medium text-gray-900">₹<%= finalAmount.toLocaleString() %></span>
+            </div>
+            <div class="flex justify-between py-2">
+              <span class="text-gray-600">Order Date</span>
+              <span class="font-medium text-gray-900"><%= viewData.order.orderDate %></span>
+            </div>
+            <% if (viewData.order.payment === 'Card') { %>
+              <div class="flex justify-between py-2">
+                <span class="text-gray-600">Card</span>
+                <span class="font-medium text-gray-900">xxxx xxxx xxxx <%= order.payment.cardLast4 %></span>
               </div>
             <% } %>
           </div>
@@ -210,41 +475,35 @@
     </div>
 
     <!-- Need Help Section -->
-    <div class="bg-white rounded-lg shadow-md p-6 mt-6">
-      <h2 class="text-lg font-semibold text-gray-800 mb-4">Need Help?</h2>
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <a href="#" class="flex items-center p-4 border rounded-lg hover:bg-gray-50 transition">
-          <div class="mr-4 text-blue-600">
+    <div class="bg-white rounded-xl shadow-sm p-8 mt-8 border border-gray-100">
+      <h2 class="text-xl font-semibold text-gray-800 mb-6 text-center">Need Help?</h2>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <a href="#" class="flex flex-col items-center p-6 border border-gray-200 rounded-xl hover:bg-blue-50 hover:border-blue-200 transition-colors duration-200 group">
+          <div class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center mb-4 text-blue-600 group-hover:bg-blue-200">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
           </div>
-          <div>
-            <h3 class="font-medium text-gray-800">Contact Support</h3>
-            <p class="text-sm text-gray-600">Get help with your order</p>
-          </div>
+          <h3 class="font-medium text-gray-800 mb-1 group-hover:text-blue-700">Contact Support</h3>
+          <p class="text-sm text-gray-600 text-center">Get help with your order</p>
         </a>
-        <a href="#" class="flex items-center p-4 border rounded-lg hover:bg-gray-50 transition">
-          <div class="mr-4 text-blue-600">
+        <a href="#" class="flex flex-col items-center p-6 border border-gray-200 rounded-xl hover:bg-blue-50 hover:border-blue-200 transition-colors duration-200 group">
+          <div class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center mb-4 text-blue-600 group-hover:bg-blue-200">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
             </svg>
           </div>
-          <div>
-            <h3 class="font-medium text-gray-800">Return Items</h3>
-            <p class="text-sm text-gray-600">Start a return or exchange</p>
-          </div>
+          <h3 class="font-medium text-gray-800 mb-1 group-hover:text-blue-700">Return Items</h3>
+          <p class="text-sm text-gray-600 text-center">Start a return or exchange</p>
         </a>
-        <a href="#" class="flex items-center p-4 border rounded-lg hover:bg-gray-50 transition">
-          <div class="mr-4 text-blue-600">
+        <a href="#" class="flex flex-col items-center p-6 border border-gray-200 rounded-xl hover:bg-blue-50 hover:border-blue-200 transition-colors duration-200 group">
+          <div class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center mb-4 text-blue-600 group-hover:bg-blue-200">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
           </div>
-          <div>
-            <h3 class="font-medium text-gray-800">Delivery Status</h3>
-            <p class="text-sm text-gray-600">Check delivery updates</p>
-          </div>
+          <h3 class="font-medium text-gray-800 mb-1 group-hover:text-blue-700">Delivery Status</h3>
+          <p class="text-sm text-gray-600 text-center">Check delivery updates</p>
         </a>
       </div>
     </div>
@@ -323,9 +582,13 @@ document.addEventListener('DOMContentLoaded', function() {
   // Handle return button visibility and functionality
   const returnButton = document.getElementById('returnItemButton');
   if (returnButton) {
-    // Only show return button for delivered items
-    if (orderData.itemStatus === 'delivered') {
-      returnButton.style.display = 'block';
+    // Show return button only for delivered items that haven't been returned
+    const returnableStatuses = ['delivered'];
+    const nonReturnableStatuses = ['returned', 'return request', 'cancelled'];
+    
+    if (returnableStatuses.includes(orderData.itemStatus) && 
+        !nonReturnableStatuses.includes(orderData.itemStatus)) {
+      returnButton.style.display = 'flex';
       setupReturnProcess(orderData);
     } else {
       returnButton.style.display = 'none';
@@ -335,9 +598,12 @@ document.addEventListener('DOMContentLoaded', function() {
   // Handle invoice button visibility and functionality
   const downloadInvoiceButton = document.getElementById('downloadInvoiceButton');
   if (downloadInvoiceButton) {
-    // Show invoice button for active items (not returned/cancelled)
-    if (orderData.itemStatus !== 'returned' && orderData.itemStatus !== 'cancelled') {
-      downloadInvoiceButton.style.display = 'block';
+    // Show invoice button for all statuses except cancelled (before delivery)
+    const invoiceAllowedStatuses = ['confirmed', 'shipped', 'delivered', 'return request'];
+    
+    if (invoiceAllowedStatuses.includes(orderData.itemStatus) || 
+        (orderData.itemStatus === 'pending' && orderData.status !== 'cancelled')) {
+      downloadInvoiceButton.style.display = 'flex';
       
       downloadInvoiceButton.addEventListener('click', function() {
         // Generate invoice for this specific item
@@ -347,8 +613,30 @@ document.addEventListener('DOMContentLoaded', function() {
       downloadInvoiceButton.style.display = 'none';
     }
   }
+  
+  // Update status-specific messages or actions
+  updateStatusSpecificElements(orderData);
 });
 
+function updateStatusSpecificElements(orderData) {
+  // Add any status-specific UI updates here
+  console.log('Current order status:', orderData.itemStatus);
+  
+  // Example: Update page title based on status
+  const statusMessages = {
+    'pending': 'Order Placed',
+    'confirmed': 'Order Confirmed', 
+    'processing': 'Processing Order',
+    'shipped': 'Order Shipped',
+    'delivered': 'Order Delivered',
+    'cancelled': 'Order Cancelled',
+    'return request': 'Return Requested',
+    'returned': 'Order Returned'
+  };
+  
+  const currentStatusMessage = statusMessages[orderData.itemStatus] || 'Order Details';
+  document.title = `${currentStatusMessage} | YourStore`;
+}
 
 function setupReturnProcess(orderData) {
   const returnButton = document.getElementById('returnItemButton');
@@ -357,7 +645,7 @@ function setupReturnProcess(orderData) {
     // Define common return reasons
     const returnReasons = [
       'Damaged product received',
-      'Wrong item received',
+      'Wrong item received', 
       'Product does not match description',
       'Product arrived too late',
       'Changed my mind',
@@ -459,7 +747,7 @@ function processReturnRequest(reason, orderData) {
   });
   
   // Send the return request to the server
-  fetch('/user/returnRequest', {  // Make sure this matches your route in userRoute.js
+  fetch('/user/returnRequest', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'

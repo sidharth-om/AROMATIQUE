@@ -8,6 +8,7 @@ const userRoute = require("./routes/userRoute")
 const adminRoute = require("./routes/adminRoute")
 const passport = require("passport")
 const multer = require("multer")
+const flash = require('connect-flash');
 require("dotenv").config()
 require("./config/passport")
 
@@ -21,6 +22,8 @@ app.use(session({
         secure: process.env.NODE_ENV === 'production' // Use secure cookies in production
     }
 }))
+
+app.use(flash());
 
 app.use(passport.initialize())
 app.use(passport.session())

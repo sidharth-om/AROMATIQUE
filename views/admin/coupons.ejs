@@ -1,0 +1,550 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coupon Management - Admin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-50">
+    <!-- Include Admin Header -->
+<%- include("partials/header") %>
+    
+    <div class="flex">
+        <!-- Include Admin Sidebar -->
+      
+        
+        <!-- Main Content -->
+        <div class="flex-1 p-6">
+            <div class="max-w-7xl mx-auto">
+                <!-- Page Header -->
+                <div class="flex justify-between items-center mb-6">
+                    <div>
+                        <h1 class="text-2xl font-bold text-gray-800">Coupon Management</h1>
+                        <p class="text-gray-600">Manage discount coupons and promotional codes</p>
+                    </div>
+                    <a href="/admin/addCoupon" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                        <i class="fas fa-plus mr-2"></i>Add New Coupon
+                    </a>
+                </div>
+                
+                <!-- Success/Error Messages -->
+                <% if (typeof success !== 'undefined') { %>
+                    <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4" role="alert">
+                        <span class="block sm:inline"><%= success %></span>
+                    </div>
+                <% } %>
+                
+                <% if (typeof error !== 'undefined') { %>
+                    <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4" role="alert">
+                        <span class="block sm:inline"><%= error %></span>
+                    </div>
+                <% } %>
+                
+                <!-- Filters and Search -->
+                <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                    <form method="GET" action="/admin/coupons" class="flex flex-wrap gap-4 items-end">
+                        <!-- Search -->
+                        <div class="flex-1 min-w-64">
+                            <label for="search" class="block text-sm font-medium text-gray-700 mb-1">Search Coupons</label>
+                            <input type="text" id="search" name="search" value="<%= search %>" 
+                                   placeholder="Search by code or description..." 
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        
+                        <!-- Status Filter -->
+                        <div>
+                            <label for="status" class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                            <select id="status" name="status" class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option value="all" <%= status === 'all' ? 'selected' : '' %>>All</option>
+                                <option value="active" <%= status === 'active' ? 'selected' : '' %>>Active</option>
+                                <option value="inactive" <%= status === 'inactive' ? 'selected' : '' %>>Inactive</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Search Button -->
+                        <div>
+                            <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors">
+                                <i class="fas fa-search mr-2"></i>Search
+                            </button>
+                        </div>
+                        
+                        <!-- Clear Button -->
+                        <div>
+                            <a href="/admin/coupons" class="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600 transition-colors">
+                                <i class="fas fa-times mr-2"></i>Clear
+                            </a>
+                        </div>
+                    </form>
+                </div>
+                
+                <!-- Coupons Table -->
+                <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                    <div class="px-6 py-4 border-b border-gray-200">
+                        <h2 class="text-lg font-semibold text-gray-800">
+                            All Coupons (<%= totalCoupons %>)
+                        </h2>
+                    </div>
+                    
+                    <% if (coupons && coupons.length > 0) { %>
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Code</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Value</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Min Order</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Usage</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Validity</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-200">
+                                    <% coupons.forEach(coupon => { %>
+                                        <tr>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <div class="font-medium text-gray-900"><%= coupon.code %></div>
+                                            </td>
+                                            <td class="px-6 py-4">
+                                                <div class="text-sm text-gray-900 max-w-xs truncate" 
+                                                     title="<%= coupon.description %>">
+                                                    <%= coupon.description %>
+                                                </div>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <% if (coupon.type === 'percentage') { %>
+                                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                                        <i class="fas fa-percentage mr-1"></i>Percentage
+                                                    </span>
+                                                <% } else if (coupon.type === 'fixed') { %>
+                                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                                        <i class="fas fa-rupee-sign mr-1"></i>Fixed
+                                                    </span>
+                                                <% } else { %>
+                                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                                                        <i class="fas fa-shipping-fast mr-1"></i>Free Ship
+                                                    </span>
+                                                <% } %>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                                <% if (coupon.type === 'percentage') { %>
+                                                    <%= coupon.value %>%
+                                                    <% if (coupon.maxDiscount) { %>
+                                                        <div class="text-xs text-gray-500">Max: ₹<%= coupon.maxDiscount %></div>
+                                                    <% } %>
+                                                <% } else if (coupon.type === 'fixed') { %>
+                                                    ₹<%= coupon.value %>
+                                                <% } else { %>
+                                                    Free Shipping
+                                                <% } %>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                                ₹<%= coupon.minOrder %>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                                <%= coupon.usedCount %>
+                                                <% if (coupon.usageLimit) { %>
+                                                    / <%= coupon.usageLimit %>
+                                                <% } else { %>
+                                                    / ∞
+                                                <% } %>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                                <div><%= new Date(coupon.startDate).toLocaleDateString() %></div>
+                                                <div class="text-xs text-gray-500">to <%= new Date(coupon.endDate).toLocaleDateString() %></div>
+                                                <% 
+                                                const now = new Date();
+                                                const startDate = new Date(coupon.startDate);
+                                                const endDate = new Date(coupon.endDate);
+                                                let validityStatus = '';
+                                                let statusColor = '';
+                                                
+                                                if (now < startDate) {
+                                                    validityStatus = 'Not Started';
+                                                    statusColor = 'text-gray-500';
+                                                } else if (now > endDate) {
+                                                    validityStatus = 'Expired';
+                                                    statusColor = 'text-red-500';
+                                                } else {
+                                                    validityStatus = 'Active Period';
+                                                    statusColor = 'text-green-500';
+                                                }
+                                                %>
+                                                <div class="text-xs <%= statusColor %> font-medium">
+                                                    <%= validityStatus %>
+                                                </div>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <% if (coupon.isActive) { %>
+                                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                                        <i class="fas fa-check-circle mr-1"></i>Active
+                                                    </span>
+                                                <% } else { %>
+                                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                                        <i class="fas fa-times-circle mr-1"></i>Inactive
+                                                    </span>
+                                                <% } %>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
+                                                <!-- Edit Button -->
+                                                <a href="/admin/editCoupon/<%= coupon._id %>" 
+                                                   class="text-blue-600 hover:text-blue-900 inline-flex items-center">
+                                                    <i class="fas fa-edit mr-1"></i>Edit
+                                                </a>
+                                                
+                                                <!-- Toggle Status Button -->
+                                                <button onclick="toggleCouponStatus('<%= coupon._id %>', <%= coupon.isActive %>)" 
+                                                        class="<%= coupon.isActive ? 'text-red-600 hover:text-red-900' : 'text-green-600 hover:text-green-900' %> inline-flex items-center">
+                                                    <i class="fas fa-<%= coupon.isActive ? 'ban' : 'check' %> mr-1"></i>
+                                                    <%= coupon.isActive ? 'Deactivate' : 'Activate' %>
+                                                </button>
+                                                
+                                                <!-- Delete Button (only if not used) -->
+                                                <% if (coupon.usedCount === 0) { %>
+                                                    <button onclick="deleteCoupon('<%= coupon._id %>')" 
+                                                            class="text-red-600 hover:text-red-900 inline-flex items-center">
+                                                        <i class="fas fa-trash mr-1"></i>Delete
+                                                    </button>
+                                                <% } %>
+                                                
+                                                <!-- View Details Button -->
+                                                <button onclick="viewCouponDetails('<%= coupon._id %>')" 
+                                                        class="text-gray-600 hover:text-gray-900 inline-flex items-center">
+                                                    <i class="fas fa-eye mr-1"></i>View
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    <% }); %>
+                                </tbody>
+                            </table>
+                        </div>
+                        <!-- Pagination -->
+                        <% if (totalPages > 1) { %>
+                            <div class="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
+                                <div class="flex-1 flex justify-between sm:hidden">
+                                    <% if (hasPrevPage) { %>
+                                        <a href="/admin/coupons?page=<%= prevPage %>&search=<%= search %>&status=<%= status %>" 
+                                           class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                                            Previous
+                                        </a>
+                                    <% } %>
+                                    <% if (hasNextPage) { %>
+                                        <a href="/admin/coupons?page=<%= nextPage %>&search=<%= search %>&status=<%= status %>" 
+                                           class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                                            Next
+                                        </a>
+                                    <% } %>
+                                </div>
+                                <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                                    <div>
+                                        <p class="text-sm text-gray-700">
+                                            Showing
+                                            <span class="font-medium"><%= (currentPage - 1) * 10 + 1 %></span>
+                                            to
+                                            <span class="font-medium"><%= Math.min(currentPage * 10, totalCoupons) %></span>
+                                            of
+                                            <span class="font-medium"><%= totalCoupons %></span>
+                                            results
+                                        </p>
+                                    </div>
+                                    <div>
+                                        <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                                            <!-- Previous Button -->
+                                            <% if (hasPrevPage) { %>
+                                                <a href="/admin/coupons?page=<%= prevPage %>&search=<%= search %>&status=<%= status %>" 
+                                                   class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                                                    <span class="sr-only">Previous</span>
+                                                    <i class="fas fa-chevron-left"></i>
+                                                </a>
+                                            <% } else { %>
+                                                <span class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-gray-100 text-sm font-medium text-gray-300">
+                                                    <i class="fas fa-chevron-left"></i>
+                                                </span>
+                                            <% } %>
+                                            
+                                            <!-- Page Numbers -->
+                                            <% 
+                                            const startPage = Math.max(1, currentPage - 2);
+                                            const endPage = Math.min(totalPages, currentPage + 2);
+                                            %>
+                                            
+                                            <% if (startPage > 1) { %>
+                                                <a href="/admin/coupons?page=1&search=<%= search %>&status=<%= status %>" 
+                                                   class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">
+                                                    1
+                                                </a>
+                                                <% if (startPage > 2) { %>
+                                                    <span class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">
+                                                        ...
+                                                    </span>
+                                                <% } %>
+                                            <% } %>
+                                            
+                                            <% for (let i = startPage; i <= endPage; i++) { %>
+                                                <% if (i === currentPage) { %>
+                                                    <span class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-blue-50 text-sm font-medium text-blue-600">
+                                                        <%= i %>
+                                                    </span>
+                                                <% } else { %>
+                                                    <a href="/admin/coupons?page=<%= i %>&search=<%= search %>&status=<%= status %>" 
+                                                       class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">
+                                                        <%= i %>
+                                                    </a>
+                                                <% } %>
+                                            <% } %>
+                                            
+                                            <% if (endPage < totalPages) { %>
+                                                <% if (endPage < totalPages - 1) { %>
+                                                    <span class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">
+                                                        ...
+                                                    </span>
+                                                <% } %>
+                                                <a href="/admin/coupons?page=<%= totalPages %>&search=<%= search %>&status=<%= status %>" 
+                                                   class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">
+                                                    <%= totalPages %>
+                                                </a>
+                                            <% } %>
+                                            
+                                            <!-- Next Button -->
+                                            <% if (hasNextPage) { %>
+                                                <a href="/admin/coupons?page=<%= nextPage %>&search=<%= search %>&status=<%= status %>" 
+                                                   class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                                                    <span class="sr-only">Next</span>
+                                                    <i class="fas fa-chevron-right"></i>
+                                                </a>
+                                            <% } else { %>
+                                                <span class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-gray-100 text-sm font-medium text-gray-300">
+                                                    <i class="fas fa-chevron-right"></i>
+                                                </span>
+                                            <% } %>
+                                        </nav>
+                                    </div>
+                                </div>
+                            </div>
+                        <% } %>
+                    <% } else { %>
+                        <div class="text-center py-12">
+                            <div class="text-gray-400 text-6xl mb-4">
+                                <i class="fas fa-ticket-alt"></i>
+                            </div>
+                            <h3 class="text-lg font-medium text-gray-900 mb-2">No coupons found</h3>
+                            <p class="text-gray-500 mb-4">
+                                <% if (search || status !== 'all') { %>
+                                    No coupons match your search criteria.
+                                <% } else { %>
+                                    Get started by creating your first coupon.
+                                <% } %>
+                            </p>
+                            <% if (search || status !== 'all') { %>
+                                <a href="/admin/coupons" class="text-blue-600 hover:text-blue-800">
+                                    Clear filters
+                                </a>
+                            <% } else { %>
+                                <a href="/admin/coupons/add" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                                    <i class="fas fa-plus mr-2"></i>Add New Coupon
+                                </a>
+                            <% } %>
+                        </div>
+                    <% } %>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script>
+        // Toggle coupon status
+function toggleCouponStatus(couponId, currentStatus) {
+    const action = currentStatus ? 'deactivate' : 'activate';
+    
+    Swal.fire({
+        title: `${action.charAt(0).toUpperCase() + action.slice(1)} Coupon?`,
+        text: `Are you sure you want to ${action} this coupon?`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: currentStatus ? '#d33' : '#28a745',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: `Yes, ${action} it!`
+    }).then((result) => {
+        if (result.isConfirmed) {
+            fetch(`/admin/couponStatus/${couponId}`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire({
+                        title: 'Success!',
+                        text: data.message,
+                        icon: 'success',
+                        timer: 1500,
+                        showConfirmButton: false
+                    }).then(() => {
+                        location.reload();
+                    });
+                } else {
+                    Swal.fire('Error!', data.message, 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                Swal.fire('Error!', 'An error occurred while updating coupon status', 'error');
+            });
+        }
+    });
+}
+
+// Delete coupon
+function deleteCoupon(couponId) {
+    Swal.fire({
+        title: 'Delete Coupon?',
+        text: 'This action cannot be undone!',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Yes, delete it!'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            fetch(`/admin/deleteCoupon/${couponId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire({
+                        title: 'Deleted!',
+                        text: data.message,
+                        icon: 'success',
+                        timer: 1500,
+                        showConfirmButton: false
+                    }).then(() => {
+                        location.reload();
+                    });
+                } else {
+                    Swal.fire('Error!', data.message, 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                Swal.fire('Error!', 'An error occurred while deleting coupon', 'error');
+            });
+        }
+    });
+}
+
+// View coupon details
+function viewCouponDetails(couponId) {
+    fetch(`/admin/couponDetails/${couponId}`, {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            const coupon = data.coupon;
+            const startDate = new Date(coupon.startDate).toLocaleDateString();
+            const endDate = new Date(coupon.endDate).toLocaleDateString();
+            const createdDate = new Date(coupon.createdAt).toLocaleString();
+            
+            let valueDisplay = '';
+            if (coupon.type === 'percentage') {
+                valueDisplay = `${coupon.value}%`;
+                if (coupon.maxDiscount) {
+                    valueDisplay += ` (Max: ₹${coupon.maxDiscount})`;
+                }
+            } else if (coupon.type === 'fixed') {
+                valueDisplay = `₹${coupon.value}`;
+            } else {
+                valueDisplay = 'Free Shipping';
+            }
+            
+            const usageDisplay = coupon.usageLimit ? 
+                `${coupon.usedCount} / ${coupon.usageLimit}` : 
+                `${coupon.usedCount} / ∞`;
+            
+            Swal.fire({
+                title: `Coupon: ${coupon.code}`,
+                html: `
+                    <div class="text-left space-y-3">
+                        <div><strong>Description:</strong> ${coupon.description}</div>
+                        <div><strong>Type:</strong> ${coupon.type.charAt(0).toUpperCase() + coupon.type.slice(1)}</div>
+                        <div><strong>Value:</strong> ${valueDisplay}</div>
+                        <div><strong>Minimum Order:</strong> ₹${coupon.minOrder}</div>
+                        <div><strong>Usage:</strong> ${usageDisplay}</div>
+                        <div><strong>Valid Period:</strong> ${startDate} to ${endDate}</div>
+                        <div><strong>Status:</strong> 
+                            <span class="${coupon.isActive ? 'text-green-600' : 'text-red-600'}">
+                                ${coupon.isActive ? 'Active' : 'Inactive'}
+                            </span>
+                        </div>
+                        <div><strong>Created:</strong> ${createdDate}</div>
+                    </div>
+                `,
+                icon: 'info',
+                confirmButtonText: 'Close',
+                width: '500px'
+            });
+        } else {
+            Swal.fire('Error!', data.message, 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        Swal.fire('Error!', 'An error occurred while fetching coupon details', 'error');
+    });
+}
+
+// Handle URL success/error messages
+document.addEventListener('DOMContentLoaded', function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const success = urlParams.get('success');
+    const error = urlParams.get('error');
+    
+    if (success) {
+        Swal.fire({
+            title: 'Success!',
+            text: success,
+            icon: 'success',
+            timer: 3000,
+            showConfirmButton: false
+        });
+        
+        // Clean URL
+        const url = new URL(window.location);
+        url.searchParams.delete('success');
+        window.history.replaceState({}, document.title, url);
+    }
+    
+    if (error) {
+        Swal.fire({
+            title: 'Error!',
+            text: error,
+            icon: 'error',
+            timer: 3000,
+            showConfirmButton: false
+        });
+        
+        // Clean URL
+        const url = new URL(window.location);
+        url.searchParams.delete('error');
+        window.history.replaceState({}, document.title, url);
+    }
+});
+    </script>
+</body>
+</html>

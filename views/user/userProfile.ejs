@@ -203,6 +203,8 @@
       }
     }
   </style>
+  <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+
 </head>
 <body>
   <!-- Breadcrumb -->
@@ -229,6 +231,9 @@
             <a class="sidebar-link active mb-2" id="dashboard-tab" data-bs-toggle="pill" href="#dashboard">
               <i class="fas fa-tachometer-alt"></i> Dashboard
             </a>
+           <a class="sidebar-link mb-2" id="edit-profile" href="/user/editProfile">
+              <i class="fas fa-map-marker-alt"></i> Edit profile
+            </a>
             <a class="sidebar-link mb-2" id="address-tab" data-bs-toggle="pill" href="#address">
               <i class="fas fa-map-marker-alt"></i> My Address
             </a>
@@ -241,7 +246,7 @@
             <a class="sidebar-link mb-2" id="wallet-history-tab" href="/user/wallet">
               <i class="fas fa-history"></i> Wallet 
             </a>
-            <a class="sidebar-link mb-2" id="referral-tab" data-bs-toggle="pill" href="#referral">
+            <a class="sidebar-link mb-2" id="referral-tab"  href="/user/referralPage">
               <i class="fas fa-user-friends"></i> Referrals
             </a>
             <a class="sidebar-link text-danger" href="/logout">
@@ -356,6 +361,10 @@
                         <!-- Change Password Form (Initially Hidden) -->
             <div id="changePasswordForm" class="mt-3 d-none">
               <form id="passwordForm">
+                 <div class="mb-3">
+                      <label class="form-label">Current Password</label>
+                      <input type="password" class="form-control" id="currentPassword" name="currentPassword" required>
+                  </div>
                   <div class="mb-3">
                       <label class="form-label">New Password</label>
                       <input type="password" class="form-control" id="newPassword" name="newPassword" required>
@@ -904,6 +913,7 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById("changePasswordForm").addEventListener("submit",async function (event) {
         event.preventDefault()
 
+        const currentPassword=document.getElementById("currentPassword").value
         const newPassword=document.getElementById("newPassword").value
         const confirmPassword=document.getElementById("confirmPassword").value
 
@@ -911,7 +921,7 @@ document.addEventListener('DOMContentLoaded', function() {
           const response=await fetch("/user/changePasswordOtp",{
             method:"POST",
             headers:{"Content-Type":"application/json"},
-            body:JSON.stringify({newPassword,confirmPassword})
+            body:JSON.stringify({currentPassword,newPassword,confirmPassword})
 
           })
           const result=await response.json()
@@ -921,7 +931,7 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById("passwordOtpForm").classList.remove("d-none")
           }
           else{
-            alert(result.message)
+            swal("Error", result.message, "error");
           }
         } catch (error) {
           console.log(error.message)

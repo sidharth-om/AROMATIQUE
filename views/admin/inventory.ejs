@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="<%= csrfToken %>">
+    <title>Inventory Management</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 font-sans">
+    <div class="container mx-auto p-6">
+        <h1 class="text-2xl font-bold mb-4">Inventory Management</h1>
+        <p class="mb-4">Total Products: <%= totalProducts %></p>
+
+        <div class="bg-white p-6 rounded-lg shadow-md mb-6">
+            <form action="/inventory" method="GET" class="flex items-center space-x-4">
+                <div class="flex-1">
+                    <label for="search" class="block text-sm font-medium text-gray-700">Search Products</label>
+                    <input type="text" name="search" id="search" value="<%= searchQuery %>" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                </div>
+                <div class="mt-6 flex space-x-2">
+                    <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">Search</button>
+                    <a href="/inventory" class="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded">Clear</a>
+                </div>
+            </form>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <div class="bg-white p-4 rounded-lg shadow-md">
+                <h2 class="text-lg font-semibold">Total Products</h2>
+                <p class="text-2xl font-bold"><%= totalProducts %></p>
+            </div>
+            <div class="bg-white p-4 rounded-lg shadow-md">
+                <h2 class="text-lg font-semibold">Low Stock Items</h2>
+                <p class="text-2xl font-bold"><%= products ? products.reduce((count, product) => {
+                    return count + product.variants.filter(variant => variant.isLowStock).length;
+                }, 0) : 0 %></p>
+            </div>
+            <div class="bg-white p-4 rounded-lg shadow-md">
+                <h2 class="text-lg font-semibold">In Stock Items</h2>
+                <p class="text-2xl font-bold"><%= products ? products.reduce((count, product) => {
+                    return count + product.variants.filter(variant => !variant.isLowStock && variant.quantity > 0).length;
+                }, 0) : 0 %></p>
+            </div>
+        </div>
+
+        <div class="bg-white p-6 rounded-lg shadow-md">
+            <h2 class="text-xl font-semibold mb-4">Product Inventory</h2>
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Brand</th>
+                        <!--- <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Volume</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Stock Status</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Stock Management</th> --->
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    <% if (products && products.length > 0) { %>
+                        <% products.forEach(product => { %>
+                            <% product.variants.forEach(variant => { %>
+                                <tr>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div>
+                                            <div class="text-sm font-medium text-gray-900"><%= product.name %></div>
+                                            <div class="text-sm text-gray-500">ID: <%= product._id %></div>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"><%= product.categoryId?.name || 'N/A' %></td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"><%= product.brand?.name || 'N/A' %></td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"><%= variant.volume %></td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        <% if (variant.regularPrice) { %>
+                                            ₹<%= variant.regularPrice %>
+                                        <% } else { %>
+                                            Price not set
+                                        <% } %>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <span class="stock-status <%= variant.quantity === 0 ? 'text-red-500' : variant.isLowStock ? 'text-yellow-500' : 'text-green-500' %>">
+                                            <%= variant.quantity === 0 ? 'Out of Stock' : variant.isLowStock ? `Low Stock (${variant.quantity})` : `In Stock (${variant.quantity})` %>
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        <div class="flex items-center space-x-2">
+                                            <button class="decrement-btn bg-gray-300 hover:bg-gray-400 text-gray-800 px-2 py-1 rounded" data-product-id="<%= product._id %>" data-volume="<%= encodeURIComponent(variant.volume) %>">-</button>
+                                            <input type="number" class="stock-input w-16 border rounded px-2 py-1" value="<%= variant.quantity %>">
+                                            <button class="increment-btn bg-gray-300 hover:bg-gray-400 text-gray-800 px-2 py-1 rounded" data-product-id="<%= product._id %>" data-volume="<%= encodeURIComponent(variant.volume) %>">+</button>
+                                            <button class="update-stock-btn bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded" data-product-id="<%= product._id %>" data-volume="<%= encodeURIComponent(variant.volume) %>">Update</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            <% }) %>
+                        <% }) %>
+                    <% } else { %>
+                        <tr>
+                            <td colspan="7" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
+                                No products found
+                                <p class="mt-2">Try adjusting your search criteria or add new products to your inventory.</p>
+                            </td>
+                        </tr>
+                    <% } %>
+                </tbody>
+            </table>
+        </div>
+
+        <% if (totalProducts > 0) { %>
+            <div class="mt-6 flex items-center justify-between">
+                <p class="text-sm text-gray-700">
+                    Showing <%= ((currentPage - 1) * 10 + 1) %> to <%= Math.min(currentPage * 10, totalProducts) %> of <%= totalProducts %> products
+                </p>
+                <% if (totalPages > 1) { %>
+                    <div class="flex space-x-2">
+                        <% if (currentPage > 1) { %>
+                            <a href="/inventory?page=<%= currentPage - 1 %>&search=<%= encodeURIComponent(searchQuery) %>" class="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded">Previous</a>
+                        <% } %>
+                        <% if (currentPage < totalPages) { %>
+                            <a href="/inventory?page=<%= currentPage + 1 %>&search=<%= encodeURIComponent(searchQuery) %>" class="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded">Next</a>
+                        <% } %>
+                    </div>
+                <% } %>
+            </div>
+        <% } %>
+
+        <div id="loading-spinner" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center hidden">
+            <div class="bg-white p-6 rounded-lg shadow-lg">
+                <p class="text-lg font-medium">Updating stock...</p>
+            </div>
+        </div>
+
+        <div id="toast" class="fixed bottom-4 right-4 bg-gray-800 text-white px-4 py-2 rounded-lg shadow-lg hidden">
+            <p id="toast-message"></p>
+            <button id="close-toast" class="ml-4 text-gray-300 hover:text-white">Close</button>
+        </div>
+    </div>
+
+    <script>
+        function showToast(message, type) {
+            const toast = document.getElementById('toast');
+            const toastMessage = document.getElementById('toast-message');
+            toastMessage.textContent = message;
+            toast.className = `fixed bottom-4 right-4 px-4 py-2 rounded-lg shadow-lg ${type === 'success' ? 'bg-green-500' : 'bg-red-500'} text-white`;
+            toast.classList.remove('hidden');
+            setTimeout(() => {
+                toast.classList.add('hidden');
+            }, 3000);
+        }
+
+        function showLoadingSpinner(show) {
+            document.getElementById('loading-spinner').classList.toggle('hidden', !show);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const updateButtons = document.querySelectorAll('.update-stock-btn');
+            updateButtons.forEach(button => {
+                button.addEventListener('click', async (e) => {
+                    e.preventDefault();
+                    const productId = button.getAttribute('data-product-id');
+                    const volume = button.getAttribute('data-volume');
+                    const input = button.previousElementSibling;
+                    const quantity = parseInt(input.value) || 0;
+
+                    console.log('Sending stock update:', { productId, volume, quantity });
+
+                    if (isNaN(quantity) || quantity < 0) {
+                        showToast('Please enter a valid quantity', 'error');
+                        return;
+                    }
+
+                    showLoadingSpinner(true);
+                    try {
+                        const response = await fetch(`/inventory/update/${productId}`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                            },
+                            body: JSON.stringify({ volume, quantity })
+                        });
+
+                        const data = await response.json();
+                        showLoadingSpinner(false);
+
+                        console.log('Response:', data);
+
+                        if (data.success) {
+                            showToast(data.message, 'success');
+                            const stockStatusSpan = button.closest('tr').querySelector('.stock-status');
+                            stockStatusSpan.textContent = data.isLowStock ? `Low Stock (${data.quantity})` : 
+                                data.quantity === 0 ? 'Out of Stock' : `In Stock (${data.quantity})`;
+                            stockStatusSpan.className = `stock-status ${data.quantity === 0 ? 'text-red-500' : data.isLowStock ? 'text-yellow-500' : 'text-green-500'}`;
+                        } else {
+                            showToast(data.message, 'error');
+                        }
+                    } catch (error) {
+                        showLoadingSpinner(false);
+                        showToast('An error occurred while updating stock', 'error');
+                        console.error('Stock update error:', error);
+                    }
+                });
+            });
+
+            const incrementButtons = document.querySelectorAll('.increment-btn');
+            incrementButtons.forEach(button => {
+                button.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const input = button.previousElementSibling.previousElementSibling;
+                    input.value = parseInt(input.value) + 1;
+                });
+            });
+
+            const decrementButtons = document.querySelectorAll('.decrement-btn');
+            decrementButtons.forEach(button => {
+                button.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const input = button.nextElementSibling;
+                    if (parseInt(input.value) > 0) {
+                        input.value = parseInt(input.value) - 1;
+                    }
+                });
+            });
+
+            document.getElementById('close-toast').addEventListener('click', () => {
+                document.getElementById('toast').classList.add('hidden');
+            });
+        });
+    </script>
+</body>
+</html>

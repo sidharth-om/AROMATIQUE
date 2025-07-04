@@ -14,25 +14,21 @@ const categorySchema = new mongoose.Schema({
     type: String, 
     required: true, 
   },
-  regularPrice: {  // ✅ Ensure camelCase
+  offer: {
     type: Number,
-    default: 0
-  },
-  offerPrice: {  // ✅ Ensure camelCase
-    type: Number,
-    default: 0, 
+    default: 0,
+    min: [0, "Offer cannot be negative"],
+    max: [100, "Offer cannot exceed 100%"]
   },
   status: {
     type: Boolean,
     default: true, 
   },
-  
-
 },
-{timestamps : true,
+{
+  timestamps: true,
   toJSON: { virtuals: true },
   toObject: { virtuals: true }
 });
-
 
 module.exports = mongoose.model("Category", categorySchema);

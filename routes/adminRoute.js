@@ -6,8 +6,12 @@ const categoryController = require("../controller/admin/categoryController")
 const brandController = require("../controller/admin/brandController")
 const customerController = require("../controller/admin/customerController")
 const orderController = require("../controller/admin/orderController")
+const couponController=require("../controller/admin/couponController")
 const upload = require("../config/multer")
 const { isAdminAuthenticated, isAdminNotAuthenticated } = require("../middlware/adminAuth")
+const inventoryController = require("../controller/admin/inventoryController");
+const csrf = require("csurf");
+const csrfProtection = csrf();
 
 const Category = require("../models/category")
 const userProductController = require("../controller/user/userProductController")
@@ -35,11 +39,29 @@ admin_route.patch("/editedProducts", isAdminAuthenticated, upload.array("newImag
 admin_route.delete("/removeImage", isAdminAuthenticated, productController.removeImage)
 admin_route.get("/users", isAdminAuthenticated, customerController.loadCustomers)
 admin_route.post("/customerStatus/:id", isAdminAuthenticated, customerController.customerStatus)
+
+// ORDER ROUTES - Updated to match frontend expectations
 admin_route.get("/orderList", isAdminAuthenticated, orderController.loadOrderList)
+admin_route.get("/orders", isAdminAuthenticated, orderController.loadOrderList) // Alternative route for frontend
 admin_route.post("/updateStatus", isAdminAuthenticated, orderController.updateStatus)
 admin_route.post("/updateItemStatus", isAdminAuthenticated, orderController.updateItemStatus)
+admin_route.post("/orders/update-item-status", isAdminAuthenticated, orderController.updateItemStatus) // Frontend expects this route
 admin_route.get("/orderDetail", isAdminAuthenticated, orderController.orderDetail)
-admin_route.get("/logout",adminController.logout)
+admin_route.get("/orders/view/:orderId/:itemIndex", isAdminAuthenticated, orderController.viewDetails) // Frontend expects this route
 
+admin_route.get("/logout", adminController.logout)
+
+// COUPON ROUTES - Fixed with proper middleware
+admin_route.get("/coupon", isAdminAuthenticated, couponController.loadCoupons)
+admin_route.get("/addCoupon", isAdminAuthenticated, couponController.loadAddCoupon)
+admin_route.post("/createCoupon", isAdminAuthenticated, couponController.createCoupon)
+admin_route.get("/editCoupon/:id", isAdminAuthenticated, couponController.loadEditCoupon)
+admin_route.put("/updateCoupon/:id", isAdminAuthenticated, couponController.updateCoupon)
+admin_route.patch("/couponStatus/:id", isAdminAuthenticated, couponController.toggleCouponStatus)
+admin_route.delete("/deleteCoupon/:id", isAdminAuthenticated, couponController.deleteCoupon)
+admin_route.get("/couponDetails/:id", isAdminAuthenticated, couponController.getCouponDetails)
+
+admin_route.get("/inventory", isAdminAuthenticated, csrfProtection, inventoryController.loadInventory);
+admin_route.post("/inventory/update/:productId", isAdminAuthenticated, csrfProtection, inventoryController.updateStock);
 
 module.exports = admin_route

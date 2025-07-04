@@ -11,23 +11,6 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body class="bg-gray-100">
-    <!-- Header -->
-    <!-- <header class="bg-blue-600 shadow-md">
-        <div class="container mx-auto px-4 py-4">
-            <div class="flex justify-between items-center">
-                <a href="/" class="text-2xl font-bold text-white">YourStore</a>
-                <div class="flex items-center space-x-4">
-                    <a href="#" class="text-white hover:text-blue-200"><i class="fas fa-search"></i></a>
-                    <a href="#" class="text-white hover:text-blue-200"><i class="fas fa-user"></i></a>
-                    <a href="#" class="text-white hover:text-blue-200 relative">
-                        <i class="fas fa-shopping-cart"></i>
-                        <span class="absolute -top-2 -right-2 bg-yellow-400 text-xs text-black font-bold rounded-full w-5 h-5 flex items-center justify-center">1</span>
-                    </a>
-                </div>
-            </div>
-        </div>
-    </header> -->
-
     <!-- Breadcrumb -->
     <div class="bg-white py-2 shadow-sm">
         <div class="container mx-auto px-4">
@@ -70,6 +53,9 @@
                                         <div>
                                             <h3 class="font-medium"><%= item.productId.name %></h3>
                                             <p class="text-sm text-gray-600"><%= item.productId.description %></p>
+                                            <% if (item.volume) { %>
+                                                <p class="text-sm text-gray-500">Volume: <%= item.volume %></p>
+                                            <% } %>
                                         </div>
                                     </div>
                                 </td>
@@ -79,21 +65,38 @@
                                         // Find the variant that matches the volume in the cart item
                                         const variant = item.productId.variants.find(v => v.volume === item.volume);
                                         const regularPrice = variant ? variant.regularPrice : 0;
+                                        
+                                        // Calculate discounts
+                                        const productOffer = item.productId.offer || 0;
+                                        const categoryOffer = item.productId.categoryId.offer || 0;
+                                        
+                                        // Get the maximum offer between product and category
+                                        const maxOffer = Math.max(productOffer, categoryOffer);
+                                        
+                                        // Calculate the discounted price
+                                        const discountAmount = regularPrice * (maxOffer / 100);
+                                        const discountedPrice = regularPrice - discountAmount;
+                                        
+                                        // Store these values for later use
+                                        const finalPrice = discountedPrice;
                                         %>
-                                        <p class="font-medium">₹<%= regularPrice %></p>
-                                        <p class="text-sm text-gray-500">₹<%= regularPrice %> / item</p>
+                                        
+                                        <% if (maxOffer > 0) { %>
+                                            <p class="font-medium text-red-600">₹<%= finalPrice.toFixed(2) %></p>
+                                            <p class="text-sm text-gray-500 line-through">₹<%= regularPrice.toFixed(2) %></p>
+                                            <p class="text-sm text-green-600">-<%= maxOffer %>% off</p>
+                                        <% } else { %>
+                                            <p class="font-medium">₹<%= regularPrice.toFixed(2) %></p>
+                                        <% } %>
                                     </div>
                                 </td>
                                 <td class="py-4 text-center">
                                     <div class="flex items-center justify-center">
-                                        <% 
-                                        // Find the variant that matches the volume in the cart item
-                                        const variants = item.productId.variants.find(v => v.volume === item.volume);
-                                        const regularPrices = variant ? variant.regularPrice : 0;
-                                        %>
-                                      <button 
-                                      onclick="changeQuantity('<%= item.productId._id %>', <%= item.quantity %>, -1, <%= regularPrices %>, <%= index %>, <%= item.productId.quantity %>)" 
-                                      class="w-8 h-8 rounded-l ...">-</button>
+                                        <button 
+                                      onclick="changeQuantity('<%= item.productId._id %>', <%= item.quantity %>, -1, <%= finalPrice %>, <%= index %>, <%= variant.quantity %>)" 
+                                      class="w-8 h-8 rounded-l bg-gray-200 hover:bg-gray-300 flex items-center justify-center">
+                                      <i class="fas fa-minus text-sm"></i>
+                                    </button>
                                     
                                     <input 
                                       type="text" 
@@ -103,35 +106,26 @@
                                       readonly>
                                     
                                     <button 
-                                      onclick="changeQuantity('<%= item.productId._id %>', <%= item.quantity %>, 1, <%= regularPrices %>, <%= index %>, <%= item.productId.quantity %>)" 
-                                      class="w-8 h-8 rounded-r ...">+</button>
-                                    
-                                       
+                                      onclick="changeQuantity('<%= item.productId._id %>', <%= item.quantity %>, 1, <%= finalPrice %>, <%= index %>, <%= variant.quantity %>)" 
+                                      class="w-8 h-8 rounded-r bg-gray-200 hover:bg-gray-300 flex items-center justify-center">
+                                      <i class="fas fa-plus text-sm"></i>
+                                    </button>
                                     </div>
                                 </td>
                                 <td class="py-4 text-center font-medium">
                                     <% 
-                                    // Calculate subtotal (price * quantity)
-                                    const subtotal = regularPrice * item.quantity;
+                                    // Calculate subtotal (discounted price * quantity)
+                                    const subtotal = finalPrice * item.quantity;
                                     %>
-                                    ₹<span id="subTotal<%= index %>"><%= subtotal %></span>
+                                    ₹<span id="subTotal<%= index %>"><%= subtotal.toFixed(2) %></span>
+                                    <% if (maxOffer > 0) { %>
+                                        <p class="text-xs text-green-600">Saved: ₹<%= (discountAmount * item.quantity).toFixed(2) %></p>
+                                    <% } %>
                                 </td>
                                 <td class="py-4 text-center">
                                     <button onclick="confirmRemove('<%= item.productId._id%>')" class="text-red-500 hover:text-red-700">
                                         <i class="fas fa-trash"></i>
                                     </button>
-                                </td>
-                            </tr>
-                            
-                            <!-- Empty cart message (hidden when items exist) -->
-                            <tr class="hidden">
-                                <td colspan="5" class="py-8 text-center">
-                                    <div class="flex flex-col items-center">
-                                        <img src="/api/placeholder/120/120" alt="Empty Cart" class="w-24 h-24 mb-4">
-                                        <p class="text-lg font-medium text-gray-600 mb-2">Your cart is empty</p>
-                                        <p class="text-sm text-gray-500 mb-4">Add items to your cart to continue shopping</p>
-                                        <a href="/" class="bg-blue-600 text-white py-2 px-6 rounded-md hover:bg-blue-700">Continue Shopping</a>
-                                    </div>
                                 </td>
                             </tr>
                             <% }) %>
@@ -162,13 +156,29 @@
             
             <%
 let totalAmount = 0;
+let totalRegularAmount = 0;
+let totalSavings = 0;
 let itemCount = 0;
 
 if (cart && cart.items && cart.items.length > 0) {
     cart.items.forEach(item => {
         const variant = item.productId.variants.find(v => v.volume === item.volume);
-        const price = variant ? variant.regularPrice : 0;
-        totalAmount += price * item.quantity;
+        const regularPrice = variant ? variant.regularPrice : 0;
+        
+        // Calculate discounts
+        const productOffer = item.productId.offer || 0;
+        const categoryOffer = item.productId.categoryId.offer || 0;
+        
+        // Get the maximum offer between product and category
+        const maxOffer = Math.max(productOffer, categoryOffer);
+        
+        // Calculate the discounted price
+        const discountAmount = regularPrice * (maxOffer / 100);
+        const discountedPrice = regularPrice - discountAmount;
+        
+        totalRegularAmount += regularPrice * item.quantity;
+        totalAmount += discountedPrice * item.quantity;
+        totalSavings += discountAmount * item.quantity;
         itemCount += item.quantity;
     });
 }
@@ -181,11 +191,11 @@ if (cart && cart.items && cart.items.length > 0) {
         <div class="border-t pt-4">
             <div class="flex justify-between py-2">
                 <span class="text-gray-600">Price (<%= itemCount %> items)</span>
-                <span>₹<%= totalAmount %></span>
+                <span>₹<%= totalRegularAmount.toFixed(2) %></span>
             </div>
             <div class="flex justify-between py-2">
                 <span class="text-gray-600">Discount</span>
-                <span class="text-green-600">- ₹0</span>
+                <span class="text-green-600">- ₹<%= totalSavings.toFixed(2) %></span>
             </div>
             <div class="flex justify-between py-2">
                 <span class="text-gray-600">Delivery Charges</span>
@@ -193,9 +203,9 @@ if (cart && cart.items && cart.items.length > 0) {
             </div>
             <div class="flex justify-between py-4 border-t border-dashed font-bold">
                 <span>Total Amount</span>
-                <span>₹<span id="total"><%= totalAmount %></span></span>
+                <span>₹<span id="total"><%= totalAmount.toFixed(2) %></span></span>
             </div>
-            <div class="text-green-600 text-sm mb-4">You'll save ₹0 on this order</div>
+            <div class="text-green-600 text-sm mb-4">You'll save ₹<%= totalSavings.toFixed(2) %> on this order</div>
         </div>
         <button onclick="window.location.href='/user/checkout'" class="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-md font-medium">
             PLACE ORDER
@@ -284,14 +294,14 @@ if (cart && cart.items && cart.items.length > 0) {
     
         // Update UI immediately
         cartProductQuantityElement.value = newQuantity;
-        const newSubtotal = newQuantity * productPrice;
+        const newSubtotal = (newQuantity * productPrice).toFixed(2);
         subtotalElement.innerText = newSubtotal;
     
         let total = 0;
         document.querySelectorAll('[id^="subTotal"]').forEach(span => {
-            total += parseInt(span.innerText);
+            total += parseFloat(span.innerText);
         });
-        totalElement.innerText = total;
+        totalElement.innerText = total.toFixed(2);
     
         // 🔁 Send update to backend
         try {
@@ -350,6 +360,18 @@ if (cart && cart.items && cart.items.length > 0) {
                     });
                 }
             }
+
+             const urlParams = new URLSearchParams(window.location.search);
+    const message = urlParams.get('message');
+
+    if (message) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Stock Issue',
+            text: message,
+            confirmButtonText: 'OK'
+        });
+    }
         </script>
 </body>
 </html>
