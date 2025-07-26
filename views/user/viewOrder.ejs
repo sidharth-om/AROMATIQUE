@@ -41,12 +41,20 @@
           <p class="text-gray-600">Placed on <%= viewData.order.orderDate %></p>
         </div>
         <div class="mt-4 md:mt-0">
-          <% 
-          let statusColor = 'green';
-          if (viewData.order.status === 'pending') statusColor = 'yellow';
-          else if (viewData.order.status === 'cancelled') statusColor = 'red';
-          else if (viewData.order.status === 'processing') statusColor = 'blue';
-          %>
+         <% 
+    let statusColor = 'green';
+    let displayStatus = viewData.order.status.charAt(0).toUpperCase() + viewData.order.status.slice(1);
+    if (viewData.order.paymentStatus === 'failed') {
+      statusColor = 'red';
+      displayStatus = 'Payment Failed';
+    } else if (viewData.order.status === 'pending') {
+      statusColor = 'yellow';
+    } else if (viewData.order.status === 'cancelled') {
+      statusColor = 'red';
+    } else if (viewData.order.status === 'processing') {
+      statusColor = 'blue';
+    }
+    %>
           <span class="px-4 py-1.5 bg-<%= statusColor %>-100 text-<%= statusColor %>-800 rounded-full font-medium text-sm inline-flex items-center">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -64,9 +72,10 @@
     const statusProgression = ['pending', 'confirmed', 'shipped', 'delivered'];
     const statusLabels = {
       'pending': 'Order Placed',
-      'confirmed': 'Processing', 
+      'confirmed': 'Processing',
       'shipped': 'Shipped',
-      'delivered': 'Delivered'
+      'delivered': 'Delivered',
+      'payment failed': 'Payment Failed'
     };
     
     // Get current status and find its position in progression
@@ -74,7 +83,9 @@
     let currentStatusIndex = statusProgression.indexOf(currentStatus);
     
     // Handle special cases
-    if (currentStatus === 'cancelled') {
+    if (currentStatus === 'payment failed') {
+      currentStatusIndex = 0; // Show only first step for payment failed
+    } else if (currentStatus === 'cancelled') {
       currentStatusIndex = 0; // Show only first step for cancelled orders
     } else if (currentStatus === 'returned' || currentStatus === 'return request') {
       currentStatusIndex = 3; // Show all steps for return cases
@@ -94,7 +105,17 @@
             let textClass = 'text-xs mt-3 font-medium';
             let lineClass = 'absolute top-0 w-full h-1 -translate-y-1/2';
             
-            if (currentStatus === 'cancelled' && index === 0) {
+            if (currentStatus === 'payment failed' && index === 0) {
+              // First step for payment failed
+              circleClass += ' bg-red-500 ring-2 ring-red-200 ring-opacity-60';
+              textClass += ' text-red-600';
+              lineClass += ' bg-red-500';
+            } else if (currentStatus === 'payment failed' && index > 0) {
+              // Remaining steps for payment failed
+              circleClass += ' bg-gray-300';
+              textClass += ' text-gray-500';
+              lineClass += ' bg-gray-300';
+            } else if (currentStatus === 'cancelled' && index === 0) {
               // First step for cancelled orders
               circleClass += ' bg-red-500 ring-2 ring-red-200 ring-opacity-60';
               textClass += ' text-red-600';
@@ -129,14 +150,25 @@
             <div class="<%= lineClass %>"></div>
           <% } %>
         </div>
-        <p class="<%= textClass %>"><%= statusLabels[status] %></p>
+        <p class="<%= textClass %>">
+          <%= status === 'payment failed' ? statusLabels['payment failed'] : statusLabels[status] %>
+        </p>
       </div>
     <% }); %>
   </div>
   
   <!-- Status message based on current order status -->
   <div class="mt-6">
-    <% if (currentStatus === 'cancelled') { %>
+    <% if (currentStatus === 'payment failed') { %>
+      <div class="bg-red-50 border border-red-100 rounded-lg p-4 flex items-center">
+        <svg class="w-5 h-5 text-red-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+        <p class="text-sm text-red-800">
+          <span class="font-semibold">Payment Failed:</span> Your payment was unsuccessful. Please retry the payment.
+        </p>
+      </div>
+    <% } else if (currentStatus === 'cancelled') { %>
       <div class="bg-red-50 border border-red-100 rounded-lg p-4 flex items-center">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-red-500 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16c-.77.833.192 2.5 1.732 2.5z" />
@@ -226,7 +258,7 @@
                 <div class="flex flex-wrap gap-2 mb-3">
                   <% if (viewData.orderItem.volume) { %>
                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                      Volume: <%= viewData.orderItem.volume %>
+                      Volume: <%= viewData.orderItem.volume %>ml
                     </span>
                   <% } %>
                   <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
@@ -256,7 +288,7 @@
                       const maxDiscountAmount = Math.max(productDiscountAmount, categoryDiscountAmount) +(viewData.pricing.couponDiscount) ;
                       
                       // Calculate final sale price
-                      const finalPrice = regularPrice - maxDiscountAmount ;
+                      const finalPrice = Math.round(regularPrice - maxDiscountAmount) ;
                     %>
                     
                     <div class="flex flex-col">
@@ -272,7 +304,7 @@
                       
                       <% if (maxOfferPercent > 0) { %>
                         <div class="text-xs text-green-600 mt-1">
-                          You saved ₹<%= maxDiscountAmount.toLocaleString() %> on this item
+                          You saved ₹<%= Math.round(maxDiscountAmount.toLocaleString()) %> on this item
                         </div>
                       <% } %>
                       
@@ -336,10 +368,10 @@
             // Additional discount (if any, like from coupons)
 const additionalDiscount = viewData.pricing.couponDiscount || 0;
 
-totalDiscount = offerDiscount + additionalDiscount;
+totalDiscount = Math.round(offerDiscount + additionalDiscount);
 
 // Calculate final amount
-const finalAmount = subtotal - offerDiscount - additionalDiscount + (viewData.order.deliveryFee || 0) + (viewData.order.tax || 0);
+const finalAmount = Math.round(subtotal - offerDiscount - additionalDiscount + (viewData.order.shipping || 0) + (viewData.order.tax || 0));
 
             %>
             
@@ -351,7 +383,7 @@ const finalAmount = subtotal - offerDiscount - additionalDiscount + (viewData.or
             <% if (maxOffer > 0) { %>
             <div class="flex justify-between py-1">
               <span class="text-gray-600">Offer Discount (<%= maxOffer %>%)</span>
-              <span class="text-green-600 font-medium">- ₹<%= offerDiscount.toLocaleString() %></span>
+              <span class="text-green-600 font-medium">- ₹<%= Math.round(offerDiscount.toLocaleString()) %></span>
             </div>
             <% } %>
             
@@ -369,9 +401,10 @@ const finalAmount = subtotal - offerDiscount - additionalDiscount + (viewData.or
 <% } %>
             
             <div class="flex justify-between py-1">
-              <span class="text-gray-600">Delivery Charges</span>
-              <% if (viewData.order.deliveryFee > 0) { %>
-                <span class="font-medium">₹<%= viewData.order.deliveryFee.toLocaleString() %></span>
+              <span class="text-gray-600">Delivery</span>
+              <% if (viewData.order.shipping > 0) { %>
+                <span class="font-medium">₹<%= viewData.order.shipping.toLocaleString() %></span>
+                
               <% } else { %>
                 <span class="text-green-600 font-medium">FREE</span>
               <% } %>
@@ -602,7 +635,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const invoiceAllowedStatuses = ['confirmed', 'shipped', 'delivered', 'return request'];
     
     if (invoiceAllowedStatuses.includes(orderData.itemStatus) || 
-        (orderData.itemStatus === 'pending' && orderData.status !== 'cancelled')) {
+        (orderData.itemStatus !== 'pending'&& orderData.status !== 'cancelled')) {
       downloadInvoiceButton.style.display = 'flex';
       
       downloadInvoiceButton.addEventListener('click', function() {
@@ -631,7 +664,8 @@ function updateStatusSpecificElements(orderData) {
     'delivered': 'Order Delivered',
     'cancelled': 'Order Cancelled',
     'return request': 'Return Requested',
-    'returned': 'Order Returned'
+    'returned': 'Order Returned',
+    'payment failed': 'Payment Failed'
   };
   
   const currentStatusMessage = statusMessages[orderData.itemStatus] || 'Order Details';

@@ -47,6 +47,11 @@ const userProductController = {
     loadShopping: async (req, res) => {
         try {
           let { brand, category, sort, search } = req.query;
+          
+          // Convert single values to arrays for consistent handling
+          const selectedBrands = Array.isArray(brand) ? brand : (brand ? [brand] : []);
+          const selectedCategories = Array.isArray(category) ? category : (category ? [category] : []);
+          
           const filter = {
             isActive: true // ✅ Only get active products
           };
@@ -55,16 +60,25 @@ const userProductController = {
             filter.name = { $regex: search, $options: "i" };
           }
       
-          // Brand filter
-          if (brand) {
-            const brandDoc = await Brand.findOne({ name: brand });
-            if (brandDoc) filter.brand = brandDoc._id;
+          // Brand filter - handle multiple brands
+          if (selectedBrands.length > 0) {
+            const brandDocs = await Brand.find({ 
+              name: { $in: selectedBrands }, 
+              status: "Active"
+            });
+            if (brandDocs.length > 0) {
+              filter.brand = { $in: brandDocs.map(b => b._id) };
+            }
           }
       
-          // Category filter
-          if (category) {
-            const categoryDoc = await Category.findOne({ name: category });
-            if (categoryDoc) filter.categoryId = categoryDoc._id;
+          // Category filter - handle multiple categories
+          if (selectedCategories.length > 0) {
+            const categoryDocs = await Category.find({ 
+              name: { $in: selectedCategories } 
+            });
+            if (categoryDocs.length > 0) {
+              filter.categoryId = { $in: categoryDocs.map(c => c._id) };
+            }
           }
       
           // Sorting logic
@@ -82,14 +96,18 @@ const userProductController = {
       
           const products = await Product.find(filter)
             .populate("categoryId")
-            .populate("brand")
+            .populate({
+              path: "brand",
+              match: { status: "Active" } // ✅ Only include products with active brands
+            })
+            .collation({ locale: 'en', strength: 2 })
             .sort(sortQuery)
             .skip(skip)
             .limit(limit);
       
           // ✅ Filter out products whose category is not active
           const filteredProducts = products.filter(
-            (product) => product.categoryId && product.categoryId.status === true
+            (product) => product.brand && product.categoryId && product.categoryId.status === true
           );
           
           // Calculate the best offer for each product
@@ -106,7 +124,7 @@ const userProductController = {
             };
           });
       
-          const brands = await Brand.find();
+          const brands = await Brand.find({ status: "Active" });
           const categories = await Category.find();
 
           const email = req.session.user.email
@@ -122,7 +140,10 @@ const userProductController = {
             products: productsWithOfferDetails,
             currentPage: page,
             totalPages: Math.ceil(totalProducts / limit),
-            search,
+            search: search || '',
+            selectedBrands,
+            selectedCategories,
+            selectedSort: sort || '',
             user,
             cart
           });

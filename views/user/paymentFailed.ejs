@@ -4,25 +4,145 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Payment Failed</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 </head>
-<body class="bg-gray-100">
-    <div class="min-h-screen flex items-center justify-center">
-        <div class="bg-white p-8 rounded-lg shadow-lg max-w-md w-full text-center">
-            <div class="text-red-500 text-6xl mb-4">
-                <i class="fas fa-times-circle"></i>
-            </div>
-            <h2 class="text-2xl font-bold text-gray-800 mb-4">Payment Failed</h2>
-            <p class="text-gray-600 mb-6"><%= message %></p>
-            <div class="space-y-3">
-                <a href="/user/checkout" class="block w-full bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700">
-                    Try Again
-                </a>
-                <a href="/user/cart" class="block w-full bg-gray-300 text-gray-700 py-2 px-4 rounded hover:bg-gray-400">
-                    Back to Cart
-                </a>
-            </div>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center">
+    <div class="bg-white p-8 rounded-lg shadow-lg max-w-md w-full text-center">
+        <!-- Illustration -->
+        <div class="mb-6">
+            <svg class="w-24 h-24 mx-auto text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+        </div>
+
+        <!-- Statement -->
+        <h2 class="text-2xl font-bold text-gray-800 mb-4">Payment Failed</h2>
+        <p class="text-gray-600 mb-6"><%- message %></p>
+
+        <!-- Buttons -->
+        <div class="flex justify-center space-x-4">
+            <% if (orderId) { %>
+                <button id="retryPaymentBtn"
+                    class="bg-blue-500 text-white px-6 py-2 rounded hover:bg-blue-600 transition duration-300"
+                    data-order-id="<%= orderId %>">
+                    Retry Payment
+                </button>
+            <% } %>
+            <a href="/user/myOrders"
+                class="bg-gray-300 text-gray-800 px-6 py-2 rounded hover:bg-gray-400 transition duration-300">
+                View Orders
+            </a>
+        </div>
+
+        <!-- Loading indicator -->
+        <div id="loadingIndicator" class="hidden mt-4">
+            <div class="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
+            <p class="text-gray-600 mt-2">Processing payment...</p>
         </div>
     </div>
+
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <script>
+        document.getElementById("retryPaymentBtn")?.addEventListener("click", async function() {
+            const orderId = this.getAttribute("data-order-id");
+            const loadingIndicator = document.getElementById("loadingIndicator");
+            const retryBtn = document.getElementById("retryPaymentBtn");
+
+            // Show loading and disable button
+            loadingIndicator.classList.remove("hidden");
+            retryBtn.disabled = true;
+            retryBtn.textContent = "Processing...";
+
+            try {
+                const res = await fetch("/user/createRazorpayOrder", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        orderId: orderId
+                    })
+                });
+
+                const data = await res.json();
+
+                // Hide loading
+                loadingIndicator.classList.add("hidden");
+                retryBtn.disabled = false;
+                retryBtn.textContent = "Retry Payment";
+
+                if (data.success) {
+                    const options = {
+                        key: data.razorpayKeyId,
+                        amount: data.order.amount,
+                        currency: data.order.currency,
+                        name: "Aromatique",
+                        description: "Retry Payment",
+                        order_id: data.order.id,
+                        handler: async function (response) {
+                            try {
+                                const verify = await fetch("/user/verifyRazorpayPayment", {
+                                    method: "POST",
+                                    headers: {
+                                        "Content-Type": "application/json"
+                                    },
+                                    body: JSON.stringify({
+                                        razorpay_payment_id: response.razorpay_payment_id,
+                                        razorpay_order_id: response.razorpay_order_id,
+                                        razorpay_signature: response.razorpay_signature,
+                                        orderId: data.orderId
+                                    })
+                                });
+
+                                const verifyData = await verify.json();
+                                if (verifyData.success) {
+                                    window.location.href = verifyData.redirectUrl;
+                                } else {
+                                    alert("Payment verification failed. Please try again.");
+                                    if (verifyData.redirectUrl) {
+                                        window.location.href = verifyData.redirectUrl;
+                                    }
+                                }
+                            } catch (error) {
+                                console.error("Verification error:", error);
+                                alert("Payment verification failed. Please contact support.");
+                            }
+                        },
+                        prefill: {
+                            name: data.customerName,
+                            email: data.email,
+                            contact: data.phone
+                        },
+                        theme: {
+                            color: "#3399cc"
+                        },
+                        modal: {
+                            ondismiss: function() {
+                                console.log("Payment modal closed");
+                            }
+                        }
+                    };
+
+                    const rzp = new Razorpay(options);
+                    rzp.on('payment.failed', function (response) {
+                        console.error("Payment failed:", response.error);
+                        alert("Payment failed: " + response.error.description);
+                    });
+                    
+                    rzp.open();
+                } else {
+                    alert(data.message || "Failed to create payment order. Please try again.");
+                }
+            } catch (error) {
+                console.error("Error:", error);
+                alert("Something went wrong. Please try again.");
+                
+                // Hide loading and reset button
+                loadingIndicator.classList.add("hidden");
+                retryBtn.disabled = false;
+                retryBtn.textContent = "Retry Payment";
+            }
+        });
+    </script>
 </body>
 </html>

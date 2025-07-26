@@ -1,3 +1,4 @@
+
 <%- include("partials/header") %>
 <!DOCTYPE html>
 <html lang="en">
@@ -72,7 +73,10 @@
       <div class="w-full md:w-1/4 lg:w-1/5">
         <div class="bg-white rounded-2xl shadow-sm p-6 sticky top-4 border border-gray-100">
           <h5 class="font-serif text-xl font-semibold text-gray-800 mb-6">Refine</h5>
-          <form action="/user/shopping" method="GET">
+          <form action="/user/shopping" method="GET" id="filterForm">
+            
+            <!-- Hidden inputs to preserve search and pagination -->
+            <input type="hidden" name="search" value="<%= search %>">
 
             <!-- Brand -->
             <div class="mb-6">
@@ -84,7 +88,8 @@
                            type="checkbox" 
                            id="brand-<%= brand.name %>" 
                            name="brand" 
-                           value="<%= brand.name %>">
+                           value="<%= brand.name %>"
+                           <%= selectedBrands.includes(brand.name) ? 'checked' : '' %>>
                     <label class="ml-2.5 text-sm text-gray-700 hover:text-masculine-800 cursor-pointer transition-colors duration-200" for="brand-<%= brand.name %>"><%= brand.name %></label>
                   </div>
                 <% }) %>
@@ -101,7 +106,8 @@
                            type="checkbox" 
                            id="category-<%= category.name %>" 
                            name="category" 
-                           value="<%= category.name %>">
+                           value="<%= category.name %>"
+                           <%= selectedCategories.includes(category.name) ? 'checked' : '' %>>
                     <label class="ml-2.5 text-sm text-gray-700 hover:text-masculine-800 cursor-pointer transition-colors duration-200" for="category-<%= category.name %>"><%= category.name %></label>
                   </div>
                 <% }) %>
@@ -112,18 +118,24 @@
             <div class="mb-8">
               <h6 class="font-medium text-gray-700 mb-3">Sort By</h6>
               <select name="sort" class="w-full bg-gray-50 border border-gray-200 text-gray-700 text-sm rounded-lg focus:ring-masculine-600 focus:border-masculine-600 p-3 transition-all duration-300">
-                <option value="">Featured</option>
-                <option value="priceLowToHigh">Price: Low to High</option>
-                <option value="priceHighToLow">Price: High to Low</option>
-                <option value="nameAToZ">Name: A - Z</option>
-                <option value="nameZToA">Name: Z - A</option>
+                <option value="" <%= selectedSort === '' ? 'selected' : '' %>>Featured</option>
+                <option value="priceLowToHigh" <%= selectedSort === 'priceLowToHigh' ? 'selected' : '' %>>Price: Low to High</option>
+                <option value="priceHighToLow" <%= selectedSort === 'priceHighToLow' ? 'selected' : '' %>>Price: High to Low</option>
+                <option value="nameAToZ" <%= selectedSort === 'nameAToZ' ? 'selected' : '' %>>Name: A - Z</option>
+                <option value="nameZToA" <%= selectedSort === 'nameZToA' ? 'selected' : '' %>>Name: Z - A</option>
               </select>
             </div>
             
-            <!-- Submit -->
-            <button type="submit" class="w-full bg-masculine-700 hover:bg-masculine-800 text-white font-medium py-3 px-4 rounded-lg transition duration-300 ease-in-out shadow-sm hover:shadow">
-              Apply Filters
-            </button>
+            <!-- Submit and Clear Buttons -->
+            <div class="space-y-3">
+              <button type="submit" class="w-full bg-masculine-700 hover:bg-masculine-800 text-white font-medium py-3 px-4 rounded-lg transition duration-300 ease-in-out shadow-sm hover:shadow">
+                Apply Filters
+              </button>
+              
+              <button type="button" onclick="clearAllFilters()" class="w-full bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium py-3 px-4 rounded-lg transition duration-300 ease-in-out">
+                Clear All
+              </button>
+            </div>
           </form>
         </div>
       </div>
@@ -159,8 +171,7 @@
                       <option value="<%= variant.volume %>" 
                               data-price="<%= variant.regularPrice %>"
                               data-variant-index="<%= index %>">
-                        <%= variant.volume %>
-                      </option>
+                        <%= variant.volume %>ml</option>
                     <% }) %>
                   </select>
                 </div>
@@ -253,7 +264,8 @@
             <ul class="flex space-x-2">
               <% if(currentPage > 1) { %>
                 <li>
-                  <a href="?page=<%= currentPage - 1 %>" class="px-4 py-2 bg-white border border-gray-200 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors duration-300">
+                  <a href="?page=<%= currentPage - 1 %>&search=<%= search %>&brand=<%= selectedBrands.join('&brand=') %>&category=<%= selectedCategories.join('&category=') %>&sort=<%= selectedSort %>" 
+                     class="px-4 py-2 bg-white border border-gray-200 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors duration-300">
                     Previous
                   </a>
                 </li>
@@ -261,7 +273,7 @@
 
               <% for(let i = 1; i <= totalPages; i++) { %>
                 <li>
-                  <a href="?page=<%= i %>" 
+                  <a href="?page=<%= i %>&search=<%= search %>&brand=<%= selectedBrands.join('&brand=') %>&category=<%= selectedCategories.join('&category=') %>&sort=<%= selectedSort %>" 
                      class="px-4 py-2 <%= i === currentPage ? 'bg-masculine-700 text-white border-masculine-700' : 'bg-white text-gray-700 hover:bg-gray-50 border-gray-200' %> border rounded-lg transition-colors duration-300">
                     <%= i %>
                   </a>
@@ -270,7 +282,8 @@
 
               <% if(currentPage < totalPages) { %>
                 <li>
-                  <a href="?page=<%= currentPage + 1 %>" class="px-4 py-2 bg-white border border-gray-200 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors duration-300">
+                  <a href="?page=<%= currentPage + 1 %>&search=<%= search %>&brand=<%= selectedBrands.join('&brand=') %>&category=<%= selectedCategories.join('&category=') %>&sort=<%= selectedSort %>" 
+                     class="px-4 py-2 bg-white border border-gray-200 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors duration-300">
                     Next
                   </a>
                 </li>
@@ -289,6 +302,20 @@
       document.getElementById("searchInput").value = ""; // Clear input field
       window.location.href = "/user/shopping"; // Reload page without search query
     });
+
+    // Function to clear all filters
+    function clearAllFilters() {
+      // Uncheck all checkboxes
+      const checkboxes = document.querySelectorAll('#filterForm input[type="checkbox"]');
+      checkboxes.forEach(checkbox => checkbox.checked = false);
+      
+      // Reset sort dropdown
+      document.querySelector('#filterForm select[name="sort"]').value = '';
+      
+      // Keep search value but remove filters
+      const searchValue = document.querySelector('input[name="search"]').value;
+      window.location.href = `/user/shopping${searchValue ? '?search=' + encodeURIComponent(searchValue) : ''}`;
+    }
 
     // Function to update price when volume is selected
     function updatePrice(selectElement, productId) {

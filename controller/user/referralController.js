@@ -36,59 +36,38 @@ const referralController = {
     },
 
     // Apply referral code during user registration
-    applyReferralCode: async (referralCode, newUserId) => {
+     applyReferralCode: async (referralCode, newUserId) => {
         try {
             if (!referralCode || !newUserId) {
-                return { success: false, message: "Missing referral code or user ID" }
+                return { success: false, message: "Missing referral code or user ID" };
             }
 
-            // Find the referrer by referral code
-            const referrer = await User.findOne({ referralCode: referralCode.toUpperCase() })
-            
-            if (!referrer) {
-                return { success: false, message: "Invalid referral code" }
+            const referrer = await User.findOne({ referralCode: referralCode.toUpperCase() });
+            if (!referrer || referrer._id.toString() === newUserId.toString()) {
+                return { success: false, message: "Invalid referral code" };
             }
 
-            if (referrer._id.toString() === newUserId.toString()) {
-                return { success: false, message: "Cannot use your own referral code" }
-            }
-
-            // Update the new user with referrer information
             const newUser = await User.findByIdAndUpdate(
-                newUserId, 
+                newUserId,
                 { referredBy: referrer._id },
                 { new: true }
-            )
+            );
 
-            if (!newUser) {
-                return { success: false, message: "New user not found" }
-            }
-
-            // Update referrer's referral count and add to referred users list
             await User.findByIdAndUpdate(referrer._id, {
                 $inc: { referralCount: 1 },
-                $push: {
-                    referredUsers: {
-                        user: newUserId,
-                        dateReferred: new Date()
-                    }
-                }
-            })
+                $push: { referredUsers: { user: newUserId, dateReferred: new Date() } }
+            });
 
-            // Create referral reward coupon for the referrer
-            const couponCode = await Coupon.generateUniqueCouponCode()
-            
-            const referralCoupon = new Coupon({
-                code: couponCode,
+                        // In referralController.js, update applyReferralCode
+            const referrerCoupon = new Coupon({
+                code: await Coupon.generateUniqueCouponCode(),
                 description: `Referral reward for inviting ${newUser.fullname}`,
-                type: 'percentage',
-                value: 10, // 10% discount
-                minOrder: 500, // Minimum order of ₹500
-                minOrderAmount: 500, // For compatibility
-                maxDiscount: 200, // Maximum discount of ₹200
+                type: "percentage",
+                value: 10,
+                minOrderAmount: 500,
+                maxDiscount: 200,
                 startDate: new Date(),
-                endDate: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000), // Valid for 90 days
-                expiryDate: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000), // For compatibility
+                endDate: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000), // Changed from expiryDate
                 usageLimit: 1,
                 isActive: true,
                 userId: referrer._id,
@@ -97,48 +76,39 @@ const referralController = {
                     referredUser: newUserId,
                     referralDate: new Date()
                 }
-            })
+            });
 
-            await referralCoupon.save()
+            await referrerCoupon.save();
 
-            // Create welcome coupon for the new user
-            const welcomeCouponCode = await Coupon.generateUniqueCouponCode()
-            
-            const welcomeCoupon = new Coupon({
-                code: welcomeCouponCode,
-                description: `Welcome bonus for joining through referral`,
-                type: 'percentage',
-                value: 5, // 5% discount
-                minOrder: 300, // Minimum order of ₹300
-                minOrderAmount: 300,
-                maxDiscount: 100, // Maximum discount of ₹100
-                startDate: new Date(),
-                endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // Valid for 30 days
-                expiryDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-                usageLimit: 1,
-                isActive: true,
-                userId: newUserId,
-                isReferralReward: true,
-                referralDetails: {
-                    referredUser: newUserId,
-                    referralDate: new Date()
-                }
-            })
-
-            await welcomeCoupon.save()
-
-            return {
-                success: true,
-                message: "Referral applied successfully",
-                referrerCoupon: couponCode,
-                newUserCoupon: welcomeCouponCode
+           const welcomeCoupon = new Coupon({
+            code: await Coupon.generateUniqueCouponCode(),
+            description: "Welcome bonus for joining through referral",
+            type: "percentage",
+            value: 5,
+            minOrderAmount: 300,
+            maxDiscount: 100,
+            startDate: new Date(),
+            endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // Changed from expiryDate
+            usageLimit: 1,
+            isActive: true,
+            userId: newUserId,
+            isReferralReward: true,
+            referralDetails: {
+                referredUser: newUserId,
+                referralDate: new Date()
             }
+        });
+
+            await welcomeCoupon.save();
+
+            return { success: true, referrerCoupon: referrerCoupon.code, newUserCoupon: welcomeCoupon.code };
 
         } catch (error) {
-            console.log("Error in applyReferralCode:", error.message)
-            return { success: false, message: "Error processing referral" }
+            console.error("Referral error:", error);
+            return { success: false, message: "Referral processing failed" };
         }
     },
+
 
     // Validate referral code (AJAX endpoint)
     validateReferralCode: async (req, res) => {
@@ -247,24 +217,22 @@ const referralController = {
                 const bonusCouponCode = await Coupon.generateUniqueCouponCode()
                 
                 const bonusCoupon = new Coupon({
-                    code: bonusCouponCode,
-                    description: `Bonus reward - ${user.fullname} completed first purchase`,
-                    type: 'fixed',
-                    value: 100, // ₹100 fixed discount
-                    minOrder: 1000,
-                    minOrderAmount: 1000,
-                    startDate: new Date(),
-                    endDate: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000), // 60 days
-                    expiryDate: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000),
-                    usageLimit: 1,
-                    isActive: true,
-                    userId: referrer._id,
-                    isReferralReward: true,
-                    referralDetails: {
-                        referredUser: userId,
-                        referralDate: new Date()
-                    }
-                })
+                code: bonusCouponCode,
+                description: `Bonus reward - ${user.fullname} completed first purchase`,
+                type: 'fixed',
+                value: 100,
+                minOrderAmount: 1000, // Fixed minOrder to minOrderAmount
+                startDate: new Date(),
+                endDate: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000), // Changed from expiryDate
+                usageLimit: 1,
+                isActive: true,
+                userId: referrer._id,
+                isReferralReward: true,
+                referralDetails: {
+                    referredUser: userId,
+                    referralDate: new Date()
+                }
+            });
 
                 await bonusCoupon.save()
 

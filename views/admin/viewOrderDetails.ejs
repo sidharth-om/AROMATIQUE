@@ -1,6 +1,6 @@
 <%- include("partials/header") %>
 
-<!-- view-order.ejs -->
+<!-- viewOrderDetails.ejs -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -12,8 +12,6 @@
 </head>
 <body class="bg-gray-50">
   <div class="min-h-screen flex flex-col">
-
-
     <!-- Main content -->
     <div class="container mx-auto px-6 py-8 flex-grow">
       <!-- Breadcrumbs -->
@@ -34,7 +32,7 @@
           <li aria-current="page">
             <div class="flex items-center">
               <i class="fas fa-chevron-right text-gray-400 mx-2 text-xs"></i>
-              <span class="text-sm text-gray-500">Order #<%= "orderId" %></span>
+              <span class="text-sm text-gray-500">Order #<%= orderId %></span>
             </div>
           </li>
         </ol>
@@ -43,13 +41,12 @@
       <!-- Order Header -->
       <div class="flex justify-between items-center mb-6">
         <h2 class="text-3xl font-bold text-gray-800">Order #<%= orderId %></h2>
-        
       </div>
 
       <!-- Order Status and Timeline -->
       <div class="bg-white rounded-lg shadow-md overflow-hidden mb-6">
         <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
-          <h3 class="text-xl font-semibold text-gray-800"><%= order.status  %></h3>
+          <h3 class="text-xl font-semibold text-gray-800"><%= order.status %></h3>
         </div>
         <div class="p-6">
           <div class="flex justify-between items-center mb-4">
@@ -58,34 +55,37 @@
               <span class="ml-2 font-semibold text-gray-800">#<%= orderId %></span>
             </div>
             <div class="flex items-center">
-              <span class="text-sm text-gray-500 mr-2">Order Status:</span>
+              <span class="text-sm text-gray-500 mr-2">Item Status:</span>
               <% 
                 let statusColor;
-                switch(orderItem.productId.itemStatus) {
-                  case 'Pending':
+                switch(orderItem.itemStatus) {
+                  case 'pending':
                     statusColor = 'bg-yellow-100 text-yellow-800 border-yellow-300';
                     break;
-                  case 'Processing':
+                  case 'processing':
                     statusColor = 'bg-blue-100 text-blue-800 border-blue-300';
                     break;
-                  case 'Shipped':
+                  case 'shipped':
                     statusColor = 'bg-indigo-100 text-indigo-800 border-indigo-300';
                     break;
-                  case 'Delivered':
+                  case 'delivered':
                     statusColor = 'bg-green-100 text-green-800 border-green-300';
                     break;
-                  case 'Cancelled':
+                  case 'cancelled':
                     statusColor = 'bg-red-100 text-red-800 border-red-300';
                     break;
-                  case 'Return Request':
+                  case 'return request':
+                    statusColor = 'bg-purple-100 text-purple-800 border-purple-300';
+                    break;
+                  case 'returned':
                     statusColor = 'bg-purple-100 text-purple-800 border-purple-300';
                     break;
                   default:
                     statusColor = 'bg-gray-100 text-gray-800 border-gray-300';
                 }
               %>
-              <span class="px-3 py-1 inline-flex text-sm leading-5 font-semibold rounded-full <%= "statusColor "%>">
-                <%= orderItem.productId.itemStatus %>
+              <span class="px-3 py-1 inline-flex text-sm leading-5 font-semibold rounded-full <%= statusColor %>">
+                <%= orderItem.itemStatus %>
               </span>
             </div>
           </div>
@@ -94,10 +94,9 @@
           <div class="relative">
             <div class="absolute left-0 top-0 ml-4 h-full w-0.5 bg-gray-200"></div>
             <div class="space-y-8 relative">
-              <!-- Timeline items based on status -->
               <% 
-                const allStatuses = ['Pending', 'Processing', 'Shipped', 'Delivered'];
-                const statusIndex = allStatuses.indexOf(orderItem.productId.itemStatus);
+                const allStatuses = ['pending', 'processing', 'shipped', 'delivered'];
+                const statusIndex = allStatuses.indexOf(orderItem.itemStatus);
                 allStatuses.forEach((status, index) => {
                   const isPast = index <= statusIndex;
                   const isCurrent = index === statusIndex;
@@ -113,19 +112,19 @@
                 </div>
                 <div class="ml-12">
                   <h4 class="text-lg font-medium <%= isPast ? 'text-gray-800' : 'text-gray-500' %>">
-                    <%= status %>
+                    <%= status.charAt(0).toUpperCase() + status.slice(1) %>
                   </h4>
                   <p class="text-sm text-gray-500">
                     <% 
                       if (isPast) {
-                        if (status === 'Pending') { %>
-                          Order placed on <%= viewData.order.date %> at <%= order.time %>
-                        <% } else if (status === 'Processing') { %>
-                          Order processing started on <%= order.processingDate %> at <%= order.processingTime %>
-                        <% } else if (status === 'Shipped') { %>
-                          Order shipped on <%= order.shippingDate %> with tracking number <%= order.trackingNumber %>
-                        <% } else if (status === 'Delivered') { %>
-                          Order delivered on <%= order.deliveryDate %> at <%= order.deliveryTime %>
+                        if (status === 'pending') { %>
+                          Order placed on <%= order.orderDate %>
+                        <% } else if (status === 'processing') { %>
+                          Order processing started
+                        <% } else if (status === 'shipped') { %>
+                          Order shipped <%= order.trackingNumber ? 'with tracking number ' + order.trackingNumber : '' %>
+                        <% } else if (status === 'delivered') { %>
+                          Order delivered on <%= order.actualDelivery ? order.actualDelivery.toLocaleDateString('en-US') : 'N/A' %>
                         <% }
                       } else { %>
                         Awaiting
@@ -135,12 +134,12 @@
               </div>
               <% }); %>
               
-              <!-- If order is cancelled or return requested -->
-              <% if (orderItem.productId.itemStatus === 'Cancelled' || orderItem.productId.itemStatus === 'Return Request') { %>
+              <!-- If order item is cancelled or return requested -->
+              <% if (orderItem.itemStatus === 'cancelled' || orderItem.itemStatus === 'return request' || orderItem.itemStatus === 'returned') { %>
               <div class="relative">
                 <div class="absolute left-0 top-0 flex items-center justify-center w-8 h-8 rounded-full 
-                  <%= orderItem.productId.itemStatus === 'Cancelled' ? 'bg-red-500' : 'bg-purple-500' %> text-white">
-                  <% if (orderItem.productId.itemStatus === 'Cancelled') { %>
+                  <%= orderItem.itemStatus === 'cancelled' ? 'bg-red-500' : 'bg-purple-500' %> text-white">
+                  <% if (orderItem.itemStatus === 'cancelled') { %>
                     <i class="fas fa-times text-xs"></i>
                   <% } else { %>
                     <i class="fas fa-undo text-xs"></i>
@@ -148,13 +147,13 @@
                 </div>
                 <div class="ml-12">
                   <h4 class="text-lg font-medium text-gray-800">
-                    <%= orderItem.productId.itemStatus%>
+                    <%= orderItem.itemStatus.charAt(0).toUpperCase() + orderItem.itemStatus.slice(1) %>
                   </h4>
                   <p class="text-sm text-gray-500">
-                    <% if (orderItem.productId.itemStatus === 'Cancelled') { %>
-                      Order cancelled on <%= order.cancellationDate %> due to <%= order.cancellationReason %>
-                    <% } else { %>
-                      Return requested on <%= order.returnDate %> for reason: <%= order.returnReason %>
+                    <% if (orderItem.itemStatus === 'cancelled') { %>
+                      Order cancelled <%= order.cancelReason ? 'due to ' + order.cancelReason : '' %>
+                    <% } else if (orderItem.itemStatus === 'return request' || orderItem.itemStatus === 'returned') { %>
+                      <%= orderItem.itemStatus === 'return request' ? 'Return requested' : 'Returned' %> on <%= orderItem.returnRequestDate ? orderItem.returnRequestDate.toLocaleDateString('en-US') : 'N/A' %> <%= orderItem.reason ? 'for reason: ' + orderItem.reason : '' %>
                     <% } %>
                   </p>
                 </div>
@@ -170,7 +169,7 @@
         <div class="lg:col-span-2">
           <div class="bg-white rounded-lg shadow-md overflow-hidden mb-6">
             <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
-              <h3 class="text-xl font-semibold text-gray-800">Order Items</h3>
+              <h3 class="text-xl font-semibold text-gray-800">Order Item</h3>
             </div>
             <div class="overflow-x-auto">
               <table class="w-full">
@@ -184,29 +183,23 @@
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-200">
-                  
                   <tr class="hover:bg-gray-50 transition-colors">
                     <td class="px-6 py-4 whitespace-nowrap">
                       <div class="flex items-center">
                         <div class="flex-shrink-0 h-14 w-14 bg-gray-100 rounded">
-                          <img class="h-14 w-14 rounded object-cover" src="/uploads/<%= viewData.product.images[0] %>" alt="<%= "image" %>">
+                          <img class="h-14 w-14 rounded object-cover" src="/Uploads/<%= orderItem.productId.images[0] %>" alt="<%= orderItem.productId.name %>">
                         </div>
                         <div class="ml-4">
                           <div class="text-sm font-medium text-gray-900"><%= orderItem.productId.name %></div>
-                          <div class="text-sm text-gray-500">
-                           
-                          </div>
+                          <div class="text-sm text-gray-500"><%= orderItem.volume %></div>
                         </div>
                       </div>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">#<%= productId %></td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600"><%= orderItem.quantity %></td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">₹<%= orderItem.itemSalePrice%></td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">₹<%=orderItem.itemSalePrice * orderItem.quantity%></td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">₹<%= Math.round(orderItem.itemSalePrice.toFixed(2)) %></td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">₹<%= Math.round((orderItem.itemSalePrice * orderItem.quantity).toFixed(2)) %></td>
                   </tr>
-                  
-
-                 
                 </tbody>
               </table>
             </div>
@@ -223,34 +216,35 @@
               <div class="flex justify-between">
                 <span class="text-gray-600">Payment Method:</span>
                 <span class="font-medium text-gray-800">
-                  <% if (order.paymentMethod === 'Credit Card') { %>
-                    <i class="fas fa-credit-card mr-1 text-indigo-600"></i> <%= viewData.order.paymentMethod %> (<%= order.last4 %>)
-                  <% } else if (order.paymentMethod === 'PayPal') { %>
-                    <i class="fab fa-paypal mr-1 text-blue-600"></i> <%= order.paymentMethod %>
+                  <% if (order.paymentMethod === 'razorpay') { %>
+                    <i class="fas fa-credit-card mr-1 text-indigo-600"></i> Online Payment
+                  <% } else if (order.paymentMethod === 'wallet') { %>
+                    <i class="fas fa-wallet mr-1 text-blue-600"></i> Wallet
                   <% } else { %>
-                    <%= order.paymentMethod %>
+                    <i class="fas fa-money-bill mr-1 text-green-600"></i> <%= order.paymentMethod.charAt(0).toUpperCase() + order.paymentMethod.slice(1) %>
                   <% } %>
                 </span>
               </div>
-              
-             
-              
               <div class="border-t border-gray-200 pt-4">
                 <div class="flex justify-between">
                   <span class="text-gray-600">Subtotal:</span>
                   <span class="font-medium text-gray-800">₹<%= subtotal %></span>
                 </div>
-               
-                <% if (discount) { %>
                 <div class="flex justify-between">
-                  <span class="text-gray-600">Discount:</span>
-                  <span class="font-medium text-green-600">-₹<%= discount %></span>
+                  <span class="text-gray-600">Offer Discount:</span>
+                  <span class="font-medium text-green-600">-₹<%= offerDiscount %></span>
                 </div>
-                <% } %>
-                
+                <div class="flex justify-between">
+                  <span class="text-gray-600">Coupon Discount:</span>
+                  <span class="font-medium text-green-600">-₹<%= couponDiscount %></span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-gray-600">Shipping:</span>
+                  <span class="font-medium text-gray-800">+₹<%= shipping %></span>
+                </div>
                 <div class="flex justify-between pt-4 border-t border-gray-200 mt-4">
                   <span class="text-lg font-semibold text-gray-800">Total:</span>
-                  <span class="text-lg font-bold text-indigo-600">₹<%= totalAmount%></span>
+                  <span class="text-lg font-bold text-indigo-600">₹<%= totalAmount %></span>
                 </div>
               </div>
             </div>
@@ -265,7 +259,7 @@
               <div>
                 <h4 class="text-md font-semibold text-gray-700 mb-2">Customer Details</h4>
                 <div class="flex items-center mb-2">
-                  <img src="<%= order.userId.image %>" alt="<%= "customer name" %>" class="w-8 h-8 rounded-full mr-2">
+                  <img src="<%= order.userId.image || '/images/default-user.png' %>" alt="<%= order.address.name %>" class="w-8 h-8 rounded-full mr-2">
                   <span class="font-medium text-gray-800"><%= order.address.name %></span>
                 </div>
                 <div class="space-y-1 text-sm text-gray-600 pl-10">
@@ -275,32 +269,24 @@
                   </div>
                   <div class="flex items-center">
                     <i class="fas fa-phone w-4 text-gray-400 mr-2"></i>
-                    <span><%= order.userId.phoneNumber %></span>
+                    <span><%= order.userId.phoneNumber || order.address.mobile %></span>
                   </div>
-                
                 </div>
               </div>
-
               <div class="border-t border-gray-200 pt-4">
                 <h4 class="text-md font-semibold text-gray-700 mb-2">Shipping Address</h4>
                 <div class="text-sm text-gray-600">
                   <div class="mb-1"><%= order.address.name %></div>
                   <div class="mb-1"><%= order.address.address %></div>
-                 
-                  <div class="mb-1"> <%= order.address.pincode %></div>
-                 
+                  <div class="mb-1"><%= order.address.pincode %></div>
                 </div>
               </div>
-
-
             </div>
           </div>
         </div>
       </div>
-
-
     </div>
- <%- include("partials/footer") %>
+    <%- include("partials/footer") %>
   </div>
-
- 
+</body>
+</html>

@@ -52,7 +52,7 @@ const orderSchema = new mongoose.Schema({
         },
         itemStatus: {
             type: String,
-            enum: ['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled', 'return request', 'returned'],
+            enum: ['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled', 'return request', 'returned','payment failed'],
             default: 'pending'
         },
         // Additional fields for returns
@@ -153,7 +153,7 @@ razorpayPaymentId: String,
         },
         status: {
             type: String,
-            enum: ['pending', 'approved', 'rejected', 'completed'],
+            enum: ['pending', 'approved', 'rejected', 'completed','failed'],
             default: 'pending'
         }
     },

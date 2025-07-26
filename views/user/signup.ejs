@@ -1,197 +1,90 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>  
+<head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Aromatique - Sign Up</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <script>
-        tailwind.config = {
-            theme: { 
-                extend: { 
-                    colors: { 
-                        primary: '#8B5CF6', 
-                        secondary: '#4F46E5' 
-                    }, 
-                    fontFamily: { 
-                        sans: ['Poppins', 'sans-serif'], 
-                        serif: ['Playfair Display', 'serif'] 
-                    } 
-                } 
-            }
-        }
-    </script>
-    <style>
-        .referral-valid {
-            border-color: #10B981 !important;
-            background-color: #F0FDF4;
-        }
-        .referral-invalid {
-            border-color: #EF4444 !important;
-            background-color: #FEF2F2;
-        }
-        .toast {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 1000;
-            padding: 12px 20px;
-            border-radius: 8px;
-            color: white;
-            font-weight: 500;
-            transform: translateX(100%);
-            transition: transform 0.3s ease;
-        }
-        .toast.show {
-            transform: translateX(0);
-        }
-        .toast.success {
-            background-color: #10B981;
-        }
-        .toast.error {
-            background-color: #EF4444;
-        }
-        .loading-spinner {
-            display: inline-block;
-            width: 16px;
-            height: 16px;
-            border: 2px solid #ffffff40;
-            border-radius: 50%;
-            border-top-color: #ffffff;
-            animation: spin 1s ease-in-out infinite;
-        }
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-    </style>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
 </head>
-<body class="bg-gray-50 font-sans flex items-center justify-center min-h-screen p-4">
-    <div class="flex flex-col md:flex-row w-full max-w-4xl overflow-hidden rounded-2xl shadow-lg">
-        <!-- Left Side - Branding -->
-        <div class="w-full md:w-1/2 bg-gradient-to-br from-primary to-secondary text-white p-8 flex flex-col justify-center items-center text-center">
-            <div class="mb-6">
-                <i class="fas fa-spa text-5xl mb-4"></i>
-                <h2 class="text-4xl font-serif font-bold mb-2">Aromatique</h2>
-                <p class="text-lg opacity-90 mb-6">Discover your perfect scent</p>
+<body class="bg-gray-100 font-sans">
+    <div class="flex min-h-screen">
+        <!-- Left Section -->
+        <div class="hidden lg:flex lg:w-1/2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white p-12 flex-col justify-between">
+            <div>
+                <h1 class="text-4xl font-bold">Aromatique</h1>
+                <p class="mt-2 text-lg">Discover your perfect scent</p>
             </div>
-            
-            <!-- Referral Benefits -->
-            <div class="bg-white bg-opacity-10 rounded-lg p-4 backdrop-blur-sm">
-                <h3 class="text-lg font-semibold mb-3">
-                    <i class="fas fa-gift mr-2"></i>Join with a Referral Code
-                </h3>
-                <ul class="text-sm space-y-2 text-left">
-                    <li><i class="fas fa-check mr-2"></i>Get exclusive welcome offers</li>
-                    <li><i class="fas fa-check mr-2"></i>Help friends earn rewards</li>
-                    <li><i class="fas fa-check mr-2"></i>Join our community of fragrance lovers</li>
-                </ul>
+            <div>
+                <h2 class="text-2xl font-semibold">Join with a Referral Code</h2>
+                <p class="mt-4">Get exclusive welcome offers</p>
+                <p>Help friends earn rewards</p>
+                <p>Join our community of fragrance lovers</p>
             </div>
         </div>
 
-        <!-- Right Side - Form -->
-        <div class="w-full md:w-1/2 bg-white p-8">
-            <div class="text-center mb-6">
-                <h2 class="text-3xl font-bold text-gray-800">Create Account</h2>
-                <p class="text-gray-600 mt-2">Join the Aromatique family today</p>
-            </div>
+        <!-- Right Section -->
+        <div class="w-full lg:w-1/2 flex items-center justify-center p-6">
+            <div class="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
+                <h2 class="text-2xl font-bold text-center text-gray-800">Create Account</h2>
+                <p class="text-center text-gray-600 mb-6">Join the Aromatique family today</p>
 
-            <form id="signupForm" class="space-y-4">
-                <!-- Full Name -->
-                <div>
-                    <input type="text" 
-                           id="fullname" 
-                           name="fullname" 
-                           placeholder="Full Name" 
-                           class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200"
-                           required>
-                </div>
-
-                <!-- Email -->
-                <div>
-                    <input type="email" 
-                           id="email" 
-                           name="email" 
-                           placeholder="Email Address" 
-                           class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200"
-                           required>
-                </div>
-
-                <!-- Phone -->
-                <div>
-                    <input type="tel" 
-                           id="phone" 
-                           name="phone" 
-                           placeholder="Phone Number" 
-                           class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200"
-                           required>
-                </div>
-
-                <!-- Referral Code (Optional) -->
-                <div class="relative">
-                    <div class="flex items-center">
-                        <input type="text" 
-                               id="referralCode" 
-                               name="referralCode" 
-                               placeholder="Referral Code (Optional)" 
-                               class="w-full px-4 py-3 pr-12 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200 uppercase"
-                               maxlength="8">
-                        <button type="button" 
-                                id="checkReferralBtn" 
-                                class="absolute right-3 text-gray-400 hover:text-primary transition-colors duration-200"
-                                onclick="checkReferralCode()"
-                                style="display: none;">
-                            <i class="fas fa-search"></i>
-                        </button>
-                        <div id="referralSpinner" class="absolute right-3" style="display: none;">
-                            <div class="loading-spinner border-primary"></div>
+                <form id="signupForm" class="space-y-4">
+                    <div>
+                        <input type="text" id="fullname" name="fullname" placeholder="Full Name" class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500" >
+                    </div>
+                    <div>
+                        <input type="email" id="email" name="email" placeholder="Email" class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500" >
+                    </div>
+                    <div>
+                        <input type="tel" id="phone" name="phone" placeholder="Phone Number" class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500" >
+                    </div>
+                    <div>
+                        <div class="relative">
+                            <input type="password" id="password" name="password" placeholder="Password" class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500" >
+                            <button type="button" id="togglePassword" class="absolute right-3 top-3 text-gray-500">
+                                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                </svg>
+                            </button>
                         </div>
                     </div>
-                    <div id="referralMessage" class="mt-1 text-sm" style="display: none;"></div>
-                </div>
+                    <div>
+                        <div class="relative">
+                            <input type="password" id="confirmPassword" name="confirmPassword" placeholder="Confirm Password" class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500" >
+                            <button type="button" id="toggleConfirmPassword" class="absolute right-3 top-3 text-gray-500">
+                                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                    <div>
+                        <input type="text" id="referralCode" name="referralCode" placeholder="Referral Code (Optional)" class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <p id="referralMessage" class="text-sm text-gray-500 mt-1"></p>
+                    </div>
+                    <button type="submit" id="submitButton" class="w-full bg-indigo-600 text-white p-3 rounded-lg hover:bg-indigo-700 transition duration-300">
+                        <span id="buttonText">Create Account</span>
+                        <span id="loadingSpinner" class="hidden">
+                            <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            Creating Account...
+                        </span>
+                    </button>
+                </form>
 
-                <!-- Password -->
-                <div>
-                    <input type="password" 
-                           id="password" 
-                           name="password" 
-                           placeholder="Password" 
-                           class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200"
-                           required>
-                </div>
+                <p class="text-center text-gray-600 mt-4">
+                    Already have an account? 
+                    <a href="/user/userLogin" class="text-indigo-600 hover:underline">Sign In</a>
+                </p>
 
-                <!-- Confirm Password -->
-                <div>
-                    <input type="password" 
-                           id="confirmPassword" 
-                           name="confirmPassword" 
-                           placeholder="Confirm Password" 
-                           class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200"
-                           required>
-                </div>
-
-                <!-- Submit Button -->
-                <button type="submit" 
-                        id="submitBtn"
-                        class="w-full py-3 bg-gradient-to-r from-primary to-secondary hover:from-secondary hover:to-primary text-white rounded-lg font-semibold transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none">
-                    <span id="submitText">Create Account</span>
-                    <div id="submitSpinner" class="loading-spinner" style="display: none;"></div>
-                </button>
-            </form>
-
-            <!-- Sign In Link -->
-            <p class="text-center text-sm mt-6 text-gray-600">
-                Already have an account? 
-                <a href="/user/userLogin" class="text-primary hover:text-secondary font-semibold transition-colors duration-200">
-                    Sign In
-                </a>
-            </p>
-
-            <!-- Referral Info -->
-            <div class="mt-6 p-4 bg-gray-50 rounded-lg">
-                <p class="text-xs text-gray-600 text-center">
-                    <i class="fas fa-info-circle mr-1"></i>
+                <p class="text-center text-gray-500 text-sm mt-4">
                     Have a friend's referral code? Enter it above to get started with exclusive benefits!
                 </p>
             </div>
@@ -199,193 +92,261 @@
     </div>
 
     <script>
-        let referralCheckTimeout;
-        let isReferralValid = false;
+        // Toastify helper functions
+        function showSuccessToast(message) {
+            Toastify({
+                text: message,
+                duration: 3000,
+                gravity: "top",
+                position: "right",
+                style: {
+                    background: "linear-gradient(to right, #10b981, #059669)",
+                },
+                stopOnFocus: true
+            }).showToast();
+        }
 
-        // Auto-check referral code as user types
-        document.getElementById('referralCode').addEventListener('input', function(e) {
-            const code = e.target.value.trim().toUpperCase();
-            e.target.value = code;
-            
-            // Clear previous timeout
-            clearTimeout(referralCheckTimeout);
-            
-            // Reset UI
-            resetReferralUI();
-            
-            if (code.length >= 3) {
-                document.getElementById('checkReferralBtn').style.display = 'block';
-                
-                // Auto-check after user stops typing for 1 second
-                referralCheckTimeout = setTimeout(() => {
-                    checkReferralCode();
-                }, 1000);
+        function showErrorToast(message) {
+            Toastify({
+                text: message,
+                duration: 4000,
+                gravity: "top",
+                position: "right",
+                style: {
+                    background: "linear-gradient(to right, #ef4444, #dc2626)",
+                },
+                stopOnFocus: true
+            }).showToast();
+        }
+
+        function showWarningToast(message) {
+            Toastify({
+                text: message,
+                duration: 3000,
+                gravity: "top",
+                position: "right",
+                style: {
+                    background: "linear-gradient(to right, #f59e0b, #d97706)",
+                },
+                stopOnFocus: true
+            }).showToast();
+        }
+
+        function showInfoToast(message) {
+            Toastify({
+                text: message,
+                duration: 3000,
+                gravity: "top",
+                position: "right",
+                style: {
+                    background: "linear-gradient(to right, #3b82f6, #2563eb)",
+                },
+                stopOnFocus: true
+            }).showToast();
+        }
+
+        function setLoadingState(isLoading) {
+            const submitButton = $('#submitButton');
+            const buttonText = $('#buttonText');
+            const loadingSpinner = $('#loadingSpinner');
+
+            if (isLoading) {
+                submitButton.prop('disabled', true).addClass('opacity-75 cursor-not-allowed');
+                buttonText.addClass('hidden');
+                loadingSpinner.removeClass('hidden');
             } else {
-                document.getElementById('checkReferralBtn').style.display = 'none';
-            }
-        });
-// Replace the checkReferralCode function in your signup form with this:
-
-async function checkReferralCode() {
-    const referralInput = document.getElementById('referralCode');
-    const code = referralInput.value.trim();
-    
-    if (!code) return;
-
-    // Show loading state
-    document.getElementById('checkReferralBtn').style.display = 'none';
-    document.getElementById('referralSpinner').style.display = 'block';
-
-    try {
-        console.log('Checking referral code:', code);
-        
-        // Use the correct endpoint that doesn't require authentication
-        const response = await fetch('/user/validateReferralCode', {
-            method: 'POST',
-            headers: { 
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
-            },
-            body: JSON.stringify({ referralCode: code })
-        });
-
-        console.log('Response status:', response.status);
-        
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const result = await response.json();
-        console.log('Response result:', result);
-        
-        // The validateReferralCode endpoint returns different response format
-        // Transform it to match your showReferralResult expectations
-        const transformedResult = {
-            valid: result.success,
-            message: result.message,
-            referrerName: result.referrerName
-        };
-        
-        showReferralResult(transformedResult);
-        
-    } catch (error) {
-        console.error('Error checking referral code:', error);
-        showReferralResult({
-            valid: false,
-            message: 'Error checking referral code. Please try again.'
-        });
-    }
-
-    // Hide loading state
-    document.getElementById('referralSpinner').style.display = 'none';
-    document.getElementById('checkReferralBtn').style.display = 'block';
-}
-
-        function showReferralResult(result) {
-            const referralInput = document.getElementById('referralCode');
-            const messageDiv = document.getElementById('referralMessage');
-            
-            messageDiv.style.display = 'block';
-            isReferralValid = result.valid;
-            
-            if (result.valid) {
-                referralInput.className = referralInput.className.replace(/referral-invalid/g, '') + ' referral-valid';
-                messageDiv.innerHTML = `<i class="fas fa-check text-green-500 mr-1"></i><span class="text-green-600">${result.message}</span>`;
-            } else {
-                referralInput.className = referralInput.className.replace(/referral-valid/g, '') + ' referral-invalid';
-                messageDiv.innerHTML = `<i class="fas fa-times text-red-500 mr-1"></i><span class="text-red-600">${result.message}</span>`;
+                submitButton.prop('disabled', false).removeClass('opacity-75 cursor-not-allowed');
+                buttonText.removeClass('hidden');
+                loadingSpinner.addClass('hidden');
             }
         }
 
-        function resetReferralUI() {
-            const referralInput = document.getElementById('referralCode');
-            const messageDiv = document.getElementById('referralMessage');
-            
-            referralInput.className = referralInput.className.replace(/referral-valid|referral-invalid/g, '');
-            messageDiv.style.display = 'none';
-            isReferralValid = false;
-        }
+        $(document).ready(function() {
+            // Toggle password visibility
+            $('#togglePassword').click(function() {
+                const passwordInput = $('#password');
+                const type = passwordInput.attr('type') === 'password' ? 'text' : 'password';
+                passwordInput.attr('type', type);
+                $(this).find('svg').toggleClass('text-gray-500 text-indigo-500');
+            });
 
-        function showToast(message, type = 'success') {
-            const toast = document.createElement('div');
-            toast.className = `toast ${type}`;
-            toast.innerHTML = `
-                <i class="fas fa-${type === 'success' ? 'check' : 'exclamation-triangle'} mr-2"></i>
-                ${message}
-            `;
-            
-            document.body.appendChild(toast);
-            
-            setTimeout(() => toast.classList.add('show'), 100);
-            setTimeout(() => {
-                toast.classList.remove('show');
-                setTimeout(() => document.body.removeChild(toast), 300);
-            }, 3000);
-        }
+            $('#toggleConfirmPassword').click(function() {
+                const confirmPasswordInput = $('#confirmPassword');
+                const type = confirmPasswordInput.attr('type') === 'password' ? 'text' : 'password';
+                confirmPasswordInput.attr('type', type);
+                $(this).find('svg').toggleClass('text-gray-500 text-indigo-500');
+            });
 
-        function setLoadingState(loading) {
-            const submitBtn = document.getElementById('submitBtn');
-            const submitText = document.getElementById('submitText');
-            const submitSpinner = document.getElementById('submitSpinner');
-            
-            if (loading) {
-                submitBtn.disabled = true;
-                submitText.style.display = 'none';
-                submitSpinner.style.display = 'inline-block';
-            } else {
-                submitBtn.disabled = false;
-                submitText.style.display = 'inline';
-                submitSpinner.style.display = 'none';
-            }
-        }
+            // Real-time referral code validation with debounce
+            let referralTimeout;
+            $('#referralCode').on('input', function() {
+                const referralCode = $(this).val().trim();
+                const referralMessage = $('#referralMessage');
 
-        document.getElementById("signupForm").addEventListener("submit", async function(event) {
-            event.preventDefault();
-            
-            const formData = Object.fromEntries(new FormData(this).entries());
-            const referralCode = formData.referralCode?.trim();
-            
-            // Validate referral code if provided
-            if (referralCode && !isReferralValid) {
-                showToast('Please enter a valid referral code or leave it empty', 'error');
-                return;
-            }
-            
-            setLoadingState(true);
-            
-            try {
-                const response = await fetch("/user/verifyRegister", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(formData)
-                });
-                
-                const result = await response.json();
-                
-                if (result.success) {
-                    showToast('Account created successfully! Redirecting...', 'success');
-                    setTimeout(() => {
-                        window.location.href = result.redirectUrl;
-                    }, 1500);
+                // Clear previous timeout
+                clearTimeout(referralTimeout);
+
+                if (referralCode.length > 0) {
+                    // Add debounce to avoid too many API calls
+                    referralTimeout = setTimeout(() => {
+                        referralMessage.text('Validating...').removeClass('text-red-500 text-green-500').addClass('text-yellow-500');
+                        
+                        $.ajax({
+                            url: '/user/checkReferralCode',
+                            method: 'POST',
+                            data: { referralCode },
+                            timeout: 5000,
+                            success: function(response) {
+                                if (response.valid) {
+                                    referralMessage.text(response.message).removeClass('text-red-500 text-yellow-500').addClass('text-green-500');
+                                    showInfoToast(`Valid referral code from ${response.referrerName}`);
+                                } else {
+                                    referralMessage.text(response.message).removeClass('text-green-500 text-yellow-500').addClass('text-red-500');
+                                }
+                            },
+                            error: function(xhr, status, error) {
+                                console.error('Referral validation error:', error);
+                                referralMessage.text('Error validating referral code').removeClass('text-green-500 text-yellow-500').addClass('text-red-500');
+                                showErrorToast('Failed to validate referral code. Please try again.');
+                            }
+                        });
+                    }, 500); // 500ms debounce
                 } else {
-                    showToast(result.message, 'error');
+                    referralMessage.text('');
                 }
-            } catch (error) {
-                showToast("An error occurred. Please try again.", 'error');
-            } finally {
-                setLoadingState(false);
-            }
-        });
+            });
 
-        // Check for referral code in URL parameters
-        window.addEventListener('DOMContentLoaded', function() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const referralCode = urlParams.get('ref');
-            
-            if (referralCode) {
-                document.getElementById('referralCode').value = referralCode.toUpperCase();
-                checkReferralCode();
-            }
+            // Form submission with improved error handling
+            $('#signupForm').submit(function(e) {
+                e.preventDefault();
+                
+                // Client-side validation
+                const formData = {
+                    fullname: $('#fullname').val().trim(),
+                    email: $('#email').val().trim(),
+                    phone: $('#phone').val().trim(),
+                    password: $('#password').val(),
+                    confirmPassword: $('#confirmPassword').val(),
+                    referralCode: $('#referralCode').val().trim()
+                };
+
+                // Basic client-side validation
+                if (!formData.fullname) {
+                    showErrorToast('Full name is required');
+                    $('#fullname').focus();
+                    return;
+                }
+
+                if (!formData.email) {
+                    showErrorToast('Email is required');
+                    $('#email').focus();
+                    return;
+                }
+
+                if (!formData.phone) {
+                    showErrorToast('Phone number is required');
+                    $('#phone').focus();
+                    return;
+                }
+
+                if (!formData.password) {
+                    showErrorToast('Password is required');
+                    $('#password').focus();
+                    return;
+                }
+
+                if (!formData.confirmPassword) {
+                    showErrorToast('Please confirm your password');
+                    $('#confirmPassword').focus();
+                    return;
+                }
+
+                if (formData.password !== formData.confirmPassword) {
+                    showErrorToast('Passwords do not match');
+                    $('#confirmPassword').focus();
+                    return;
+                }
+
+                setLoadingState(true);
+
+                $.ajax({
+                    url: '/user/verifyRegister',
+                    method: 'POST',
+                    data: $(this).serialize(),
+                    timeout: 10000, // 10 second timeout
+                    success: function(response) {
+                        setLoadingState(false);
+                        
+                        if (response.success) {
+                            showSuccessToast('Registration successful! Redirecting to OTP verification...');
+                            setTimeout(() => {
+                                window.location.href = response.redirectUrl;
+                            }, 1500);
+                        } else {
+                            // Handle server-side validation errors
+                            showErrorToast(response.message || 'Registration failed. Please try again.');
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        setLoadingState(false);
+                        console.error('Registration error:', xhr, status, error);
+                        
+                        let errorMessage = 'Registration failed. Please try again.';
+                        
+                        if (xhr.responseJSON && xhr.responseJSON.message) {
+                            errorMessage = xhr.responseJSON.message;
+                        } else if (xhr.status === 0) {
+                            errorMessage = 'Network error. Please check your connection and try again.';
+                        } else if (xhr.status === 400) {
+                            errorMessage = xhr.responseJSON?.message || 'Invalid input. Please check your information.';
+                        } else if (xhr.status === 500) {
+                            errorMessage = 'Server error. Please try again later.';
+                        } else if (status === 'timeout') {
+                            errorMessage = 'Request timeout. Please try again.';
+                        }
+                        
+                        showErrorToast(errorMessage);
+                    }
+                });
+            });
+
+            // Add input validation feedback
+            $('input').on('blur', function() {
+                const input = $(this);
+                const value = input.val().trim();
+                const inputName = input.attr('name');
+                
+                // Remove existing validation classes
+                input.removeClass('border-red-500 border-green-500');
+                
+                if (value) {
+                    // Basic validation patterns
+                    const patterns = {
+                        fullname: /^[A-Za-z\s]{3,50}$/,
+                        email: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
+                        phone: /^[6-9]\d{9}$/,
+                        password: /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,20}$/
+                    };
+                    
+                    if (patterns[inputName] && !patterns[inputName].test(value)) {
+                        input.addClass('border-red-500');
+                    } else if (inputName === 'confirmPassword') {
+                        const password = $('#password').val();
+                        if (value !== password) {
+                            input.addClass('border-red-500');
+                        } else {
+                            input.addClass('border-green-500');
+                        }
+                    } else if (patterns[inputName]) {
+                        input.addClass('border-green-500');
+                    }
+                }
+            });
+
+            // Show welcome message
+            setTimeout(() => {
+                showInfoToast('Welcome to Aromatique! Create your account to get started.');
+            }, 1000);
         });
     </script>
 </body>

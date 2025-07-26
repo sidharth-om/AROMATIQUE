@@ -7,6 +7,7 @@ const brandController = require("../controller/admin/brandController")
 const customerController = require("../controller/admin/customerController")
 const orderController = require("../controller/admin/orderController")
 const couponController=require("../controller/admin/couponController")
+const dashboardController=require("../controller/admin/dashboardController")
 const upload = require("../config/multer")
 const { isAdminAuthenticated, isAdminNotAuthenticated } = require("../middlware/adminAuth")
 const inventoryController = require("../controller/admin/inventoryController");
@@ -21,7 +22,7 @@ admin_route.get("/adminLogin", isAdminNotAuthenticated, adminController.loadAdmi
 admin_route.post("/verifyLogin", isAdminNotAuthenticated, adminController.verifyLogin)
 
 // Routes that require admin authentication
-admin_route.get("/loadDashboard", isAdminAuthenticated, adminController.loadDashboard)
+admin_route.get("/loadDashboard", isAdminAuthenticated, dashboardController.loadDashboard)
 admin_route.get("/category", isAdminAuthenticated, categoryController.loadCategory)
 admin_route.post("/createCategory", isAdminAuthenticated, upload.single("image"), categoryController.createCategory)
 admin_route.post("/editCategory/:id", isAdminAuthenticated, upload.single("image"), categoryController.editCategory)
@@ -62,6 +63,9 @@ admin_route.delete("/deleteCoupon/:id", isAdminAuthenticated, couponController.d
 admin_route.get("/couponDetails/:id", isAdminAuthenticated, couponController.getCouponDetails)
 
 admin_route.get("/inventory", isAdminAuthenticated, csrfProtection, inventoryController.loadInventory);
-admin_route.post("/inventory/update/:productId", isAdminAuthenticated, csrfProtection, inventoryController.updateStock);
+admin_route.post("/update/:productId", isAdminAuthenticated, csrfProtection, inventoryController.updateStock);
+
+admin_route.get("/salesReport",isAdminAuthenticated,orderController.generateSalesReport)
+admin_route.get("/salesReport/download", isAdminAuthenticated, orderController.generateSalesReport)
 
 module.exports = admin_route

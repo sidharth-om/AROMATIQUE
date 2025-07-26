@@ -24,7 +24,7 @@ console.log(process.env.ADMIN_EMAIL)
         }
 
         await transporter.sendMail(mailOptions)
-        console.log(`OTP email sent to ${email}`);
+        console.log(`OTP email sent to ${email} : otp - ${otp}`);
     } catch (error) {
         console.log(error.message)
     }

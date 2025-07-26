@@ -16,9 +16,9 @@
         <div class="container mx-auto px-4">
             <div class="text-sm text-gray-500">
                 <a href="index.html" class="hover:text-blue-600">Home</a>
-                <span class="mx-2">&gt;</span>
+                <span class="mx-2">></span>
                 <a href="#" class="hover:text-blue-600">Shop</a>
-                <span class="mx-2">&gt;</span>
+                <span class="mx-2">></span>
                 <span class="text-gray-800 font-medium">Your Cart</span>
             </div>
         </div>
@@ -49,12 +49,12 @@
                             <tr class="border-b hover:bg-gray-50">
                                 <td class="py-4">
                                     <div class="flex items-center">
-                                        <img src="/uploads/<%= item.productId.images[0] %>" alt="Product" class="w-20 h-20 object-cover rounded mr-4">
+                                        <img src="/Uploads/<%= item.productId.images[0] %>" alt="Product" class="w-20 h-20 object-cover rounded mr-4">
                                         <div>
                                             <h3 class="font-medium"><%= item.productId.name %></h3>
                                             <p class="text-sm text-gray-600"><%= item.productId.description %></p>
                                             <% if (item.volume) { %>
-                                                <p class="text-sm text-gray-500">Volume: <%= item.volume %></p>
+                                                <p class="text-sm text-gray-500">Volume: <%= item.volume %>ml</p>
                                             <% } %>
                                         </div>
                                     </div>
@@ -82,11 +82,11 @@
                                         %>
                                         
                                         <% if (maxOffer > 0) { %>
-                                            <p class="font-medium text-red-600">₹<%= finalPrice.toFixed(2) %></p>
-                                            <p class="text-sm text-gray-500 line-through">₹<%= regularPrice.toFixed(2) %></p>
+                                            <p class="font-medium text-red-600">₹<%= Math.round(finalPrice.toFixed(2)) %></p>
+                                            <p class="text-sm text-gray-500 line-through">₹<%= Math.round(regularPrice.toFixed(2)) %></p>
                                             <p class="text-sm text-green-600">-<%= maxOffer %>% off</p>
                                         <% } else { %>
-                                            <p class="font-medium">₹<%= regularPrice.toFixed(2) %></p>
+                                            <p class="font-medium">₹<%= Math.round(regularPrice.toFixed(2) )%></p>
                                         <% } %>
                                     </div>
                                 </td>
@@ -117,9 +117,9 @@
                                     // Calculate subtotal (discounted price * quantity)
                                     const subtotal = finalPrice * item.quantity;
                                     %>
-                                    ₹<span id="subTotal<%= index %>"><%= subtotal.toFixed(2) %></span>
+                                    ₹<span id="subTotal<%= index %>"><%= Math.round(subtotal.toFixed(2)) %></span>
                                     <% if (maxOffer > 0) { %>
-                                        <p class="text-xs text-green-600">Saved: ₹<%= (discountAmount * item.quantity).toFixed(2) %></p>
+                                        <p class="text-xs text-green-600">Saved: ₹<%= Math.round((discountAmount * item.quantity).toFixed(2)) %></p>
                                     <% } %>
                                 </td>
                                 <td class="py-4 text-center">
@@ -135,7 +135,7 @@
                                       <div class="flex flex-col items-center">
                                         <img src="/api/placeholder/120/120" alt="Empty Cart" class="w-24 h-24 mb-4">
                                         <p class="text-lg font-medium text-gray-600 mb-2">Your cart is empty</p>
-                                        <p class="text-sm text-gray-500 mb-4">Add items to your cart to continue shopping</p>
+                                        <p class="text-sm text-gray-500 mb-4">AddZR items to your cart to continue shopping</p>
                                         <a href="/" class="bg-blue-600 text-white py-2 px-6 rounded-md hover:bg-blue-700">Continue Shopping</a>
                                       </div>
                                     </td>
@@ -146,79 +146,85 @@
                 </div>
                 
                 <div class="mt-6 flex justify-between items-center">
-                    <a href="/" class="flex items-center text-blue-600 hover:text-blue-800">
+                    <a href="/user/shopping" class="flex items-center text-blue-600 hover:text-blue-800">
                         <i class="fas fa-arrow-left mr-2"></i>
                         Continue Shopping
                     </a>
                 </div>
             </div>
             
-            
             <%
-let totalAmount = 0;
-let totalRegularAmount = 0;
-let totalSavings = 0;
-let itemCount = 0;
+            let totalAmount = 0;
+            let totalRegularAmount = 0;
+            let totalSavings = 0;
+            let itemCount = 0;
+            let deliveryCharge = 0;
 
-if (cart && cart.items && cart.items.length > 0) {
-    cart.items.forEach(item => {
-        const variant = item.productId.variants.find(v => v.volume === item.volume);
-        const regularPrice = variant ? variant.regularPrice : 0;
-        
-        // Calculate discounts
-        const productOffer = item.productId.offer || 0;
-        const categoryOffer = item.productId.categoryId.offer || 0;
-        
-        // Get the maximum offer between product and category
-        const maxOffer = Math.max(productOffer, categoryOffer);
-        
-        // Calculate the discounted price
-        const discountAmount = regularPrice * (maxOffer / 100);
-        const discountedPrice = regularPrice - discountAmount;
-        
-        totalRegularAmount += regularPrice * item.quantity;
-        totalAmount += discountedPrice * item.quantity;
-        totalSavings += discountAmount * item.quantity;
-        itemCount += item.quantity;
-    });
-}
-%>
+            if (cart && cart.items && cart.items.length > 0) {
+                cart.items.forEach(item => {
+                    const variant = item.productId.variants.find(v => v.volume === item.volume);
+                    const regularPrice = variant ? variant.regularPrice : 0;
+                    
+                    // Calculate discounts
+                    const productOffer = item.productId.offer || 0;
+                    const categoryOffer = item.productId.categoryId.offer || 0;
+                    
+                    // Get the maximum offer between product and category
+                    const maxOffer = Math.max(productOffer, categoryOffer);
+                    
+                    // Calculate the discounted price
+                    const discountAmount = regularPrice * (maxOffer / 100);
+                    const discountedPrice = regularPrice - discountAmount;
+                    
+                    totalRegularAmount += regularPrice * item.quantity;
+                    totalAmount += discountedPrice * item.quantity;
+                    totalSavings += discountAmount * item.quantity;
+                    itemCount += item.quantity;
+                });
 
-<!-- RIGHT SIDEBAR -->
-<div class="md:w-1/4">
-    <div class="bg-white rounded-lg shadow-md p-6">
-        <h2 class="text-xl font-bold mb-4">PRICE DETAILS</h2>
-        <div class="border-t pt-4">
-            <div class="flex justify-between py-2">
-                <span class="text-gray-600">Price (<%= itemCount %> items)</span>
-                <span>₹<%= totalRegularAmount.toFixed(2) %></span>
-            </div>
-            <div class="flex justify-between py-2">
-                <span class="text-gray-600">Discount</span>
-                <span class="text-green-600">- ₹<%= totalSavings.toFixed(2) %></span>
-            </div>
-            <div class="flex justify-between py-2">
-                <span class="text-gray-600">Delivery Charges</span>
-                <span class="text-green-600">FREE</span>
-            </div>
-            <div class="flex justify-between py-4 border-t border-dashed font-bold">
-                <span>Total Amount</span>
-                <span>₹<span id="total"><%= totalAmount.toFixed(2) %></span></span>
-            </div>
-            <div class="text-green-600 text-sm mb-4">You'll save ₹<%= totalSavings.toFixed(2) %> on this order</div>
-        </div>
-        <button onclick="window.location.href='/user/checkout'" class="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-md font-medium">
-            PLACE ORDER
-        </button>
-    </div>
+                // Apply delivery charge logic
+                deliveryCharge = totalAmount < 1000 ? 40 : 0;
+                totalAmount += deliveryCharge;
+            }
+            %>
 
-    <div class="mt-4 bg-white rounded-lg shadow-md p-6">
-        <div class="flex items-center">
-            <i class="fas fa-shield-alt text-gray-500 mr-2"></i>
-            <p class="text-sm text-gray-600">Safe and Secure Payments. 100% Authentic products.</p>
-        </div>
-    </div>
-</div>
+            <!-- RIGHT SIDEBAR -->
+            <div class="md:w-1/4">
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h2 class="text-xl font-bold mb-4">PRICE DETAILS</h2>
+                    <div class="border-t pt-4">
+                        <div class="flex justify-between py-2">
+                            <span class="text-gray-600">Price (<%= itemCount %> items)</span>
+                            <span>₹<%= Math.round(totalRegularAmount.toFixed(2)) %></span>
+                        </div>
+                        <div class="flex justify-between py-2">
+                            <span class="text-gray-600">Discount</span>
+                            <span class="text-green-600">- ₹<%= Math.round(totalSavings.toFixed(2) )%></span>
+                        </div>
+                        <div class="flex justify-between py-2">
+                            <span class="text-gray-600">Delivery Charges</span>
+                            <span id="deliveryCharge" class="<%= deliveryCharge === 0 ? 'text-green-600' : '' %>">
+                                <%= deliveryCharge === 0 ? 'FREE' : '₹' + deliveryCharge.toFixed(2) %>
+                            </span>
+                        </div>
+                        <div class="flex justify-between py-4 border-t border-dashed font-bold">
+                            <span>Total Amount</span>
+                            <span>₹<span id="total"><%= Math.round(totalAmount.toFixed(2)) %></span></span>
+                        </div>
+                        <div class="text-green-600 text-sm mb-4">You'll save ₹<%= totalSavings.toFixed(2) %> on this order</div>
+                    </div>
+                    <button onclick="window.location.href='/user/checkout'" class="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-md font-medium">
+                        PLACE ORDER
+                    </button>
+                </div>
+
+                <div class="mt-4 bg-white rounded-lg shadow-md p-6">
+                    <div class="flex items-center">
+                        <i class="fas fa-shield-alt text-gray-500 mr-2"></i>
+                        <p class="text-sm text-gray-600">Safe and Secure Payments. 100% Authentic products.</p>
+                    </div>
+                </div>
+            </div>
         </div>
     </main>
 
@@ -272,106 +278,117 @@ if (cart && cart.items && cart.items.length > 0) {
 
     <script>
         async function changeQuantity(productId, cartQuantity, count, productPrice, i, productStock) {
-        const cartProductQuantityElement = document.getElementById(`cartProductQuantity${i}`);
-        const subtotalElement = document.getElementById(`subTotal${i}`);
-        const totalElement = document.getElementById('total');
-    
-        let currentQuantity = parseInt(cartProductQuantityElement.value);
-        
-        if (currentQuantity + count > 6) {
-            Swal.fire({ title: 'Limit Exceeded!', text: 'You can only add up to 6 items.', icon: 'error', timer: 3000 });
-            return;
-        }
-    
-        const newQuantity = currentQuantity + count;
-    
-        if (count === -1 && newQuantity < 1) return;
-    
-        if (count === 1 && newQuantity > productStock) {
-            Swal.fire({ title: 'Out of Stock!', text: 'Product is out of stock.', icon: 'error', timer: 3000 });
-            return;
-        }
-    
-        // Update UI immediately
-        cartProductQuantityElement.value = newQuantity;
-        const newSubtotal = (newQuantity * productPrice).toFixed(2);
-        subtotalElement.innerText = newSubtotal;
-    
-        let total = 0;
-        document.querySelectorAll('[id^="subTotal"]').forEach(span => {
-            total += parseFloat(span.innerText);
-        });
-        totalElement.innerText = total.toFixed(2);
-    
-        // 🔁 Send update to backend
-        try {
-            const res = await fetch('/user/updateCartQuantity', {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ productId, quantity: newQuantity })
-            });
-    
-            const data = await res.json();
-    
-            if (!data.success) {
-                Swal.fire({ title: 'Error', text: data.message, icon: 'error', timer: 3000 });
+            const cartProductQuantityElement = document.getElementById(`cartProductQuantity${i}`);
+            const subtotalElement = document.getElementById(`subTotal${i}`);
+            const totalElement = document.getElementById('total');
+            const deliveryChargeElement = document.getElementById('deliveryCharge');
+
+            let currentQuantity = parseInt(cartProductQuantityElement.value);
+            
+            if (currentQuantity + count > 6) {
+                Swal.fire({ title: 'Limit Exceeded!', text: 'You can only add up to 6 items.', icon: 'error', timer: 3000 });
+                return;
             }
-        } catch (err) {
-            console.error(err);
-            Swal.fire({ title: 'Error', text: 'Something went wrong!', icon: 'error', timer: 3000 });
+        
+            const newQuantity = currentQuantity + count;
+        
+            if (count === -1 && newQuantity < 1) return;
+        
+            if (count === 1 && newQuantity > productStock) {
+                Swal.fire({ title: 'Out of Stock!', text: 'Product is out of stock.', icon: 'error', timer: 3000 });
+                return;
+            }
+        
+            // Update UI immediately
+            cartProductQuantityElement.value = newQuantity;
+            const newSubtotal = (newQuantity * productPrice).toFixed(2);
+            subtotalElement.innerText = newSubtotal;
+        
+            // Calculate total and delivery charge
+            let total = 0;
+            document.querySelectorAll('[id^="subTotal"]').forEach(span => {
+                total += parseFloat(span.innerText);
+            });
+
+            // Apply delivery charge logic
+            const deliveryCharge = total < 1000 ? 40 : 0;
+            total += deliveryCharge;
+
+            // Update delivery charge display
+            deliveryChargeElement.innerText = deliveryCharge === 0 ? 'FREE' : `₹${deliveryCharge.toFixed(2)}`;
+            deliveryChargeElement.className = deliveryCharge === 0 ? 'text-green-600' : '';
+
+            // Update total display
+            totalElement.innerText = total.toFixed(2);
+        
+            // Send update to backend
+            try {
+                const res = await fetch('/user/updateCartQuantity', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ productId, quantity: newQuantity })
+                });
+        
+                const data = await res.json();
+        
+                if (!data.success) {
+                    Swal.fire({ title: 'Error', text: data.message, icon: 'error', timer: 3000 });
+                }
+            } catch (err) {
+                console.error(err);
+                Swal.fire({ title: 'Error', text: 'Something went wrong!', icon: 'error', timer: 3000 });
+            }
         }
-    }
     
-    
-            async function confirmRemove(productId) {
-                try {
-                    const response = await fetch(`/user/deleteCart/${productId}`, {
-                        method: "DELETE",
-                        headers: {"Content-Type": "application/json"},
+        async function confirmRemove(productId) {
+            try {
+                const response = await fetch(`/user/deleteCart/${productId}`, {
+                    method: "DELETE",
+                    headers: {"Content-Type": "application/json"},
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    Swal.fire({
+                        title: 'Success',
+                        text: result.message,
+                        icon: 'success',
+                        timer: 2000,
+                        showConfirmButton: false
+                    }).then(() => {
+                        window.location.reload();
                     });
-                    
-                    const result = await response.json();
-                    
-                    if (result.success) {
-                        Swal.fire({
-                            title: 'Success',
-                            text: result.message,
-                            icon: 'success',
-                            timer: 2000,
-                            showConfirmButton: false
-                        }).then(() => {
-                            window.location.reload();
-                        });
-                    } else {
-                        Swal.fire({
-                            title: 'Error',
-                            text: result.message,
-                            icon: 'error',
-                            timer: 3000
-                        });
-                    }
-                } catch (error) {
-                    console.error(error);
+                } else {
                     Swal.fire({
                         title: 'Error',
-                        text: 'Something went wrong!',
+                        text: result.message,
                         icon: 'error',
                         timer: 3000
                     });
                 }
+            } catch (error) {
+                console.error(error);
+                Swal.fire({
+                    title: 'Error',
+                    text: 'Something went wrong!',
+                    icon: 'error',
+                    timer: 3000
+                });
             }
+        }
 
-             const urlParams = new URLSearchParams(window.location.search);
-    const message = urlParams.get('message');
+        const urlParams = new URLSearchParams(window.location.search);
+        const message = urlParams.get('message');
 
-    if (message) {
-        Swal.fire({
-            icon: 'warning',
-            title: 'Stock Issue',
-            text: message,
-            confirmButtonText: 'OK'
-        });
-    }
-        </script>
+        if (message) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Stock Issue',
+                text: message,
+                confirmButtonText: 'OK'
+            });
+        }
+    </script>
 </body>
 </html>

@@ -1,118 +1,3 @@
-<!-- <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Verify OTP</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: { primary: { 600: '#0284c7', 700: '#0369a1' }, secondary: { 500: '#f59e0b' } },
-                    fontFamily: { sans: ['Inter', 'sans-serif'] }
-                }
-            }
-        };
-    </script>
-</head>
-<body class="bg-gray-100 font-sans min-h-screen flex items-center justify-center p-4">
-    <div class="max-w-md w-full mx-auto bg-white rounded-2xl shadow-xl overflow-hidden">
-        <div class="bg-gradient-to-r from-primary-600 to-primary-700 p-6 text-white text-center">
-            <div class="w-16 h-16 bg-white/20 rounded-full mx-auto flex items-center justify-center">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                </svg>
-            </div>
-            <h2 class="text-2xl font-bold">Verification Required</h2>
-            <p class="mt-2 opacity-90">Enter the 6-digit code sent to your email or phone</p>
-        </div>
-        <div class="p-6 space-y-4">
-            <form id="otpForm" class="space-y-4">
-                <label class="block text-sm font-medium text-gray-700">Verification Code</label>
-                <input type="text" id="otp" name="otp" maxlength="6" placeholder="••••••" class="w-full px-4 py-3 text-xl text-center tracking-widest bg-gray-50 border rounded-lg focus:ring-primary-500 focus:border-primary-500" autocomplete="one-time-code">
-                <button type="submit" class="w-full py-3 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-lg flex items-center justify-center">
-                    <svg class="h-5 w-5 mr-2" viewBox="0 0 24 24" stroke="currentColor" fill="none"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                    Verify OTP
-                </button>
-            </form>
-            <button id="resendOtp" class="w-full py-3 border text-gray-700 font-medium rounded-lg flex items-center justify-center">
-                <svg class="h-5 w-5 mr-2 text-secondary-500 group-hover:animate-spin" viewBox="0 0 24 24" stroke="currentColor" fill="none"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9M3 15.364c.64-1.319 1-2.8 1-4.364 0-1.457.39-2.823 1.07-4" /></svg>
-                Resend OTP
-            </button>
-        </div>
-        <div class="px-6 py-4 bg-gray-50 text-center text-xs text-gray-500">Code expires in <span class="font-semibold">10:00</span> minutes</div>
-    </div>
-   
-
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            document.getElementById("otpForm").addEventListener("submit", async function (event) {
-                event.preventDefault();
-                const otp = document.getElementById("otp").value;
-
-                try {
-                    const res = await fetch("/user/verifyOtp", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ otp })
-                    });
-                    const result = await res.json();
-
-                    if (result.success) {
-                        await Swal.fire({
-                            icon: 'success',
-                            title: 'Success',
-                            text: 'OTP verified successfully!',
-                            timer: 1500,
-                            showConfirmButton: false
-                        });
-                        location.href = result.redirectUrl;
-                    } else {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Invalid OTP',
-                            text: result.message
-                        });
-                    }
-                } catch (error) {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error',
-                        text: 'An error occurred. Please try again.'
-                    });
-                }
-            });
-
-            document.getElementById("resendOtp").addEventListener("click", async function () {
-                try {
-                    const res = await fetch("/user/resendOtp", { method: "POST" });
-                    const result = await res.json();
-                    Swal.fire({
-                        icon: 'info',
-                        title: 'OTP Resent',
-                        text: result.message
-                    });
-                } catch (error) {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error',
-                        text: 'Error resending OTP. Please try again.'
-                    });
-                }
-            });
-        });
-    </script>
-
-</body>
-</html> -->
-
-
-
-
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -169,42 +54,51 @@
             let resendTimeout;
             let expiryInterval;
 
+            function formatTime(seconds) {
+                const minutes = Math.floor(seconds / 60);
+                const remainingSeconds = seconds % 60;
+                return `${minutes}:${remainingSeconds < 10 ? '0' : ''}${remainingSeconds}`;
+            }
+
             function startTimers() {
-                let resendSeconds = 60;
-                let expirySeconds = 60;
+                // Check if there are stored timer states
+                const storedResendTime = sessionStorage.getItem('resendTimer');
+                const storedExpiryTime = sessionStorage.getItem('expiryTimer');
+                let resendSeconds = storedResendTime ? parseInt(storedResendTime) : 60;
+                let expirySeconds = storedExpiryTime ? parseInt(storedExpiryTime) : 60;
+
+                // Update button state based on stored resend time
+                resendOtpBtn.disabled = resendSeconds > 0;
+                resendTimerSpan.textContent = formatTime(resendSeconds);
+                expiryTimerSpan.textContent = formatTime(expirySeconds);
 
                 // Resend OTP Timer
-                resendOtpBtn.disabled = true;
-                resendTimerSpan.textContent = formatTime(resendSeconds);
-
                 resendTimeout = setInterval(() => {
                     resendSeconds--;
+                    sessionStorage.setItem('resendTimer', resendSeconds);
                     resendTimerSpan.textContent = formatTime(resendSeconds);
 
                     if (resendSeconds <= 0) {
                         clearInterval(resendTimeout);
                         resendOtpBtn.disabled = false;
                         resendTimerSpan.textContent = "0:00";
+                        sessionStorage.removeItem('resendTimer');
                     }
                 }, 1000);
 
                 // Expiry Timer
                 expiryInterval = setInterval(() => {
                     expirySeconds--;
+                    sessionStorage.setItem('expiryTimer', expirySeconds);
                     expiryTimerSpan.textContent = formatTime(expirySeconds);
 
                     if (expirySeconds <= 0) {
                         clearInterval(expiryInterval);
                         expiryTimerSpan.textContent = "0:00";
+                        sessionStorage.removeItem('expiryTimer');
                         // Optional: Add logic for OTP expiration
                     }
                 }, 1000);
-            }
-
-            function formatTime(seconds) {
-                const minutes = Math.floor(seconds / 60);
-                const remainingSeconds = seconds % 60;
-                return `${minutes}:${remainingSeconds < 10 ? '0' : ''}${remainingSeconds}`;
             }
 
             // Start timers when page loads
@@ -223,6 +117,9 @@
                     const result = await res.json();
 
                     if (result.success) {
+                        // Clear sessionStorage on successful OTP verification
+                        sessionStorage.removeItem('resendTimer');
+                        sessionStorage.removeItem('expiryTimer');
                         await Swal.fire({
                             icon: 'success',
                             title: 'Success',
@@ -255,6 +152,8 @@
                     // Reset and start timers
                     clearInterval(resendTimeout);
                     clearInterval(expiryInterval);
+                    sessionStorage.setItem('resendTimer', 60);
+                    sessionStorage.setItem('expiryTimer', 60);
                     startTimers();
 
                     Swal.fire({

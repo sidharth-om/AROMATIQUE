@@ -64,14 +64,15 @@
                                     <div class="flex justify-between items-center mb-3">
                                         <div id="price-container-<%= product._id %>">
                                             <% const variant = product.variants[0]; %>
-                                            <% const discountedPrice = variant.regularPrice - (variant.regularPrice * product.offer / 100); %>
+                                            <% const highestOffer=item.highestOffer ||0 %>
+                                            <% const discountedPrice = variant.regularPrice - (variant.regularPrice * highestOffer / 100); %>
                                             
-                                            <% if (product.offer > 0) { %>
-                                                <span class="text-sm line-through text-gray-500">$<%= variant.regularPrice.toFixed(2) %></span>
-                                                <span class="text-lg font-bold text-gray-900 ml-2">$<%= discountedPrice.toFixed(2) %></span>
-                                                <span class="text-sm text-red-600 ml-2">(<%= product.offer %>% off)</span>
+                                            <% if (highestOffer  > 0) { %>
+                                                <span class="text-sm line-through text-gray-500"><%= variant.regularPrice.toFixed(2) %></span>
+                                                <span class="text-lg font-bold text-gray-900 ml-2"><%= discountedPrice.toFixed(2) %></span>
+                                                <span class="text-sm text-red-600 ml-2">(<%= highestOffer  %>% off)</span>
                                             <% } else { %>
-                                                <span class="text-lg font-bold text-gray-900">$<%= variant.regularPrice.toFixed(2) %></span>
+                                                <span class="text-lg font-bold text-gray-900"><%= variant.regularPrice.toFixed(2) %></span>
                                             <% } %>
                                         </div>
                                         
@@ -157,8 +158,8 @@
                 if (offer > 0) {
                     const discountedPrice = (price - (price * offer / 100)).toFixed(2);
                     priceContainer.innerHTML = `
-                        <span class="text-sm line-through text-gray-500">$${price}</span>
-                        <span class="text-lg font-bold text-gray-900 ml-2">$${discountedPrice}</span>
+                        <span class="text-sm line-through text-gray-500">₹${price}</span>
+                        <span class="text-lg font-bold text-gray-900 ml-2">₹${Math.round(discountedPrice)}</span>
                         <span class="text-sm text-red-600 ml-2">(${offer}% off)</span>
                     `;
                 } else {

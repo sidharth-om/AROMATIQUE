@@ -2,6 +2,10 @@ const Order = require("../../models/orderModel");
 const walletTransaction = require("../../models/walletTransactionModel");
 const Product = require("../../models/productModel");
 const User = require("../../models/userModel");
+const PDFDocument = require('pdfkit');
+const ExcelJS = require('exceljs');
+
+
 
 const orderController = {
   loadOrderList: async (req, res) => {
@@ -160,6 +164,8 @@ const orderController = {
       console.log('MongoDB Sort:', JSON.stringify(sort, null, 2));
       console.log('Pagination:', { pageNum, limitNum, totalOrders, totalPages });
 
+      console.log("ordd",orders)
+
       res.render("admin/order", {
         orders,
         search: search || '',
@@ -184,53 +190,286 @@ const orderController = {
     }
   },
 
-  updateStatus: async (req, res) => {
+
+   generateSalesReport: async (req, res) => {
     try {
-      const { orderId, status } = req.body;
+      const { reportType = 'daily', dateFrom, dateTo, format } = req.query; // Default to 'daily'
+      console.log('Query Parameters:', req.query); // Debug log
 
-      if (!orderId || !status) {
-        return res.status(400).json({ success: false, message: 'Order ID and status are required' });
-      }
+      // Build date filter based on report type
+      const filter = {};
+      let dateLabel = '';
+      const now = new Date();
+      now.setHours(23, 59, 59, 999); // End of day
 
-      const order = await Order.findOne({ orderId: orderId });
-
-      if (!order) {
-        return res.status(404).json({ success: false, message: 'Order not found' });
-      }
-
-      const updateData = { status: status };
-
-      if (status === 'delivered') {
-        updateData.deliveredDate = new Date();
-      }
-
-      if (status === 'return request') {
-        updateData['returnRequest.isRequested'] = true;
-        updateData['returnRequest.requestedAt'] = new Date();
-        
-        if (req.body.reason) {
-          updateData['returnRequest.reason'] = req.body.reason;
+      if (reportType === 'daily') {
+        filter.createdAt = {
+          $gte: new Date(now.getFullYear(), now.getMonth(), now.getDate()),
+          $lte: now
+        };
+        dateLabel = `Daily Report - ${now.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}`;
+      } else if (reportType === 'weekly') {
+        const startOfWeek = new Date(now);
+        startOfWeek.setDate(now.getDate() - now.getDay()); // Start of current week (Sunday)
+        startOfWeek.setHours(0, 0, 0, 0);
+        filter.createdAt = {
+          $gte: startOfWeek,
+          $lte: now
+        };
+        dateLabel = `Weekly Report - ${startOfWeek.toLocaleDateString('en-US')} to ${now.toLocaleDateString('en-US')}`;
+      } else if (reportType === 'yearly') {
+        filter.createdAt = {
+          $gte: new Date(now.getFullYear(), 0, 1), // Start of year
+          $lte: now
+        };
+        dateLabel = `Yearly Report - ${now.getFullYear()}`;
+      } else if (reportType === 'custom') {
+        if (!dateFrom || !dateTo) {
+          return res.status(400).json({ success: false, message: 'Date range required for custom report' });
         }
+        filter.createdAt = {
+          $gte: new Date(dateFrom),
+          $lte: new Date(new Date(dateTo).setHours(23, 59, 59, 999))
+        };
+        dateLabel = `Custom Report - ${new Date(dateFrom).toLocaleDateString('en-US')} to ${new Date(dateTo).toLocaleDateString('en-US')}`;
+      } else {
+        return res.status(400).json({ success: false, message: 'Invalid report type' });
       }
 
-      const updatedOrder = await Order.findOneAndUpdate(
-        { orderId: orderId },
-        { $set: updateData },
-        { new: true }
-      );
-      
-      console.log(`Order #${orderId} status changed to ${status} by admin`);
-      
-      return res.status(200).json({ 
-        success: true, 
-        message: 'Order status updated successfully',
-        order: updatedOrder
+      // MongoDB aggregation pipeline for sales report
+      const pipeline = [
+        { $match: filter },
+        {
+          $lookup: {
+            from: 'users',
+            localField: 'userId',
+            foreignField: '_id',
+            as: 'userId'
+          }
+        },
+        { $unwind: '$userId' },
+        {
+          $lookup: {
+            from: 'products',
+            localField: 'items.productId',
+            foreignField: '_id',
+            as: 'populatedProducts'
+          }
+        },
+        {
+          $group: {
+            _id: null,
+            totalOrders: { $sum: 1 },
+            totalAmount: { $sum: '$total' },
+            totalOfferDiscount: { $sum: '$offerDiscount' },
+            totalSystemDiscount: { $sum: '$systemDiscount' },
+            totalCouponDiscount: { $sum: '$couponDiscount' },
+            totalShipping: { $sum: '$shipping' },
+            orders: { $push: '$$ROOT' }
+          }
+        },
+        {
+          $project: {
+            totalOrders: 1,
+            totalAmount: 1,
+            totalOfferDiscount: 1,
+            totalSystemDiscount: 1,
+            totalCouponDiscount: 1,
+            totalShipping: 1,
+            totalDiscount: {
+              $sum: ['$totalOfferDiscount', '$totalSystemDiscount', '$totalCouponDiscount']
+            },
+            orders: 1
+          }
+        }
+      ];
+
+      const [reportData] = await Order.aggregate(pipeline);
+
+      // Default empty report if no data
+      const report = reportData || {
+        totalOrders: 0,
+        totalAmount: 0,
+        totalOfferDiscount: 0,
+        totalSystemDiscount: 0,
+        totalCouponDiscount: 0,
+        totalShipping: 0,
+        totalDiscount: 0,
+        orders: []
+      };
+
+      // Populate product details for orders
+      await Order.populate(report.orders, [
+        { path: 'items.productId', select: 'name images variants' },
+        { path: 'address' }
+      ]);
+
+      // Handle PDF or Excel download
+      if (format === 'pdf') {
+        const doc = new PDFDocument({ margin: 50 });
+        let filename = `sales_report_${reportType}_${Date.now()}.pdf`;
+        filename = encodeURIComponent(filename);
+        res.setHeader('Content-disposition', `attachment; filename="${filename}"`);
+        res.setHeader('Content-type', 'application/pdf');
+
+        // PDF Header
+        doc.fontSize(20).text('Aromatique Sales Report', { align: 'center' });
+        doc.fontSize(14).text(dateLabel, { align: 'center' });
+        doc.moveDown();
+
+        // Summary Table
+        doc.fontSize(12).text('Summary', { underline: true });
+        doc.moveDown(0.5);
+        doc.text(`Total Orders: ${report.totalOrders}`);
+        doc.text(`Total Sales Amount: ₹${report.totalAmount.toFixed(2)}`);
+        doc.text(`Total Offer Discount: ₹${report.totalOfferDiscount.toFixed(2)}`);
+        doc.text(`Total System Discount: ₹${report.totalSystemDiscount.toFixed(2)}`);
+        doc.text(`Total Coupon Discount: ₹${report.totalCouponDiscount.toFixed(2)}`);
+        doc.text(`Total Discount: ₹${report.totalDiscount.toFixed(2)}`);
+        doc.text(`Total Shipping: ₹${report.totalShipping.toFixed(2)}`);
+        doc.moveDown();
+
+        // Orders Table
+        if (report.orders.length > 0) {
+          doc.fontSize(12).text('Order Details', { underline: true });
+          doc.moveDown(0.5);
+          report.orders.forEach((order, index) => {
+            doc.text(`Order ${index + 1}:`);
+            doc.text(`Order ID: ${order.orderId}`);
+            doc.text(`Customer: ${order.userId.fullname}`);
+            doc.text(`Total: ₹${order.total.toFixed(2)}`);
+            doc.text(`Coupon Used: ${order.couponUsed || 'None'}`);
+            doc.text(`Status: ${order.status}`);
+            doc.moveDown();
+          });
+        }
+
+        doc.pipe(res);
+        doc.end();
+        return;
+      } else if (format === 'excel') {
+        const workbook = new ExcelJS.Workbook();
+        const worksheet = workbook.addWorksheet('Sales Report');
+
+        // Excel Header
+        worksheet.addRow(['Aromatique Sales Report']);
+        worksheet.addRow([dateLabel]);
+        worksheet.addRow([]);
+
+        // Summary Table
+        worksheet.addRow(['Summary']);
+        worksheet.addRow(['Metric', 'Value']);
+        worksheet.addRow(['Total Orders', report.totalOrders]);
+        worksheet.addRow(['Total Sales Amount', `₹${report.totalAmount.toFixed(2)}`]);
+        worksheet.addRow(['Total Offer Discount', `₹${report.totalOfferDiscount.toFixed(2)}`]);
+        worksheet.addRow(['Total System Discount', `₹${report.totalSystemDiscount.toFixed(2)}`]);
+        worksheet.addRow(['Total Coupon Discount', `₹${report.totalCouponDiscount.toFixed(2)}`]);
+        worksheet.addRow(['Total Discount', `₹${report.totalDiscount.toFixed(2)}`]);
+        worksheet.addRow(['Total Shipping', `₹${report.totalShipping.toFixed(2)}`]);
+        worksheet.addRow([]);
+
+        // Orders Table
+        if (report.orders.length > 0) {
+          worksheet.addRow(['Order Details']);
+          worksheet.addRow(['Order ID', 'Customer', 'Total', 'Coupon Used', 'Status']);
+          report.orders.forEach(order => {
+            worksheet.addRow([
+              order.orderId,
+              order.userId.fullname,
+              `₹${order.total.toFixed(2)}`,
+              order.couponUsed || 'None',
+              order.status
+            ]);
+          });
+        }
+
+        // Styling
+        worksheet.getRow(1).font = { size: 16, bold: true };
+        worksheet.getRow(2).font = { size: 12 };
+        worksheet.getRow(4).font = { bold: true };
+        worksheet.getRow(10).font = { bold: true };
+        worksheet.columns.forEach(column => {
+          column.width = 20;
+        });
+
+        let filename = `sales_report_${reportType}_${Date.now()}.xlsx`;
+        filename = encodeURIComponent(filename);
+        res.setHeader('Content-disposition', `attachment; filename="${filename}"`);
+        res.setHeader('Content-type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+
+        await workbook.xlsx.write(res);
+        res.end();
+        return;
+      }
+
+      // Render the sales report page
+      res.render('admin/salesReport', {
+        report: report,
+        reportType: reportType,
+        dateFrom: dateFrom || '',
+        dateTo: dateTo || '',
+        dateLabel
       });
     } catch (error) {
-      console.log(error.message);
-      res.status(500).json({ success: false, message: 'Server error' });
+      console.log('Error in generateSalesReport:', error.message);
+      res.status(500).render('error', {
+        message: 'Failed to generate sales report. Please try again later.'
+      });
     }
   },
+
+ updateStatus: async (req, res) => {
+  try {
+    const { orderId, status, reason } = req.body;
+
+    if (!orderId || !status) {
+      return res.status(400).json({ success: false, message: 'Order ID and status are required' });
+    }
+
+    const order = await Order.findOne({ orderId: orderId });
+
+    if (!order) {
+      return res.status(404).json({ success: false, message: 'Order not found' });
+    }
+
+    const updateData = { 
+      status: status,
+      // Update all items' statuses to match the order status
+      $set: { 'items.$[].itemStatus': status }
+    };
+
+    if (status === 'delivered') {
+      updateData.deliveredDate = new Date();
+    }
+
+    if (status === 'return request') {
+      updateData['returnRequest.isRequested'] = true;
+      updateData['returnRequest.requestedAt'] = new Date();
+      updateData['returnRequest.reason'] = reason || 'Admin-initiated return';
+      // Set reason for all items if provided
+      if (reason) {
+        updateData.$set['items.$[].reason'] = reason;
+      }
+    }
+
+    const updatedOrder = await Order.findOneAndUpdate(
+      { orderId: orderId },
+      updateData,
+      { new: true }
+    );
+    
+    console.log(`Order #${orderId} status changed to ${status} by admin`);
+    
+    return res.status(200).json({ 
+      success: true, 
+      message: 'Order status updated successfully',
+      order: updatedOrder
+    });
+  } catch (error) {
+    console.log(error.message);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+},
 
   updateItemStatus: async (req, res) => {
     try {
@@ -441,68 +680,100 @@ const orderController = {
     }
   },
 
-  orderDetail: async (req, res) => {
-    try {
-      const { orderId, productIndex, productId } = req.query;
-      console.log("orderid:", orderId, "productIndex:", productIndex, "productId", productId);
+ orderDetail: async (req, res) => {
+  try {
+    const { orderId, productIndex, productId } = req.query;
+    console.log("orderid:", orderId, "productIndex:", productIndex, "productId", productId);
 
-      const order = await Order.findOne({ orderId: orderId }).populate("items.productId").populate("address").populate("userId");
+    const order = await Order.findOne({ orderId: orderId })
+      .populate("items.productId")
+      .populate("address")
+      .populate("userId");
 
-      const orderItem = order.items[productIndex];
-
-      if (!orderItem) {
-        return res.status(404).render("error", { 
-          message: "Product not found in this order" 
-        });
-      }
-
-      let subtotal = 0;
-      const quantity = orderItem.quantity;
-      orderItem.productId.variants.forEach(item => {
-        const price = item.regularPrice;
-        subtotal += price * quantity;
-      });
-      let discount = 0;
-      if (subtotal > 1000) {
-        discount = 40;
-      }
-      let totalAmount = subtotal - discount;
-
-      const currentDate = new Date().toLocaleDateString('en-US', {
-        year: 'numeric', 
-        month: 'long', 
-        day: 'numeric'
-      });
-
-      const viewData = {
-        index: productIndex,
-        product: orderItem.productId,
-        currentDate: currentDate,
-        customer: {
-          address: order.address,
-          phone: order.address.mobile
-        }
-      };
-
-      res.render("admin/viewOrderDetails", { 
-        viewData, 
-        subtotal, 
-        discount, 
-        totalAmount, 
-        productId, 
-        order, 
-        orderItem, 
-        orderId 
-      });
-
-      console.log("subtotal", subtotal, "discount", discount, "totalAmount", totalAmount);
-      console.log("orderItem::", orderItem);
-      console.log("orderrtt::", order);
-    } catch (error) {
-      console.log(error.message);
-      res.status(500).render("error", { message: "Server error" });
+    if (!order) {
+      return res.status(404).render("error", { message: "Order not found" });
     }
+
+    const orderItem = order.items[productIndex];
+    if (!orderItem) {
+      return res.status(404).render("error", { message: "Product not found in this order" });
+    }
+
+    // Fetch the product and its category to compare discounts
+    const product = await Product.findById(productId).populate("categoryId");
+    if (!product) {
+      return res.status(404).render("error", { message: "Product not found" });
+    }
+
+    // Calculate offer discount: compare product.offer and category.offer
+    const productOffer = product.offer || 0;
+    const categoryOffer = product.categoryId.offer || 0;
+    const offerDiscount = Math.max(productOffer, categoryOffer);
+
+    // Calculate per-item coupon discount
+    const totalItems = order.items.reduce((sum, item) => sum + item.quantity, 0);
+    const couponDiscount = order.couponDiscount
+      ? (order.couponDiscount / totalItems).toFixed(2)
+      : 0;
+
+    // Get shipping charge
+    const shippingCharge = order.shipping || 0;
+
+    // Calculate subtotal, discount, and total amount
+    let subtotal = 0;
+    const quantity = orderItem.quantity;
+    const variant = product.variants.find(v => v.volume === orderItem.volume);
+    const regularPrice = variant ? variant.regularPrice : orderItem.itemSalePrice;
+    subtotal = regularPrice * quantity;
+
+    // Apply offer discount to calculate effective price
+    const offerDiscountAmount = (subtotal * offerDiscount) / 100;
+    const itemSubtotalAfterOffer = subtotal - offerDiscountAmount;
+
+    // Apply per-item coupon discount
+    const itemCouponDiscount = parseFloat(couponDiscount) * quantity;
+    let totalAmount = itemSubtotalAfterOffer - itemCouponDiscount + shippingCharge;
+
+    // Ensure totalAmount is not negative
+    totalAmount = Math.max(totalAmount, 0).toFixed(2);
+
+    const currentDate = new Date().toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    });
+
+    const viewData = {
+      index: productIndex,
+      product: orderItem.productId,
+      currentDate: currentDate,
+      customer: {
+        address: order.address,
+        phone: order.address.mobile,
+      },
+    };
+
+    res.render("admin/viewOrderDetails", {
+      viewData,
+      subtotal: subtotal.toFixed(2),
+      offerDiscount: Math.round(offerDiscountAmount.toFixed(2)),
+      couponDiscount: Math.round(itemCouponDiscount.toFixed(2)),
+      shipping: Math.round(shippingCharge.toFixed(2)),
+      totalAmount:Math.round(totalAmount),
+      productId,
+      order,
+      orderItem,
+      orderId,
+    });
+
+    console.log("subtotal", subtotal, "offerDiscount", offerDiscountAmount, "couponDiscount", itemCouponDiscount, "shipping", shippingCharge, "totalAmount", totalAmount);
+    console.log("orderItem::", orderItem);
+    console.log("orderrtt::", order);
+  } catch (error) {
+    console.log(error.message);
+    res.status(500).render("error", { message: "Server error" });
   }
+},
 };
 
 module.exports = orderController;

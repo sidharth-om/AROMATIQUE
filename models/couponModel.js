@@ -18,49 +18,49 @@ const couponSchema = new mongoose.Schema({
     },
     value: {
         type: Number,
-        required: true
+        required: true,
+        min: 0
     },
-    minOrder: {
+    minOrderAmount: {
         type: Number,
-        default: 0
-    },
-    minOrderAmount: { // Add this field for compatibility
-        type: Number,
-        default: 0
+        default: 0,
+        min: 0
     },
     maxDiscount: {
-        type: Number
+        type: Number,
+        min: 0
     },
     startDate: {
         type: Date,
         default: Date.now
     },
     endDate: {
-        type: Date
-    },
-    expiryDate: { // Add this field for compatibility
-        type: Date
+        type: Date,
+        required: true
     },
     usageLimit: {
-        type: Number
+        type: Number,
+        default: 1,
+        min: 1
     },
     usedCount: {
         type: Number,
-        default: 0
+        default: 0,
+        min: 0
     },
     isActive: {
         type: Boolean,
         default: true
     },
-    userId: { // Add this field for user-specific coupons
+    userId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User'
     },
-    isReferralReward: { // Add this field to identify referral coupons
+    isReferralReward: {
         type: Boolean,
         default: false
     },
-    referralDetails: { // Add referral-specific details
+    referralDetails: {
         referredUser: {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'User'
@@ -71,24 +71,23 @@ const couponSchema = new mongoose.Schema({
     }
 }, { timestamps: true });
 
-// Static method to generate unique coupon code
 couponSchema.statics.generateUniqueCouponCode = async function() {
     const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     let isUnique = false;
     let code;
-    
+
     while (!isUnique) {
         code = 'REF';
         for (let i = 0; i < 6; i++) {
             code += characters.charAt(Math.floor(Math.random() * characters.length));
         }
-        
-        const existingCoupon = await this.findOne({ code: code });
+
+        const existingCoupon = await this.findOne({ code });
         if (!existingCoupon) {
             isUnique = true;
         }
     }
-    
+
     return code;
 };
 

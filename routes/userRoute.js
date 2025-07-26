@@ -15,6 +15,7 @@ const upload = require("../config/multer")
 require("../config/passport")
 
 // Routes that should be accessible only when NOT logged in
+userRoute.get("/landingPage",isNotAuthenticated,userController.loadLandingPage)
 userRoute.get("/signup", isNotAuthenticated, userController.loadRegisterPage)
 userRoute.post("/verifyRegister", isNotAuthenticated, userController.verifyRegister)
 userRoute.get("/enterOtp", isNotAuthenticated, userController.loadOtpPage)

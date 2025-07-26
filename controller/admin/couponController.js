@@ -4,25 +4,30 @@ const adminCouponController = {
     // Load coupon management page
     loadCoupons: async (req, res) => {
         try {
+            console.log('Query Parameters:', req.query)
             const page = parseInt(req.query.page) || 1;
-            const limit = 10;
+            const limit = 5;
             const skip = (page - 1) * limit;
             
             // Get search query if exists
             const search = req.query.search || '';
-            const searchQuery = search ? {
-                $or: [
-                    { code: { $regex: search, $options: 'i' } },
+            const searchQuery = {};
+
+            if (search) {
+                searchQuery.$or = [
+                    { code: { $regex: search.toUpperCase(), $options: 'i' } }, // Convert search to uppercase for code
                     { description: { $regex: search, $options: 'i' } }
-                ]
-            } : {};
-            
-            // Get filter for status
+                ];
+            }
+
             const status = req.query.status;
             if (status && status !== 'all') {
                 searchQuery.isActive = status === 'active';
             }
-            
+
+            // Log the query for debugging
+            console.log('Search Query:', JSON.stringify(searchQuery));
+
             // Get coupons with pagination
             const coupons = await Coupon.find(searchQuery)
                 .sort({ createdAt: -1 })

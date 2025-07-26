@@ -14,12 +14,12 @@
                 extend: {
                     colors: {
                         primary: {
-                            DEFAULT: '#2874f0', // Flipkart blue
+                            DEFAULT: '#2874f0',
                             dark: '#1a56db',
                             light: '#4b97ff',
                         },
                         secondary: {
-                            DEFAULT: '#fb641b', // Flipkart orange
+                            DEFAULT: '#fb641b',
                             dark: '#e85a16',
                             light: '#ff7a3d',
                         }
@@ -54,19 +54,62 @@
                 <div class="mb-6">
                     <h1 class="text-2xl md:text-3xl font-bold text-gray-800">My Orders</h1>
                     <p class="text-gray-600 mt-1">Track, manage, and review your orders</p>
+                    <% if (pagination && pagination.totalOrders > 0) { %>
+                        <p class="text-sm text-gray-500 mt-2">
+                            Showing <%= pagination.startIndex %>-<%= pagination.endIndex %> of <%= pagination.totalOrders %> orders
+                        </p>
+                    <% } %>
                 </div>
                 
-              <!-- Search Bar -->
-<div class="flex mb-6 bg-white p-2 rounded-lg shadow-sm">
-    <form action="/user/myOrders" method="GET" class="flex w-full">
-        <input type="text" id="orderSearch" name="search" placeholder="Search your orders here" value="<%= searchQuery || '' %>" class="flex-grow p-3 border border-gray-200 rounded-l-md focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all duration-200 placeholder-gray-400">
-        <button id="searchBtn" type="submit" class="bg-primary hover:bg-primary-dark text-white px-6 py-3 rounded-r-md transition duration-200 font-medium flex items-center">
-            <i class="fas fa-search mr-2"></i> Search
-        </button>
-    </form>
-</div>
+                <!-- Search Bar -->
+                <div class="flex mb-6 bg-white p-2 rounded-lg shadow-sm">
+                    <div class="flex w-full">
+                        <input 
+                            type="text" 
+                            id="orderSearch" 
+                            placeholder="Search by order ID, product name, status..." 
+                            value="<%= searchQuery || '' %>" 
+                            class="flex-grow p-3 border border-gray-200 rounded-l-md focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all duration-200 placeholder-gray-400"
+                        >
+                        <button 
+                            id="searchBtn" 
+                            type="button" 
+                            class="bg-primary hover:bg-primary-dark text-white px-6 py-3 rounded-r-md transition duration-200 font-medium flex items-center"
+                        >
+                            <i class="fas fa-search mr-2"></i> Search
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Clear Search -->
+                <% if (searchQuery) { %>
+                    <div class="mb-4 bg-blue-50 border border-blue-200 rounded-lg p-3">
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-blue-800">
+                                <i class="fas fa-search mr-2"></i>
+                                Search results for: "<%= searchQuery %>"
+                                <% if (pagination && pagination.totalOrders > 0) { %>
+                                    (<%= pagination.totalOrders %> result<%= pagination.totalOrders > 1 ? 's' : '' %> found)
+                                <% } %>
+                            </span>
+                            <button 
+                                id="clearSearch" 
+                                class="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                            >
+                                Clear search
+                            </button>
+                        </div>
+                    </div>
+                <% } %>
+
+                <!-- Loading indicator -->
+                <div id="loadingIndicator" class="hidden text-center py-8">
+                    <i class="fas fa-spinner fa-spin text-primary text-2xl"></i>
+                    <p class="text-gray-600 mt-2">Searching...</p>
+                </div>
+
                 <!-- Orders List -->
-                <div class="space-y-6">
+                <div class="space-y-6" id="ordersContainer">
                     <% if (orders && orders.length > 0) { %>
                         <% orders.forEach((order) => { %>
                             <div class="bg-white rounded-lg shadow-sm overflow-hidden border border-gray-100 hover:shadow-md transition-shadow duration-200">
@@ -93,7 +136,7 @@
                                     <div class="p-4 border-b border-gray-100 hover:bg-gray-50 transition-colors duration-200">
                                         <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4">
                                             <div class="sm:w-20 h-20 flex-shrink-0 bg-gray-50 p-2 rounded-md border border-gray-100">
-                                                <img src="/uploads/<%= item.productId.images[0] %>" alt="<%= item.productId.name %>" class="w-full h-full object-contain">
+                                                <img src="/Uploads/<%= item.productId.images[0] %>" alt="<%= item.productId.name %>" class="w-full h-full object-contain">
                                             </div>
                                             <div class="flex-grow">
                                                 <h3 class="font-medium text-gray-800 hover:text-primary transition-colors duration-200"><%= item.productId.name %></h3>
@@ -132,12 +175,12 @@
                                             </div>
                                             
                                             <% 
-                                            // Find the variant that matches the volume in the cart item
                                             const variant = item.productId.variants.find(v => v.volume === item.volume);
                                             const regularPrice = variant ? variant.regularPrice : 0;
                                             %>
+                                           
                                             <div class="sm:text-right">
-                                                <div class="text-lg font-semibold text-gray-800 mb-3">₹<%= regularPrice.toLocaleString('en-IN') %></div>
+                                                <div class="text-lg font-semibold text-gray-800 mb-3">₹<%= Math.round(item.itemSalePrice) * item.quantity %></div>
                                                 
                                                 <!-- View Details button -->
                                                 <button type="button"
@@ -182,149 +225,343 @@
                             <div class="w-24 h-24 mx-auto mb-6 text-gray-300">
                                 <i class="fas fa-shopping-bag text-6xl"></i>
                             </div>
-                            <h2 class="text-2xl font-semibold text-gray-800 mb-3">No orders yet</h2>
-                            <p class="text-gray-600 mb-8 max-w-md mx-auto">Looks like you haven't placed any orders yet. Start shopping to see your orders here.</p>
+                            <h2 class="text-2xl font-semibold text-gray-800 mb-3">
+                                <% if (searchQuery) { %>
+                                    No orders found
+                                <% } else { %>
+                                    No orders yet
+                                <% } %>
+                            </h2>
+                            <p class="text-gray-600 mb-8 max-w-md mx-auto">
+                                <% if (searchQuery) { %>
+                                    No orders match your search criteria. Try adjusting your search terms.
+                                <% } else { %>
+                                    Looks like you haven't placed any orders yet. Start shopping to see your orders here.
+                                <% } %>
+                            </p>
+                            <% if (searchQuery) { %>
+                                <button 
+                                    id="clearSearchBtn" 
+                                    class="inline-block py-3 px-8 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors duration-200 shadow-sm hover:shadow mr-4"
+                                >
+                                    <i class="fas fa-times mr-2"></i> Clear Search
+                                </button>
+                            <% } %>
                             <a href="/" class="inline-block py-3 px-8 bg-primary text-white rounded-md hover:bg-primary-dark transition-colors duration-200 shadow-sm hover:shadow">
                                 <i class="fas fa-shopping-cart mr-2"></i> Start Shopping
                             </a>
                         </div>
                     <% } %>
                 </div>
+
+                <!-- Pagination -->
+                <% if (pagination && pagination.totalPages > 1) { %>
+                    <div class="mt-8 flex justify-center">
+                        <nav class="flex items-center space-x-1">
+                            <!-- Previous button -->
+                            <% if (pagination.hasPrev) { %>
+                                <button 
+                                    onclick="navigateToPage(<%= pagination.prevPage %>)"
+                                    class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 hover:text-gray-700 transition-colors duration-200"
+                                >
+                                    <i class="fas fa-chevron-left"></i> Previous
+                                </button>
+                            <% } else { %>
+                                <span class="px-3 py-2 text-sm font-medium text-gray-300 bg-gray-100 border border-gray-300 rounded-md cursor-not-allowed">
+                                    <i class="fas fa-chevron-left"></i> Previous
+                                </span>
+                            <% } %>
+
+                            <!-- Page numbers -->
+                            <% 
+                            let startPage = Math.max(1, pagination.currentPage - 2);
+                            let endPage = Math.min(pagination.totalPages, pagination.currentPage + 2);
+                            
+                            if (startPage > 1) {
+                            %>
+                                <button 
+                                    onclick="navigateToPage(1)"
+                                    class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 hover:text-gray-700 transition-colors duration-200"
+                                >
+                                    1
+                                </button>
+                                <% if (startPage > 2) { %>
+                                    <span class="px-3 py-2 text-sm font-medium text-gray-500">...</span>
+                                <% } %>
+                            <% } %>
+
+                            <% for (let i = startPage; i <= endPage; i++) { %>
+                                <% if (i === pagination.currentPage) { %>
+                                    <span class="px-3 py-2 text-sm font-medium text-white bg-primary border border-primary rounded-md">
+                                        <%= i %>
+                                    </span>
+                                <% } else { %>
+                                    <button 
+                                        onclick="navigateToPage(<%= i %>)"
+                                        class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 hover:text-gray-700 transition-colors duration-200"
+                                    >
+                                        <%= i %>
+                                    </button>
+                                <% } %>
+                            <% } %>
+
+                            <% if (endPage < pagination.totalPages) { %>
+                                <% if (endPage < pagination.totalPages - 1) { %>
+                                    <span class="px-3 py-2 text-sm font-medium text-gray-500">...</span>
+                                <% } %>
+                                <button 
+                                    onclick="navigateToPage(<%= pagination.totalPages %>)"
+                                    class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 hover:text-gray-700 transition-colors duration-200"
+                                >
+                                    <%= pagination.totalPages %>
+                                </button>
+                            <% } %>
+
+                            <!-- Next button -->
+                            <% if (pagination.hasNext) { %>
+                                <button 
+                                    onclick="navigateToPage(<%= pagination.nextPage %>)"
+                                    class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 hover:text-gray-700 transition-colors duration-200"
+                                >
+                                    Next <i class="fas fa-chevron-right"></i>
+                                </button>
+                            <% } else { %>
+                                <span class="px-3 py-2 text-sm font-medium text-gray-300 bg-gray-100 border border-gray-300 rounded-md cursor-not-allowed">
+                                    Next <i class="fas fa-chevron-right"></i>
+                                </span>
+                            <% } %>
+                        </nav>
+                    </div>
+
+                    <!-- Page info -->
+                    <div class="mt-4 text-center text-sm text-gray-600">
+                        Page <%= pagination.currentPage %> of <%= pagination.totalPages %>
+                        <% if (pagination.totalOrders > 0) { %>
+                            | <%= pagination.totalOrders %> total order<%= pagination.totalOrders > 1 ? 's' : '' %>
+                        <% } %>
+                    </div>
+                <% } %>
             </div>
         </div>
     </main>
 
+    <script>
+        // Global variables
+        let searchTimeout;
+        const searchInput = document.getElementById('orderSearch');
+        const searchBtn = document.getElementById('searchBtn');
+        const clearSearchBtn = document.getElementById('clearSearch');
+        const loadingIndicator = document.getElementById('loadingIndicator');
+        const ordersContainer = document.getElementById('ordersContainer');
+
+        // Navigation functions
+        function navigateToPage(page) {
+            const searchQuery = searchInput.value.trim();
+            const params = new URLSearchParams();
+            
+            if (searchQuery) {
+                params.append('search', searchQuery);
+            }
+            params.append('page', page);
+            
+            window.location.href = `/user/myOrders?${params.toString()}`;
+        }
+
+        function performSearch() {
+            const query = searchInput.value.trim();
+            const params = new URLSearchParams();
+            
+            if (query) {
+                params.append('search', query);
+            }
+            
+            window.location.href = `/user/myOrders?${params.toString()}`;
+        }
+
+        function clearSearch() {
+            window.location.href = '/user/myOrders';
+        }
+
+        // Event listeners
+        searchBtn.addEventListener('click', performSearch);
+
+        if (clearSearchBtn) {
+            clearSearchBtn.addEventListener('click', clearSearch);
+        }
+
+        // Handle clear search button in empty state
+        const clearSearchBtnEmpty = document.getElementById('clearSearchBtn');
+        if (clearSearchBtnEmpty) {
+            clearSearchBtnEmpty.addEventListener('click', clearSearch);
+        }
+
+        searchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                performSearch();
+            }
+        });
+
+        // Debounced search (optional - for real-time search)
+        searchInput.addEventListener('input', function() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                // Optional: implement real-time search here
+                // For now, we'll keep it simple with button/enter search
+            }, 300);
+        });
+
+        // Order management functions
+        function viewOrder(orderId, index) {
+            console.log('Navigating to order:', orderId, 'item index:', index);
+            window.location.href = `/user/orders/${orderId}/item/${index}`;
+        }
+        
+        function cancelEntireOrder(orderId) {
+            Swal.fire({
+                title: 'Cancel Order',
+                text: 'Please select a reason for cancelling this order:',
+                icon: 'warning',
+                input: 'select',
+                inputOptions: {
+                    'Changed my mind': 'Changed my mind',
+                    'Found a better price elsewhere': 'Found a better price elsewhere',
+                    'Ordered by mistake': 'Ordered by mistake',
+                    'Delivery time too long': 'Delivery time too long',
+                    'Other': 'Other'
+                },
+                inputPlaceholder: 'Select a reason',
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444',
+                cancelButtonColor: '#6b7280',
+                confirmButtonText: 'Yes, cancel it!',
+                cancelButtonText: 'No, keep it',
+                inputValidator: (value) => {
+                    if (!value) {
+                        return 'You need to select a reason!';
+                    }
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    submitCancelOrder(orderId, result.value);
+                }
+            });
+        }
+        
+        function cancelOrderItem(orderId, itemIndex) {
+            Swal.fire({
+                title: 'Cancel Item',
+                text: 'Please select a reason for cancelling this item:',
+                icon: 'warning',
+                input: 'select',
+                inputOptions: {
+                    'Changed my mind': 'Changed my mind',
+                    'Found a better price elsewhere': 'Found a better price elsewhere',
+                    'Ordered by mistake': 'Ordered by mistake',
+                    'Delivery time too long': 'Delivery time too long',
+                    'Other': 'Other'
+                },
+                inputPlaceholder: 'Select a reason',
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444',
+                cancelButtonColor: '#6b7280',
+                confirmButtonText: 'Yes, cancel it!',
+                cancelButtonText: 'No, keep it',
+                inputValidator: (value) => {
+                    if (!value) {
+                        return 'You need to select a reason!';
+                    }
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    submitCancelItem(orderId, itemIndex, result.value);
+                }
+            });
+        }
+        
+        async function submitCancelOrder(orderId, reason) {
+            try {
+                const response = await fetch(`/user/cancelEntireOrder/${orderId}`, {
+                    method: "POST",
+                    headers: {"Content-Type": "application/json"},
+                    body: JSON.stringify({ reason })
+                });
+        
+                const result = await response.json();
+                if (result.success) {
+                    Swal.fire({
+                        title: 'Cancelled!',
+                        text: result.message || 'Your order has been cancelled successfully.',
+                        icon: 'success',
+                        confirmButtonColor: '#3b82f6'
+                    }).then(() => {
+                        window.location.reload();
+                    });
+                } else {
+                    Swal.fire({
+                        title: 'Error!',
+                        text: result.message || 'Failed to cancel order',
+                        icon: 'error',
+                        confirmButtonColor: '#3b82f6'
+                    });
+                }
+            } catch (error) {
+                console.error('Error cancelling order:', error);
+                Swal.fire({
+                    title: 'Error!',
+                    text: 'An error occurred while cancelling the order',
+                    icon: 'error',
+                    confirmButtonColor: '#3b82f6'
+                });
+            }
+        }
+        
+        async function submitCancelItem(orderId, itemIndex, reason) {
+            try {
+                const response = await fetch(`/user/cancelOrder/${orderId}`, {
+                    method: "POST",
+                    headers: {"Content-Type": "application/json"},
+                    body: JSON.stringify({ itemIndex, reason })
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    Swal.fire({
+                        title: 'Cancelled!',
+                        text: result.message || 'Your item has been cancelled successfully.',
+                        icon: 'success',
+                        confirmButtonColor: '#3b82f6'
+                    }).then(() => {
+                        window.location.reload();
+                    });
+                } else {
+                    Swal.fire({
+                        title: 'Error!',
+                        text: result.message || 'Failed to cancel item',
+                        icon: 'error',
+                        confirmButtonColor: '#3b82f6'
+                    });
+                }
+            } catch (error) {
+                console.error('Error cancelling item:', error);
+                Swal.fire({
+                    title: 'Error!',
+                    text: 'An error occurred while cancelling the item',
+                    icon: 'error',
+                    confirmButtonColor: '#3b82f6'
+                });
+            }
+        }
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            // Focus on search input if there's a search query
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('search')) {
+                searchInput.focus();
+            }
+        });
+    </script>
 </body>
 </html>
 <%- include("partials/footer") %>
-<script>
-    function viewOrder(orderId, index) {
-        console.log('Navigating to order:', orderId, 'item index:', index);
-        // Navigate to the order details page
-        window.location.href = `/user/orders/${orderId}/item/${index}`;
-    }
-    
-    function cancelEntireOrder(orderId) {
-        // Show SweetAlert confirmation dialog
-        Swal.fire({
-            title: 'Cancel Order',
-            text: 'Are you sure you want to cancel this order?',
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#ef4444', // Tailwind red-500
-            cancelButtonColor: '#6b7280', // Tailwind gray-500
-            confirmButtonText: 'Yes, cancel it!',
-            cancelButtonText: 'No, keep it'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                // If confirmed, submit the cancellation request to the backend
-                submitCancelOrder(orderId);
-            }
-        });
-    }
-    
-    function cancelOrderItem(orderId, itemIndex) {
-        // Show SweetAlert confirmation dialog
-        Swal.fire({
-            title: 'Cancel Item',
-            text: 'Are you sure you want to cancel this item?',
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#ef4444', // Tailwind red-500
-            cancelButtonColor: '#6b7280', // Tailwind gray-500
-            confirmButtonText: 'Yes, cancel it!',
-            cancelButtonText: 'No, keep it'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                // If confirmed, submit the cancellation request to the backend
-                submitCancelItem(orderId, itemIndex);
-            }
-        });
-    }
-    
-    async function submitCancelOrder(orderId) {
-        try {
-            const response = await fetch(`/user/cancelEntireOrder/${orderId}`, {
-                method: "POST",
-                headers: {"Content-Type": "application/json"},
-            });
-    
-            const result = await response.json();
-            if (result.success) {
-                Swal.fire({
-                    title: 'Cancelled!',
-                    text: result.message || 'Your order has been cancelled successfully.',
-                    icon: 'success',
-                    confirmButtonColor: '#3b82f6'
-                }).then(() => {
-                    window.location.reload();
-                });
-            } else {
-                Swal.fire({
-                    title: 'Error!',
-                    text: result.message || 'Failed to cancel order',
-                    icon: 'error',
-                    confirmButtonColor: '#3b82f6'
-                });
-            }
-        } catch (error) {
-            console.error('Error cancelling order:', error);
-            Swal.fire({
-                title: 'Error!',
-                text: 'An error occurred while cancelling the order',
-                icon: 'error',
-                confirmButtonColor: '#3b82f6'
-            });
-        }
-    }
-    
-    async function submitCancelItem(orderId, itemIndex) {
-        try {
-            const response = await fetch(`/user/cancelOrder/${orderId}`, {
-                method: "POST",
-                headers: {"Content-Type": "application/json"},
-                body: JSON.stringify({ itemIndex: itemIndex })  // Send itemIndex in the request body
-            });
-
-            const result = await response.json();
-            if (result.success) {
-                Swal.fire({
-                    title: 'Cancelled!',
-                    text: result.message || 'Your item has been cancelled successfully.',
-                    icon: 'success',
-                    confirmButtonColor: '#3b82f6'
-                }).then(() => {
-                    window.location.reload();
-                });
-            } else {
-                Swal.fire({
-                    title: 'Error!',
-                    text: result.message || 'Failed to cancel item',
-                    icon: 'error',
-                    confirmButtonColor: '#3b82f6'
-                });
-            }
-        } catch (error) {
-            console.error('Error cancelling item:', error);
-            Swal.fire({
-                title: 'Error!',
-                text: 'An error occurred while cancelling the item',
-                icon: 'error',
-                confirmButtonColor: '#3b82f6'
-            });
-        }
-    }
-
-
-    document.getElementById("searchBtn").addEventListener("click", function () {
-    const query = document.getElementById("orderSearch").value.trim();
-    window.location.href = `/user/myOrders?search=${encodeURIComponent(query)}`;
-});
-
-document.getElementById("orderSearch").addEventListener("keypress", function (e) {
-    if (e.key === "Enter") {
-        e.preventDefault();
-        document.getElementById("searchBtn").click();
-    }
-});
-</script>

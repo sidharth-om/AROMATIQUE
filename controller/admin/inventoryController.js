@@ -71,20 +71,21 @@ const inventoryController = {
   // Handle Stock Update via AJAX
   updateStock: async (req, res) => {
     try {
+      console.log("ith inventary update")
       const { productId } = req.params;
       const { volume, quantity } = req.body;
       const lowStockThreshold = 10;
 
-      console.log(`Stock update request received:`, {
-        productId,
-        volume,
-        quantity,
-        user: req.user ? req.user._id : 'No user',
-        timestamp: new Date().toISOString()
-      });
+      // console.log(`Stock update request received:`, {
+      //   productId,
+      //   volume,
+      //   quantity,
+      //   user: req.user ? req.user._id : 'No user',
+      //   timestamp: new Date().toISOString()
+      // });
 
       // Validate authentication
-      if (!req.user) {
+      if (!req.session.admin) {
         console.warn('Unauthorized stock update attempt');
         return res.status(401).json({ 
           success: false,
@@ -163,7 +164,7 @@ const inventoryController = {
         oldQuantity,
         newQuantity: parsedQuantity,
         isLowStock: variant.isLowStock,
-        user: req.user._id,
+        // user: req.user._id,
         timestamp: new Date().toISOString()
       });
 

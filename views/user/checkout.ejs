@@ -54,11 +54,11 @@
                     const discountAmount = maxOffer > 0 ? (regularPrice * maxOffer / 100).toFixed(2) : 0;
                     const discountedPrice = (regularPrice - discountAmount).toFixed(2);
                     %>
-                    <p class="text-sm text-gray-500">Size: <%= volume %></p>
+                    <p class="text-sm text-gray-500">Size: <%= volume %>ml</p>
                     <div class="flex items-center mt-1">
                       <% if (maxOffer > 0) { %>
                         <span class="text-sm text-red-500 line-through mr-2">₹<%= regularPrice %></span>
-                        <span class="text-sm font-medium">₹<%= discountedPrice %></span>
+                        <span class="text-sm font-medium">₹<%= Math.round(discountedPrice) %></span>
                         <span class="text-xs text-green-600 ml-2">(<%= maxOffer %>% off)</span>
                         <% if (productOffer > categoryOffer) { %>
                           <span class="text-xs bg-orange-100 text-orange-800 px-2 py-0.5 rounded ml-2">Product offer</span>
@@ -164,16 +164,21 @@
             <div class="space-y-3">
               <% if (availableCoupons && availableCoupons.length > 0) { %>
                 <% availableCoupons.forEach(coupon => { %>
-                  <div class="border border-dashed border-gray-300 rounded-lg p-3 flex justify-between items-center bg-gray-50">
-                    <div>
-                      <p class="font-medium text-sm"><%= coupon.code %></p>
-                      <p class="text-xs text-gray-500"><%= coupon.description %></p>
-                      <% if (coupon.minOrder > 0) { %>
-                        <p class="text-xs text-gray-400">Min order: ₹<%= coupon.minOrder %></p>
-                      <% } %>
-                    </div>
-                    <button class="use-coupon-btn text-sm bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 transition-colors" data-coupon="<%= coupon.code %>">Use</button>
-                  </div>
+             <div class="border border-dashed border-gray-300 rounded-lg p-3 flex justify-between items-center bg-gray-50">
+    <div>
+        <p class="font-medium text-sm"><%= coupon.code %>
+            <% if (coupon.isReferralReward) { %>
+                <span class="ml-2 px-2 py-0.5 bg-green-100 text-green-700 text-xs rounded">Referral Coupon</span>
+            <% } %>
+        </p>
+        <p class="text-xs text-gray-500"><%= coupon.description %></p>
+        <% if (coupon.minOrderAmount > 0) { %>
+            <p class="text-xs text-gray-400">Min order: ₹<%= coupon.minOrderAmount %></p>
+        <% } %>
+    </div>
+    <button class="use-coupon-btn text-sm bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 transition-colors" data-coupon="<%= coupon.code %>">Use</button>
+</div>
+
                 <% }) %>
               <% } else { %>
                 <p class="text-sm text-gray-500">No coupons available at the moment.</p>
@@ -202,18 +207,18 @@
                 <div class="font-medium">Razorpay</div>
                 <div class="text-xs text-gray-500">Pay securely online</div>
               </label>
-              <img src="/api/placeholder/60/24" alt="Razorpay" class="ml-auto">
+              <img src="/public/images/Free download Razorpay logo.jpg" alt="Razorpay" class="ml-auto">
             </div>
             
             <!-- Wallet -->
-            <div class="flex items-center p-3 border border-gray-200 rounded-lg">
+             <!-- <div class="flex items-center p-3 border border-gray-200 rounded-lg">
               <input class="form-check-input payment" type="radio" value="wallet" name="payment_option" id="wallet">
               <label class="ml-3" for="wallet">
                 <div class="font-medium">Wallet</div>
                 <div class="text-xs text-gray-500">Pay using your wallet balance</div>
               </label>
               <div class="ml-auto text-sm font-medium">₹200</div>
-            </div>
+            </div>  -->
           </div>
         </div>
         
@@ -232,16 +237,13 @@
             </div>
 
             <div class="flex justify-between">
-              <span>Shipping</span>
+              <span>Delivery</span>
               <span id="shippingValue" class="<%= shipping === 0 ? 'text-green-600' : '' %>">
                 <%= shipping === 0 ? 'FREE' : '₹' + shipping %>
               </span>
             </div>
             
-            <div class="flex justify-between">
-              <span>System Discount</span>
-              <span id="systemDiscount" class="text-green-600">-₹<%= discount %></span>
-            </div>
+           
             
             <div class="flex justify-between">
               <span>Coupon Discount</span>
@@ -254,7 +256,7 @@
             </div>
             
             <div class="text-green-600 text-xs mt-1">
-              You save <span id="totalSavings">₹<%= (subtotal - discountedSubtotal + discount + (appliedCoupon ? appliedCoupon.discount : 0)) %></span> on this order
+              You save <span id="totalSavings">₹<%= (subtotal - discountedSubtotal  + (appliedCoupon ? appliedCoupon.discount : 0)) %></span> on this order
             </div>
           </div>
           
@@ -540,12 +542,12 @@
         function updateOrderSummary(result) {
             document.getElementById('couponDiscount').innerText = `-₹${result.couponDiscount}`;
             document.getElementById('totalValue').innerText = `₹${result.newTotal}`;
-            document.getElementById('systemDiscount').innerText = `-₹${result.systemDiscount}`;
+            // document.getElementById('systemDiscount').innerText = `-₹${"result.systemDiscount"}`;
             document.getElementById('shippingValue').innerText = result.shipping === 0 ? 'FREE' : `₹${result.shipping}`;
             
             // Calculate total savings
             const offerDiscount = parseInt(document.getElementById('offerDiscount').innerText.replace('-₹', ''));
-            const totalSavings = offerDiscount + result.systemDiscount + result.couponDiscount;
+            const totalSavings = offerDiscount  + result.couponDiscount;
             document.getElementById('totalSavings').innerText = `₹${totalSavings}`;
         }
         
@@ -553,12 +555,12 @@
         function updateOrderSummaryAfterRemoval(result) {
             document.getElementById('couponDiscount').innerText = `-₹0`;
             document.getElementById('totalValue').innerText = `₹${result.newTotal}`;
-            document.getElementById('systemDiscount').innerText = `-₹${result.systemDiscount}`;
+            // document.getElementById('systemDiscount').innerText = `-₹${"result.systemDiscount"}`;
             document.getElementById('shippingValue').innerText = result.shipping === 0 ? 'FREE' : `₹${result.shipping}`;
             
             // Calculate total savings without coupon
             const offerDiscount = parseInt(document.getElementById('offerDiscount').innerText.replace('-₹', ''));
-            const totalSavings = offerDiscount + result.systemDiscount;
+            const totalSavings = offerDiscount 
             document.getElementById('totalSavings').innerText = `₹${totalSavings}`;
         }
         

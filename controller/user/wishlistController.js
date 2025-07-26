@@ -3,6 +3,7 @@ const User=require("../../models/userModel")
 const Cart=require("../../models/cartModel")
 const Wishlist=require("../../models/wishlist")
 const Product=require("../../models/productModel")
+const Category=require("../../models/category")
 
 const wishlistController={
 
@@ -12,15 +13,34 @@ const wishlistController={
         const email = req.session.user.email
         const userId = req.session.user.userId
         const user = await User.findOne({email: email})
-        // const cart = await Cart.find({userId: userId})
-         const cart=await Cart.findOne({userId})
-        // Find wishlist and populate the product details
+        const cart=await Cart.findOne({userId})
+        
         const wishlist = await Wishlist.findOne({userId: userId})
             .populate({
                 path: 'products.productId',
                 model: 'Product',
-                select: 'name images variants offer description isActive categoryId brand'
+                select: 'name images variants offer description isActive categoryId brand',
+                populate:{
+                  path:'categoryId',
+                  model:'Category',
+                  select:'name offer status'
+                }
             });
+
+            if(wishlist && wishlist.products){
+              wishlist.products=wishlist.products.map(item=>{
+                const product=item.productId
+                if(product && product.categoryId){
+                  const productOffer=product.offer||0
+                const categoryOffer=product.categoryId.offer||0
+                const highestOffer=Math.max(productOffer,categoryOffer)
+
+                item.highestOffer=highestOffer
+                item.offerSource=productOffer>=categoryOffer ? 'product' : 'category'
+                }
+                return item
+              })
+            }
         
         console.log("Wishlist with products:", wishlist);
         res.render("user/wishlist", {user, cart, wishlist})
