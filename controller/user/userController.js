@@ -250,7 +250,7 @@ loadLandingPage:async (req,res) => {
 
     loadUserLogin: async (req, res) => {
         try {
-            res.render("user/userLogin");
+            res.render("user/userlogin");
         } catch (error) {
             console.error(error.message);
             res.status(500).render('error', { message: 'Something went wrong' });
