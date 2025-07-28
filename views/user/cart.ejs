@@ -13,8 +13,8 @@
 <body class="bg-gray-100">
     <!-- Breadcrumb -->
     <div class="bg-white py-2 shadow-sm">
-        <div class="container mx-auto px-4">
-            <div class="text-sm text-gray-500">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-sm text-gray-500 flex items-center space-x-2">
                 <a href="index.html" class="hover:text-blue-600">Home</a>
                 <span class="mx-2">></span>
                 <a href="#" class="hover:text-blue-600">Shop</a>
@@ -25,36 +25,35 @@
     </div>
 
     <!-- Main Content -->
-    <main class="container mx-auto px-4 py-8">
-        <div class="flex flex-col md:flex-row gap-6">
+    <main class="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div class="flex flex-col lg:flex-row gap-6">
             <!-- Cart Items -->
-            <div class="md:w-3/4 bg-white rounded-lg shadow-md p-6">
-                <h2 class="text-xl font-bold mb-6">Shopping Cart</h2>
+            <div class="lg:w-3/4 bg-white rounded-lg shadow-md p-4 sm:p-6">
+                <h2 class="text-xl sm:text-2xl font-bold mb-6">Shopping Cart</h2>
                 
                 <div class="overflow-x-auto">
-                    <table class="w-full">
+                    <table class="w-full min-w-[320px]">
                         <thead>
                             <tr class="border-b">
-                                <th class="pb-4 text-left">Product</th>
-                                <th class="pb-4 text-center">Price</th>
-                                <th class="pb-4 text-center">Quantity</th>
-                                <th class="pb-4 text-center">Subtotal</th>
-                                <th class="pb-4 text-center">Action</th>
+                                <th class="pb-4 text-left text-sm sm:text-base">Product</th>
+                                <th class="pb-4 text-center text-sm sm:text-base">Price</th>
+                                <th class="pb-4 text-center text-sm sm:text-base">Quantity</th>
+                                <th class="pb-4 text-center text-sm sm:text-base">Subtotal</th>
+                                <th class="pb-4 text-center text-sm sm:text-base">Action</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <!-- Example product -->
                             <% if (cart && cart.items && cart.items.length > 0) { %>
                                 <% cart.items.forEach((item, index) => { %>
                             <tr class="border-b hover:bg-gray-50">
                                 <td class="py-4">
-                                    <div class="flex items-center">
-                                        <img src="/Uploads/<%= item.productId.images[0] %>" alt="Product" class="w-20 h-20 object-cover rounded mr-4">
-                                        <div>
-                                            <h3 class="font-medium"><%= item.productId.name %></h3>
-                                            <p class="text-sm text-gray-600"><%= item.productId.description %></p>
+                                    <div class="flex items-center flex-col sm:flex-row">
+                                        <img src="/Uploads/<%= item.productId.images[0] %>" alt="Product" class="w-16 h-16 sm:w-20 sm:h-20 object-cover rounded mb-2 sm:mb-0 sm:mr-4">
+                                        <div class="text-center sm:text-left">
+                                            <h3 class="font-medium text-sm sm:text-base"><%= item.productId.name %></h3>
+                                            <p class="text-xs sm:text-sm text-gray-600"><%= item.productId.description %></p>
                                             <% if (item.volume) { %>
-                                                <p class="text-sm text-gray-500">Volume: <%= item.volume %>ml</p>
+                                                <p class="text-xs sm:text-sm text-gray-500">Volume: <%= item.volume %>ml</p>
                                             <% } %>
                                         </div>
                                     </div>
@@ -62,68 +61,55 @@
                                 <td class="py-4 text-center">
                                     <div>
                                         <% 
-                                        // Find the variant that matches the volume in the cart item
                                         const variant = item.productId.variants.find(v => v.volume === item.volume);
                                         const regularPrice = variant ? variant.regularPrice : 0;
-                                        
-                                        // Calculate discounts
                                         const productOffer = item.productId.offer || 0;
                                         const categoryOffer = item.productId.categoryId.offer || 0;
-                                        
-                                        // Get the maximum offer between product and category
                                         const maxOffer = Math.max(productOffer, categoryOffer);
-                                        
-                                        // Calculate the discounted price
                                         const discountAmount = regularPrice * (maxOffer / 100);
                                         const discountedPrice = regularPrice - discountAmount;
-                                        
-                                        // Store these values for later use
                                         const finalPrice = discountedPrice;
                                         %>
-                                        
                                         <% if (maxOffer > 0) { %>
-                                            <p class="font-medium text-red-600">₹<%= Math.round(finalPrice.toFixed(2)) %></p>
-                                            <p class="text-sm text-gray-500 line-through">₹<%= Math.round(regularPrice.toFixed(2)) %></p>
-                                            <p class="text-sm text-green-600">-<%= maxOffer %>% off</p>
+                                            <p class="font-medium text-red-600 text-sm sm:text-base">₹<%= Math.round(finalPrice.toFixed(2)) %></p>
+                                            <p class="text-xs sm:text-sm text-gray-500 line-through">₹<%= Math.round(regularPrice.toFixed(2)) %></p>
+                                            <p class="text-xs sm:text-sm text-green-600">-<%= maxOffer %>% off</p>
                                         <% } else { %>
-                                            <p class="font-medium">₹<%= Math.round(regularPrice.toFixed(2) )%></p>
+                                            <p class="font-medium text-sm sm:text-base">₹<%= Math.round(regularPrice.toFixed(2)) %></p>
                                         <% } %>
                                     </div>
                                 </td>
                                 <td class="py-4 text-center">
                                     <div class="flex items-center justify-center">
                                         <button 
-                                      onclick="changeQuantity('<%= item.productId._id %>', <%= item.quantity %>, -1, <%= finalPrice %>, <%= index %>, <%= variant.quantity %>)" 
-                                      class="w-8 h-8 rounded-l bg-gray-200 hover:bg-gray-300 flex items-center justify-center">
-                                      <i class="fas fa-minus text-sm"></i>
-                                    </button>
-                                    
-                                    <input 
-                                      type="text" 
-                                      id="cartProductQuantity<%= index %>" 
-                                      class="w-12 h-8 border-t border-b border-gray-300 text-center" 
-                                      value="<%= item.quantity %>" 
-                                      readonly>
-                                    
-                                    <button 
-                                      onclick="changeQuantity('<%= item.productId._id %>', <%= item.quantity %>, 1, <%= finalPrice %>, <%= index %>, <%= variant.quantity %>)" 
-                                      class="w-8 h-8 rounded-r bg-gray-200 hover:bg-gray-300 flex items-center justify-center">
-                                      <i class="fas fa-plus text-sm"></i>
-                                    </button>
+                                            onclick="changeQuantity('<%= item.productId._id %>', <%= item.quantity %>, -1, <%= finalPrice %>, <%= index %>, <%= variant.quantity %>)" 
+                                            class="w-8 h-8 rounded-l bg-gray-200 hover:bg-gray-300 flex items-center justify-center">
+                                            <i class="fas fa-minus text-sm"></i>
+                                        </button>
+                                        <input 
+                                            type="text" 
+                                            id="cartProductQuantity<%= index %>" 
+                                            class="w-12 h-8 border-t border-b border-gray-300 text-center" 
+                                            value="<%= item.quantity %>" 
+                                            readonly>
+                                        <button 
+                                            onclick="changeQuantity('<%= item.productId._id %>', <%= item.quantity %>, 1, <%= finalPrice %>, <%= index %>, <%= variant.quantity %>)" 
+                                            class="w-8 h-8 rounded-r bg-gray-200 hover:bg-gray-300 flex items-center justify-center">
+                                            <i class="fas fa-plus text-sm"></i>
+                                        </button>
                                     </div>
                                 </td>
                                 <td class="py-4 text-center font-medium">
                                     <% 
-                                    // Calculate subtotal (discounted price * quantity)
                                     const subtotal = finalPrice * item.quantity;
                                     %>
                                     ₹<span id="subTotal<%= index %>"><%= Math.round(subtotal.toFixed(2)) %></span>
                                     <% if (maxOffer > 0) { %>
-                                        <p class="text-xs text-green-600">Saved: ₹<%= Math.round((discountAmount * item.quantity).toFixed(2)) %></p>
+                                        <p class="text-xs sm:text-sm text-green-600">Saved: ₹<%= Math.round((discountAmount * item.quantity).toFixed(2)) %></p>
                                     <% } %>
                                 </td>
                                 <td class="py-4 text-center">
-                                    <button onclick="confirmRemove('<%= item.productId._id%>')" class="text-red-500 hover:text-red-700">
+                                    <button onclick="confirmRemove('<%= item.productId._id %>')" class="text-red-500 hover:text-red-700">
                                         <i class="fas fa-trash"></i>
                                     </button>
                                 </td>
@@ -132,15 +118,15 @@
                             <% } else { %>
                                 <tr>
                                     <td colspan="5" class="py-8 text-center">
-                                      <div class="flex flex-col items-center">
-                                        <img src="/api/placeholder/120/120" alt="Empty Cart" class="w-24 h-24 mb-4">
-                                        <p class="text-lg font-medium text-gray-600 mb-2">Your cart is empty</p>
-                                        <p class="text-sm text-gray-500 mb-4">AddZR items to your cart to continue shopping</p>
-                                        <a href="/" class="bg-blue-600 text-white py-2 px-6 rounded-md hover:bg-blue-700">Continue Shopping</a>
-                                      </div>
+                                        <div class="flex flex-col items-center">
+                                            <img src="/api/placeholder/120/120" alt="Empty Cart" class="w-24 h-24 mb-4">
+                                            <p class="text-lg font-medium text-gray-600 mb-2">Your cart is empty</p>
+                                            <p class="text-sm text-gray-500 mb-4">Add items to your cart to continue shopping</p>
+                                            <a href="/" class="bg-blue-600 text-white py-2 px-6 rounded-md hover:bg-blue-700">Continue Shopping</a>
+                                        </div>
                                     </td>
-                                  </tr>
-                                <% } %>
+                                </tr>
+                            <% } %>
                         </tbody>
                     </table>
                 </div>
@@ -164,64 +150,55 @@
                 cart.items.forEach(item => {
                     const variant = item.productId.variants.find(v => v.volume === item.volume);
                     const regularPrice = variant ? variant.regularPrice : 0;
-                    
-                    // Calculate discounts
                     const productOffer = item.productId.offer || 0;
                     const categoryOffer = item.productId.categoryId.offer || 0;
-                    
-                    // Get the maximum offer between product and category
                     const maxOffer = Math.max(productOffer, categoryOffer);
-                    
-                    // Calculate the discounted price
                     const discountAmount = regularPrice * (maxOffer / 100);
                     const discountedPrice = regularPrice - discountAmount;
-                    
                     totalRegularAmount += regularPrice * item.quantity;
                     totalAmount += discountedPrice * item.quantity;
                     totalSavings += discountAmount * item.quantity;
                     itemCount += item.quantity;
                 });
-
-                // Apply delivery charge logic
                 deliveryCharge = totalAmount < 1000 ? 40 : 0;
                 totalAmount += deliveryCharge;
             }
             %>
 
             <!-- RIGHT SIDEBAR -->
-            <div class="md:w-1/4">
-                <div class="bg-white rounded-lg shadow-md p-6">
-                    <h2 class="text-xl font-bold mb-4">PRICE DETAILS</h2>
+            <div class="lg:w-1/4">
+                <div class="bg-white rounded-lg shadow-md p-4 sm:p-6">
+                    <h2 class="text-xl sm:text-2xl font-bold mb-4">PRICE DETAILS</h2>
                     <div class="border-t pt-4">
                         <div class="flex justify-between py-2">
-                            <span class="text-gray-600">Price (<%= itemCount %> items)</span>
-                            <span>₹<%= Math.round(totalRegularAmount.toFixed(2)) %></span>
+                            <span class="text-gray-600 text-sm sm:text-base">Price (<%= itemCount %> items)</span>
+                            <span class="text-sm sm:text-base">₹<%= Math.round(totalRegularAmount.toFixed(2)) %></span>
                         </div>
                         <div class="flex justify-between py-2">
-                            <span class="text-gray-600">Discount</span>
-                            <span class="text-green-600">- ₹<%= Math.round(totalSavings.toFixed(2) )%></span>
+                            <span class="text-gray-600 text-sm sm:text-base">Discount</span>
+                            <span class="text-green-600 text-sm sm:text-base">- ₹<%= Math.round(totalSavings.toFixed(2)) %></span>
                         </div>
                         <div class="flex justify-between py-2">
-                            <span class="text-gray-600">Delivery Charges</span>
-                            <span id="deliveryCharge" class="<%= deliveryCharge === 0 ? 'text-green-600' : '' %>">
+                            <span class="text-gray-600 text-sm sm:text-base">Delivery Charges</span>
+                            <span id="deliveryCharge" class="<%= deliveryCharge === 0 ? 'text-green-600' : '' %> text-sm sm:text-base">
                                 <%= deliveryCharge === 0 ? 'FREE' : '₹' + deliveryCharge.toFixed(2) %>
                             </span>
                         </div>
                         <div class="flex justify-between py-4 border-t border-dashed font-bold">
-                            <span>Total Amount</span>
-                            <span>₹<span id="total"><%= Math.round(totalAmount.toFixed(2)) %></span></span>
+                            <span class="text-sm sm:text-base">Total Amount</span>
+                            <span class="text-sm sm:text-base">₹<span id="total"><%= Math.round(totalAmount.toFixed(2)) %></span></span>
                         </div>
-                        <div class="text-green-600 text-sm mb-4">You'll save ₹<%= totalSavings.toFixed(2) %> on this order</div>
+                        <div class="text-green-600 text-xs sm:text-sm mb-4">You'll save ₹<%= totalSavings.toFixed(2) %> on this order</div>
                     </div>
-                    <button onclick="window.location.href='/user/checkout'" class="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-md font-medium">
+                    <button onclick="window.location.href='/user/checkout'" class="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-md font-medium text-sm sm:text-base">
                         PLACE ORDER
                     </button>
                 </div>
 
-                <div class="mt-4 bg-white rounded-lg shadow-md p-6">
+                <div class="mt-4 bg-white rounded-lg shadow-md p-4 sm:p-6">
                     <div class="flex items-center">
                         <i class="fas fa-shield-alt text-gray-500 mr-2"></i>
-                        <p class="text-sm text-gray-600">Safe and Secure Payments. 100% Authentic products.</p>
+                        <p class="text-xs sm:text-sm text-gray-600">Safe and Secure Payments. 100% Authentic products.</p>
                     </div>
                 </div>
             </div>
@@ -230,47 +207,47 @@
 
     <!-- Footer -->
     <footer class="bg-gray-800 text-white py-8 mt-8">
-        <div class="container mx-auto px-4">
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
                 <div>
                     <h3 class="text-lg font-bold mb-4">ABOUT</h3>
                     <ul class="space-y-2">
-                        <li><a href="#" class="text-gray-300 hover:text-white">Contact Us</a></li>
-                        <li><a href="#" class="text-gray-300 hover:text-white">About Us</a></li>
-                        <li><a href="#" class="text-gray-300 hover:text-white">Careers</a></li>
-                        <li><a href="#" class="text-gray-300 hover:text-white">Press</a></li>
+                        <li><a href="#" class="text-gray-300 hover:text-white text-sm sm:text-base">Contact Us</a></li>
+                        <li><a href="#" class="text-gray-300 hover:text-white text-sm sm:text-base">About Us</a></li>
+                        <li><a href="#" class="text-gray-300 hover:text-white text-sm sm:text-base">Careers</a></li>
+                        <li><a href="#" class="text-gray-300 hover:text-white text-sm sm:text-base">Press</a></li>
                     </ul>
                 </div>
                 <div>
                     <h3 class="text-lg font-bold mb-4">HELP</h3>
                     <ul class="space-y-2">
-                        <li><a href="#" class="text-gray-300 hover:text-white">Payments</a></li>
-                        <li><a href="#" class="text-gray-300 hover:text-white">Shipping</a></li>
-                        <li><a href="#" class="text-gray-300 hover:text-white">Cancellation & Returns</a></li>
-                        <li><a href="#" class="text-gray-300 hover:text-white">FAQ</a></li>
+                        <li><a href="#" class="text-gray-300 hover:text-white text-sm sm:text-base">Payments</a></li>
+                        <li><a href="#" class="text-gray-300 hover:text-white text-sm sm:text-base">Shipping</a></li>
+                        <li><a href="#" class="text-gray-300 hover:text-white text-sm sm:text-base">Cancellation & Returns</a></li>
+                        <li><a href="#" class="text-gray-300 hover:text-white text-sm sm:text-base">FAQ</a></li>
                     </ul>
                 </div>
                 <div>
                     <h3 class="text-lg font-bold mb-4">POLICY</h3>
                     <ul class="space-y-2">
-                        <li><a href="#" class="text-gray-300 hover:text-white">Return Policy</a></li>
-                        <li><a href="#" class="text-gray-300 hover:text-white">Terms Of Use</a></li>
-                        <li><a href="#" class="text-gray-300 hover:text-white">Security</a></li>
-                        <li><a href="#" class="text-gray-300 hover:text-white">Privacy</a></li>
+                        <li><a href="#" class="text-gray-300 hover:text-white text-sm sm:text-base">Return Policy</a></li>
+                        <li><a href="#" class="text-gray-300 hover:text-white text-sm sm:text-base">Terms Of Use</a></li>
+                        <li><a href="#" class="text-gray-300 hover:text-white text-sm sm:text-base">Security</a></li>
+                        <li><a href="#" class="text-gray-300 hover:text-white text-sm sm:text-base">Privacy</a></li>
                     </ul>
                 </div>
                 <div>
                     <h3 class="text-lg font-bold mb-4">SOCIAL</h3>
                     <div class="flex space-x-4">
-                        <a href="#" class="text-gray-300 hover:text-white"><i class="fab fa-facebook-f"></i></a>
-                        <a href="#" class="text-gray-300 hover:text-white"><i class="fab fa-twitter"></i></a>
-                        <a href="#" class="text-gray-300 hover:text-white"><i class="fab fa-instagram"></i></a>
-                        <a href="#" class="text-gray-300 hover:text-white"><i class="fab fa-youtube"></i></a>
+                        <a href="#" class="text-gray-300 hover:text-white text-sm sm:text-base"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" class="text-gray-300 hover:text-white text-sm sm:text-base"><i class="fab fa-twitter"></i></a>
+                        <a href="#" class="text-gray-300 hover:text-white text-sm sm:text-base"><i class="fab fa-instagram"></i></a>
+                        <a href="#" class="text-gray-300 hover:text-white text-sm sm:text-base"><i class="fab fa-youtube"></i></a>
                     </div>
                 </div>
             </div>
             <div class="border-t border-gray-700 mt-8 pt-6 text-center">
-                <p>© 2025 YourStore. All Rights Reserved.</p>
+                <p class="text-sm sm:text-base">© 2025 YourStore. All Rights Reserved.</p>
             </div>
         </div>
     </footer>

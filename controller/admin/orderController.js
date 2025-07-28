@@ -329,20 +329,50 @@ const orderController = {
         doc.text(`Total Shipping: ₹${report.totalShipping.toFixed(2)}`);
         doc.moveDown();
 
-        // Orders Table
-        if (report.orders.length > 0) {
-          doc.fontSize(12).text('Order Details', { underline: true });
-          doc.moveDown(0.5);
-          report.orders.forEach((order, index) => {
-            doc.text(`Order ${index + 1}:`);
-            doc.text(`Order ID: ${order.orderId}`);
-            doc.text(`Customer: ${order.userId.fullname}`);
-            doc.text(`Total: ₹${order.total.toFixed(2)}`);
-            doc.text(`Coupon Used: ${order.couponUsed || 'None'}`);
-            doc.text(`Status: ${order.status}`);
-            doc.moveDown();
-          });
-        }
+     // Draw Table Headers
+doc.fontSize(12).text('Order Details', { underline: true });
+doc.moveDown(0.5);
+
+// Define starting X and Y
+const tableTop = doc.y + 10;
+const itemX = 50;
+const colWidths = [100, 150, 100, 120, 100]; // Widths for each column
+
+// Headers
+const headers = ['Order ID', 'Customer', 'Total', 'Coupon Used', 'Status'];
+headers.forEach((header, i) => {
+  doc.text(header, itemX + colWidths.slice(0, i).reduce((a, b) => a + b, 0), tableTop, { bold: true });
+});
+
+// Horizontal line under header
+doc.moveTo(itemX, tableTop + 15)
+   .lineTo(itemX + colWidths.reduce((a, b) => a + b, 0), tableTop + 15)
+   .stroke();
+
+// Table rows
+let rowY = tableTop + 25;
+report.orders.forEach((order) => {
+  const values = [
+    order.orderId,
+    order.userId.fullname,
+    `₹${order.total.toFixed(2)}`,
+    order.couponUsed || 'None',
+    order.status
+  ];
+
+  values.forEach((text, i) => {
+    doc.text(text, itemX + colWidths.slice(0, i).reduce((a, b) => a + b, 0), rowY);
+  });
+
+  rowY += 20;
+
+  // Page break logic if needed
+  if (rowY >= doc.page.height - 100) {
+    doc.addPage();
+    rowY = 50;
+  }
+});
+
 
         doc.pipe(res);
         doc.end();
@@ -777,3 +807,4 @@ const orderController = {
 };
 
 module.exports = orderController;
+

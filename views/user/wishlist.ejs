@@ -8,6 +8,8 @@
     <title>My Wishlist</title>
     <!-- Tailwind CSS via CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Toastify CSS via CDN -->
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
 </head>
 <body class="bg-gray-50">
     <div class="container mx-auto px-4 py-8">
@@ -21,7 +23,7 @@
                         <div class="bg-white rounded-lg shadow-md overflow-hidden border border-gray-200 hover:shadow-lg transition-shadow duration-300">
                             <div class="relative">
                                 <% if (product.images && product.images.length > 0) { %>
-                                    <img src="/uploads/<%= product.images[0] %>" alt="<%= product.name %>" class="w-full h-48 object-cover">
+                                    <img src="/Uploads/<%= product.images[0] %>" alt="<%= product.name %>" class="w-full h-48 object-cover">
                                 <% } else { %>
                                     <div class="w-full h-48 bg-gray-200 flex items-center justify-center">
                                         <span class="text-gray-500">No image available</span>
@@ -116,10 +118,38 @@
         <% } %>
     </div>
 
-    
-  <%- include("partials/footer") %>
+    <%- include("partials/footer") %>
 
+    <!-- Toastify JS via CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
     <script>
+        // Test if Toastify is loaded properly
+        console.log('Toastify loaded:', typeof Toastify !== 'undefined');
+
+        // Function to show toast notification
+        function showToast(message, type = 'success') {
+            if (typeof Toastify === 'undefined') {
+                console.error('Toastify is not loaded');
+                alert(message); // Fallback to alert if Toastify fails
+                return;
+            }
+
+            const backgroundColor = type === 'success' ? '#059669' : '#dc2626';
+            
+            Toastify({
+                text: message,
+                duration: 3000,
+                gravity: 'top',
+                position: 'right',
+                backgroundColor: backgroundColor,
+                stopOnFocus: true,
+                close: true,
+                style: {
+                    background: backgroundColor,
+                }
+            }).showToast();
+        }
+
         // Function to update price and stock status when volume is selected
         function updatePrice(selectElement, productId) {
             const selectedOption = selectElement.options[selectElement.selectedIndex];
@@ -147,11 +177,8 @@
                 addToCartBtn.disabled = true;
             }
             
-            // For now, we're just updating the display price without considering discounts
-            // You might want to calculate discounts as well in a real implementation
+            // Update price display
             if (price) {
-                // Get the parent product to check for offers
-                // This would need to be implemented with the actual product data structure
                 const offerElement = priceContainer.querySelector('.text-red-600');
                 const offer = offerElement ? parseFloat(offerElement.textContent.match(/\d+/)[0]) : 0;
                 
@@ -163,7 +190,7 @@
                         <span class="text-sm text-red-600 ml-2">(${offer}% off)</span>
                     `;
                 } else {
-                    priceContainer.innerHTML = `<span class="text-lg font-bold text-gray-900">$${price}</span>`;
+                    priceContainer.innerHTML = `<span class="text-lg font-bold text-gray-900">₹${price}</span>`;
                 }
             }
         }
@@ -178,11 +205,19 @@
             })
             .then(response => {
                 if (response.ok) {
-                    // Reload the page to reflect changes
-                    window.location.reload();
+                    showToast('Item removed from wishlist!', 'success');
+                    // Reload the page after a short delay to show the toast
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1000);
+                } else {
+                    throw new Error('Failed to remove from wishlist');
                 }
             })
-            .catch(error => console.error('Error removing from wishlist:', error));
+            .catch(error => {
+                console.error('Error removing from wishlist:', error);
+                showToast('Error removing item from wishlist', 'error');
+            });
         }
 
         function addToCartAndRemoveFromWishlist(productId) {
@@ -190,12 +225,23 @@
             const volumeSelector = document.querySelector(`.product-volume[data-product-id="${productId}"]`);
             
             if (!volumeSelector) {
-                alert('Error: Could not find volume selection for this product');
+                showToast('Error: Could not find volume selection for this product', 'error');
                 return;
             }
             
             const selectedOption = volumeSelector.options[volumeSelector.selectedIndex];
             const volume = selectedOption.value;
+            
+            if (!volume) {
+                showToast('Please select a volume first', 'error');
+                return;
+            }
+            
+            // Disable the button to prevent multiple clicks
+            const addToCartBtn = document.getElementById(`add-to-cart-btn-${productId}`);
+            const originalText = addToCartBtn.textContent;
+            addToCartBtn.textContent = 'Adding...';
+            addToCartBtn.disabled = true;
             
             // First add to cart
             fetch(`/user/addtoCart/${productId}`, {
@@ -225,18 +271,31 @@
             .then(response => {
                 if (response.ok) {
                     // Show success message and reload the page
-                    alert('Product added to cart and removed from wishlist!');
-                    window.location.reload();
+                    showToast('Product added to cart and removed from wishlist!', 'success');
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1000);
+                } else {
+                    throw new Error('Failed to remove from wishlist');
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
-                alert(error.message || 'An error occurred');
+                showToast(error.message || 'An error occurred', 'error');
+                
+                // Re-enable the button
+                addToCartBtn.textContent = originalText;
+                addToCartBtn.disabled = false;
             });
         }
 
         // Initialize all product volume dropdowns
         document.addEventListener('DOMContentLoaded', function() {
+            // Check if Toastify is loaded
+            if (typeof Toastify === 'undefined') {
+                console.error('Toastify failed to load. Check your internet connection or CDN availability.');
+            }
+            
             // Trigger the change event on all volume selectors to set initial states
             document.querySelectorAll('.product-volume').forEach(select => {
                 const event = new Event('change');

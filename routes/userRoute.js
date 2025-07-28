@@ -35,7 +35,7 @@ userRoute.post("/validateReferralCode", referralController.validateReferralCode)
 // Routes that require authentication
 userRoute.get("/userHome", isAuthenticated, userController.loadUserHome)
 userRoute.get("/productView/:id", userProductController.productView)
-userRoute.get("/shopping", userProductController.loadShopping)
+userRoute.get("/shopping",isAuthenticated, userProductController.loadShopping)
 userRoute.get("/viewProfile", isAuthenticated, userProfileController.loadUserProfile)
 userRoute.post("/uploadProfile", isAuthenticated, upload.single("image"), userProfileController.uploadProfile)
 userRoute.get("/addAddress", isAuthenticated, userProfileController.addAddress)
