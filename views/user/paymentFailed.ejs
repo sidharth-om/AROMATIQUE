@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Payment Failed</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
 </head>
 <body class="bg-gray-100 min-h-screen flex items-center justify-center">
     <div class="bg-white p-8 rounded-lg shadow-lg max-w-md w-full text-center">
@@ -42,7 +43,25 @@
     </div>
 
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
     <script>
+        function showToast(message, type = 'error') {
+            Toastify({
+                text: message,
+                duration: 3000,
+                close: true,
+                gravity: "top",
+                position: "right",
+                backgroundColor: type === 'error' ? "#ef4444" : "#10b981",
+                stopOnFocus: true,
+                style: {
+                    borderRadius: "8px",
+                    padding: "10px",
+                    fontFamily: "'Inter', sans-serif",
+                }
+            }).showToast();
+        }
+
         document.getElementById("retryPaymentBtn")?.addEventListener("click", async function() {
             const orderId = this.getAttribute("data-order-id");
             const loadingIndicator = document.getElementById("loadingIndicator");
@@ -98,14 +117,14 @@
                                 if (verifyData.success) {
                                     window.location.href = verifyData.redirectUrl;
                                 } else {
-                                    alert("Payment verification failed. Please try again.");
+                                    showToast("Payment verification failed. Please try again.", 'error');
                                     if (verifyData.redirectUrl) {
                                         window.location.href = verifyData.redirectUrl;
                                     }
                                 }
                             } catch (error) {
                                 console.error("Verification error:", error);
-                                alert("Payment verification failed. Please contact support.");
+                                showToast("Payment verification failed. Please contact support.", 'error');
                             }
                         },
                         prefill: {
@@ -126,16 +145,16 @@
                     const rzp = new Razorpay(options);
                     rzp.on('payment.failed', function (response) {
                         console.error("Payment failed:", response.error);
-                        alert("Payment failed: " + response.error.description);
+                        showToast("Payment failed: " + response.error.description, 'error');
                     });
                     
                     rzp.open();
                 } else {
-                    alert(data.message || "Failed to create payment order. Please try again.");
+                    showToast(data.message || "Failed to create payment order. Please try again.", 'error');
                 }
             } catch (error) {
                 console.error("Error:", error);
-                alert("Something went wrong. Please try again.");
+                showToast("Something went wrong. Please try again.", 'error');
                 
                 // Hide loading and reset button
                 loadingIndicator.classList.add("hidden");

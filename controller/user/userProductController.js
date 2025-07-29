@@ -27,7 +27,7 @@ const userProductController = {
             const relatedProduct = await Product.find({
                 categoryId: category,
                 _id: { $ne: productId }  // Exclude the current product
-            }).populate("categoryId");  // Add this populate to get category offers
+            }).populate("categoryId").limit(4);  // Add this populate to get category offers
             
             console.log("related : ", relatedProduct);
 

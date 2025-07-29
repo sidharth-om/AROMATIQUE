@@ -1,4 +1,4 @@
-<%- include("partials/header")  %>
+<%- include("partials/header") %>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -10,6 +10,10 @@
     <!-- Cropper.js -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+    <!-- Toastify CSS and JS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+    <!-- SweetAlert2 (retained for form submission) -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <style>
@@ -108,7 +112,6 @@
                         name="name" 
                         class="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" 
                         value="<%= product.name %>"
-                         
                     />
                 </div>
                 
@@ -172,7 +175,7 @@
                     <div id="imageGallery" class="image-gallery">
                         <% product.images.forEach((img, index) => { %>
                             <div class="image-item" data-index="<%= index %>" data-filename="<%= img %>">
-                                <img src="/uploads/<%= img %>" alt="Product Image <%= index + 1 %>">
+                                <img src="/Uploads/<%= img %>" alt="Product Image <%= index + 1 %>">
                                 <div class="image-actions">
                                     <div class="image-action-btn replace-btn" title="Replace">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -416,22 +419,39 @@
                     const imageItem = this.closest('.image-item');
                     const index = parseInt(imageItem.dataset.index);
                     const filename = imageItem.dataset.filename;
-                    const productId=document.getElementById("productId").value
-                    console.log("productId:",productId,"index",index)
-                    const response=await fetch("/admin/removeImage",{
-                        method:"DELETE",
-                        headers:{"Content-Type":"application/json"},
-                        body:JSON.stringify({productId,index})
-                    })
+                    const productId = document.getElementById("productId").value;
+                    console.log("productId:", productId, "index", index);
+                    const response = await fetch("/admin/removeImage", {
+                        method: "DELETE",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ productId, index })
+                    });
 
-                    const result=await response.json()
+                    const result = await response.json();
 
-                    if(result.success){
-                        alert(result.message)
-                        location.reload()
-                    }
-                    else{
-                        alert(result.message)
+                    if (result.success) {
+                       Toastify({
+    text: result.message,
+    duration: 2000,
+    gravity: "top",
+    position: "right",
+    backgroundColor: "#4CAF50",
+    stopOnFocus: true
+}).showToast();
+
+setTimeout(() => {
+    location.reload();
+}, 2200);  // give Toastify time to show
+
+                    } else {
+                        Toastify({
+                            text: result.message,
+                            duration: 3000,
+                            gravity: "top",
+                            position: "right",
+                            backgroundColor: "#F44336",
+                            stopOnFocus: true
+                        }).showToast();
                     }
                     
                     // Add to deleted images
@@ -510,7 +530,7 @@
             existingImages.forEach((filename, index) => {
                 if (!filename) return; // Skip deleted images
                 
-                const imageItem = createImageItem(`/uploads/${filename}`, index, true, filename);
+                const imageItem = createImageItem(`/Uploads/${filename}`, index, true, filename);
                 imageGallery.insertBefore(imageItem, addImageBtn);
             });
             
@@ -765,175 +785,92 @@
             variantsContainer.appendChild(variantDiv);
         }
         
-//         // Handle form submission
-//         async function handleSubmit(e) {
-//             e.preventDefault();
+        // Handle form submission
+        async function handleSubmit(e) {
+            e.preventDefault();
             
-//             // Collect form data
-//             const formData = new FormData();
+            // Collect form data
+            const formData = new FormData();
             
-//             // Add product data
-//             formData.append('productId', document.getElementById('productId').value);
-//             formData.append('name', document.getElementById('name').value);
-//             formData.append('brand', document.getElementById('brand').value);
-//             formData.append('category', document.getElementById('category').value);
-//             formData.append('description', document.getElementById('description').value);
-//             formData.append('offer', document.getElementById('offer').value);
+            // Add product data
+            formData.append('productId', document.getElementById('productId').value);
+            formData.append('name', document.getElementById('name').value);
+            formData.append('brand', document.getElementById('brand').value);
+            formData.append('category', document.getElementById('category').value);
+            formData.append('description', document.getElementById('description').value);
+            formData.append('offer', document.getElementById('offer').value || '0');
             
-//             // Add existing images that weren't deleted
-//             existingImages.forEach(img => {
-//                 if (img && !deletedImages.includes(img)) {
-//                     formData.append('existingImages', img);
-//                 }
-//             });
-            
-//             // Add deleted images
-//             deletedImages.forEach(img => {
-//                 formData.append('deletedImages', img);
-//             });
-            
-//             // Add new and replaced images
-//             croppedFiles.forEach(file => {
-//                 formData.append('newImages', file);
-//             });
-            
-//             // Add variants
-//             const variantElements = document.querySelectorAll('.variant-item');
-//             variantElements.forEach((variantEl, index) => {
-//                 const volume = variantEl.querySelector('.variant-volume').value;
-//                 const price = variantEl.querySelector('.variant-price').value;
-//                 const quantity = variantEl.querySelector('.variant-quantity').value;
-//                 console.log("reglr price",price)
-
-                
-                
-//                 formData.append(`volume`, volume);
-//                 formData.append(`regularPrice`, price);
-//                 formData.append(`quantity`, quantity);
-//             });
-//             for (let [key, value] of formData.entries()) {
-//     console.log(key, value);
-// }
-//             try {
-//                 const response = await fetch('/admin/editedProducts', {
-//                     method: 'PATCH',
-//                     body: formData
-//                 });
-                
-//                 const result = await response.json();
-                
-//                 if (result.success) {
-//         Swal.fire({
-//             icon: 'success',
-//             title: 'Product Updated!',
-//             text: 'The product has been successfully updated.',
-//             timer: 2000,
-//             showConfirmButton: false
-//         }).then(() => {
-//             window.location.href = '/admin/products';
-//         });
-//     } else {
-//         Swal.fire({
-//             icon: 'error',
-//             title: 'Update Failed!',
-//             text: result.message || 'Error updating product.',
-//         });
-//     }
-//             } catch (error) {
-//     console.error('Error updating product:', error);
-//     Swal.fire({
-//         icon: 'error',
-//         title: 'Error!',
-//         text: 'Something went wrong while updating the product.',
-//     });
-// }
-//         }
-// Handle form submission
-async function handleSubmit(e) {
-    e.preventDefault();
-    
-    // Collect form data
-    const formData = new FormData();
-    
-    // Add product data
-    formData.append('productId', document.getElementById('productId').value);
-    formData.append('name', document.getElementById('name').value);
-    formData.append('brand', document.getElementById('brand').value);
-    formData.append('category', document.getElementById('category').value);
-    formData.append('description', document.getElementById('description').value);
-    formData.append('offer', document.getElementById('offer').value || '0');
-    
-    // Add existing images that weren't deleted
-    existingImages.forEach(img => {
-        if (img && !deletedImages.includes(img)) {
-            formData.append('existingImages', img);
-        }
-    });
-    
-    // Add deleted images
-    deletedImages.forEach(img => {
-        formData.append('deletedImages', img);
-    });
-    
-    // Add new and replaced images
-    croppedFiles.forEach(file => {
-        formData.append('newImages', file);
-    });
-    
-    // Add variants - ensure arrays are properly sent for multiple variants
-    const variantElements = document.querySelectorAll('.variant-item');
-    
-    variantElements.forEach((variantEl, index) => {
-        const volume = variantEl.querySelector('.variant-volume').value;
-        const price = variantEl.querySelector('.variant-price').value;
-        const quantity = variantEl.querySelector('.variant-quantity').value;
-        
-        // Use array notation for multiple variants
-        formData.append('volume[]', volume);
-        formData.append('regularPrice[]', price);
-        formData.append('quantity[]', quantity);
-    });
-    
-    try {
-        // Add debugging to see what's being sent
-        console.log("Sending form data...");
-        for (let [key, value] of formData.entries()) {
-            console.log(key, value);
-        }
-        
-        const response = await fetch('/admin/editedProducts', {
-            method: 'PATCH',
-            body: formData
-        });
-        
-        const result = await response.json();
-        
-        if (result.success) {
-            Swal.fire({
-                icon: 'success',
-                title: 'Product Updated!',
-                text: 'The product has been successfully updated.',
-                timer: 2000,
-                showConfirmButton: false
-            }).then(() => {
-                window.location.href = '/admin/products';
+            // Add existing images that weren't deleted
+            existingImages.forEach(img => {
+                if (img && !deletedImages.includes(img)) {
+                    formData.append('existingImages', img);
+                }
             });
-        } else {
-            Swal.fire({
-                icon: 'error',
-                title: 'Update Failed!',
-                text: result.message || 'Error updating product.',
+            
+            // Add deleted images
+            deletedImages.forEach(img => {
+                formData.append('deletedImages', img);
             });
+            
+            // Add new and replaced images
+            croppedFiles.forEach(file => {
+                formData.append('newImages', file);
+            });
+            
+            // Add variants - ensure arrays are properly sent for multiple variants
+            const variantElements = document.querySelectorAll('.variant-item');
+            
+            variantElements.forEach((variantEl, index) => {
+                const volume = variantEl.querySelector('.variant-volume').value;
+                const price = variantEl.querySelector('.variant-price').value;
+                const quantity = variantEl.querySelector('.variant-quantity').value;
+                
+                // Use array notation for multiple variants
+                formData.append('volume[]', volume);
+                formData.append('regularPrice[]', price);
+                formData.append('quantity[]', quantity);
+            });
+            
+            try {
+                // Add debugging to see what's being sent
+                console.log("Sending form data...");
+                for (let [key, value] of formData.entries()) {
+                    console.log(key, value);
+                }
+                
+                const response = await fetch('/admin/editedProducts', {
+                    method: 'PATCH',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Product Updated!',
+                        text: 'The product has been successfully updated.',
+                        timer: 2000,
+                        showConfirmButton: false
+                    }).then(() => {
+                        window.location.href = '/admin/products';
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Update Failed!',
+                        text: result.message || 'Error updating product.',
+                    });
+                }
+            } catch (error) {
+                console.error('Error updating product:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error!',
+                    text: 'Something went wrong while updating the product.',
+                });
+            }
         }
-    } catch (error) {
-        console.error('Error updating product:', error);
-        Swal.fire({
-            icon: 'error',
-            title: 'Error!',
-            text: 'Something went wrong while updating the product.',
-        });
-    }
-}
     </script>
 </body>
 </html>
