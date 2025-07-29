@@ -54,4 +54,9 @@ app.use((req, res, next) => {
 app.use("/user", userRoute)
 app.use("/admin", adminRoute)
 
+app.get('*', (req, res) => {
+ res.status(404).render('user/404');
+});
+
+
 app.listen(process.env.PORT, () => console.log("server running"))
