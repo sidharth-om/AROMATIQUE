@@ -188,7 +188,7 @@ const adminCouponController = {
             description: description.trim(),
             type,
             value: parseFloat(value),
-            minOrder: minOrder ? parseFloat(minOrder) : 0,
+            minOrderAmount: minOrder ? parseFloat(minOrder) : 0,
             maxDiscount: (type === 'percentage' && maxDiscount) ? parseFloat(maxDiscount) : null,
             startDate: new Date(startDate),
             endDate: new Date(endDate),
