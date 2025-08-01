@@ -530,7 +530,7 @@ setTimeout(() => {
             existingImages.forEach((filename, index) => {
                 if (!filename) return; // Skip deleted images
                 
-                const imageItem = createImageItem(`/Uploads/${filename}`, index, true, filename);
+                const imageItem = createImageItem(`/uploads/${filename}`, index, true, filename);
                 imageGallery.insertBefore(imageItem, addImageBtn);
             });
             
