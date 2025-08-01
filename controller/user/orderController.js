@@ -356,6 +356,10 @@ console.log("ordd::",order)
       });
       await order.save();
 
+      if(order.items.productId<5 && order.item.offer >20){
+
+      }
+
       // Refund full order total
       const refundAmount = order.amountPaid;
       const user = await User.findById(userId);

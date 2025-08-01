@@ -37,28 +37,18 @@
             <div class="invalid-feedback">Please enter a product name.</div>
         </div>
 
-        <!-- <div class="mb-3">
-            <label for="brand" class="form-label">Brand</label>
-            <input type="text" class="form-control" id="brand" name="brand">
-        </div> -->
-
         <div class="mb-3">
             <label for="brand" class="form-label">Brand</label>
             <select class="form-control" id="brand" name="brand">
-                <option value="">Select a Brand</option>
+                <option value="" disabled selected>Select Brand</option>
             </select>
             <div class="invalid-feedback">Please select a brand.</div>
         </div>
 
-        <!-- <div class="mb-3">
-            <label for="category" class="form-label">Category</label>
-            <input type="text" class="form-control" id="category" name="category">
-        </div> -->
-
         <div class="mb-3">
             <label for="category" class="form-label">Category</label>
             <select class="form-control" id="category" name="category">
-                <option value="">Select a Category</option>
+                <option value="" disabled selected>Select Category</option>
             </select>
             <div class="invalid-feedback">Please select a category.</div>
         </div>
@@ -68,9 +58,6 @@
             <textarea class="form-control" id="description" name="description" rows="3"></textarea>
             <div class="invalid-feedback">Please enter a description.</div>
         </div>
-
-      
-        
 
         <div class="mb-3">
             <label for="images" class="form-label">Product Images</label>
@@ -90,14 +77,7 @@
 
         <button type="button" class="btn btn-secondary mb-3" id="addVariant">Add More Variants</button>
         
-    
         <button type="submit" class="btn btn-primary w-100">Add Product</button>
-
-       
-        </select>
-        
-
-
     </form>
 
     <div class="text-center mt-3">
@@ -135,7 +115,6 @@
     let croppedImages = [];
 
     document.getElementById("images").addEventListener("change", function(event) {
-        
         imageQueue = [...imageQueue, ...Array.from(event.target.files)];
         processNextImage();
     });
@@ -154,7 +133,7 @@
     }
 
     document.getElementById("cropModal").addEventListener("shown.bs.modal", function() {
-        event.preventDefault()
+        event.preventDefault();
         if (cropper) cropper.destroy();
         const image = document.getElementById("cropImage");
         cropper = new Cropper(image, {
@@ -168,205 +147,170 @@
     });
 
     document.getElementById("cropButton").addEventListener("click", function() {
-    event.preventDefault();
-    const canvas = cropper.getCroppedCanvas();
-    canvas.toBlob((blob) => {
-        const file = new File([blob], `cropped_${Date.now()}.jpg`, { type: "image/jpeg" });
-        croppedImages.push(file);
+        event.preventDefault();
+        const canvas = cropper.getCroppedCanvas();
+        canvas.toBlob((blob) => {
+            const file = new File([blob], `cropped_${Date.now()}.jpg`, { type: "image/jpeg" });
+            croppedImages.push(file);
 
-        console.log("croppedImages:",croppedImages)
+            console.log("croppedImages:", croppedImages);
 
-        // Show image preview
-        const imgElement = document.createElement("img");
-        imgElement.src = URL.createObjectURL(file);
-        document.getElementById("imagePreview").appendChild(imgElement);
+            // Show image preview
+            const imgElement = document.createElement("img");
+            imgElement.src = URL.createObjectURL(file);
+            document.getElementById("imagePreview").appendChild(imgElement);
 
-        // Close modal and process next image
-        bootstrap.Modal.getInstance(document.getElementById("cropModal")).hide();
-        cropper.destroy();
-        cropper = null;
-        
-        // Clear the file input after processing all images
-        if (imageQueue.length === 0) {
-            document.getElementById("images").value = "";
-        }
-        
-        processNextImage();
-    }, "image/jpeg");
-});
+            // Close modal and process next image
+            bootstrap.Modal.getInstance(document.getElementById("cropModal")).hide();
+            cropper.destroy();
+            cropper = null;
+            
+            // Clear the file input after processing all images
+            if (imageQueue.length === 0) {
+                document.getElementById("images").value = "";
+            }
+            
+            processNextImage();
+        }, "image/jpeg");
+    });
 
-
-
-    // document.getElementById("addVariant").addEventListener("click", function() {
-    //     event.preventDefault()
-    //     const variantGroup = document.createElement("div");
-    //     variantGroup.classList.add("variant-group", "mb-3");
-    //     variantGroup.innerHTML = `
-    //     ____________________________________________________________________________________
-          
-    //         <input type="text" class="form-control mb-2" name="volume" placeholder="Volume (e.g. 500ml, 1L)">
-    //         <input type="number" class="form-control mb-2" name="variantPrice" placeholder="Price">
-    //         <input type="number" class="form-control mb-2" name="quantity" placeholder="Quantity">
-    //         <button type="button" class="btn btn-danger btn-sm remove-variant">Remove</button>
-    //     `;
-    //     document.getElementById("variantsContainer").appendChild(variantGroup);
-    // });
     let variantCount = 1; // Start with 1 since we have one variant by default
 
-document.getElementById("addVariant").addEventListener("click", function() {
-    event.preventDefault();
-    variantCount++;
-    const variantGroup = document.createElement("div");
-    variantGroup.classList.add("variant-group", "mb-3");
-    variantGroup.innerHTML = `
-    ____________________________________________________________________________________
-        <input type="number" class="form-control mb-2" name="volume_${variantCount}" placeholder="Volume (e.g. 500ml, 1L)">
-        <input type="number" class="form-control mb-2" name="variantPrice_${variantCount}" placeholder="Price">
-        <input type="number" class="form-control mb-2" name="quantity_${variantCount}" placeholder="Quantity">
-        <button type="button" class="btn btn-danger btn-sm remove-variant" data-variant="${variantCount}">Remove</button>
-    `;
-    document.getElementById("variantsContainer").appendChild(variantGroup);
-});
+    document.getElementById("addVariant").addEventListener("click", function() {
+        event.preventDefault();
+        variantCount++;
+        const variantGroup = document.createElement("div");
+        variantGroup.classList.add("variant-group", "mb-3");
+        variantGroup.innerHTML = `
+        ____________________________________________________________________________________
+            <input type="number" class="form-control mb-2" name="volume_${variantCount}" placeholder="Volume (e.g. 500ml, 1L)">
+            <input type="number" class="form-control mb-2" name="variantPrice_${variantCount}" placeholder="Price">
+            <input type="number" class="form-control mb-2" name="quantity_${variantCount}" placeholder="Quantity">
+            <button type="button" class="btn btn-danger btn-sm remove-variant" data-variant="${variantCount}">Remove</button>
+        `;
+        document.getElementById("variantsContainer").appendChild(variantGroup);
+    });
 
     document.getElementById("variantsContainer").addEventListener("click", function(event) {
-        event.preventDefault()
+        event.preventDefault();
         if (event.target.classList.contains("remove-variant")) {
             event.target.parentElement.remove();
         }
     });
 
+    async function fetchCategoriesandBrand() {
+        try {
+            const categoryResponse = await fetch("/admin/getCatagories");
+            const brandResponse = await fetch("/admin/getBrand");
 
+            const categoryResult = await categoryResponse.json();
+            const brandResult = await brandResponse.json();
 
- async function fetchCategoriesandBrand(params) {
-    try {
-        const categoryResponse=await fetch("/admin/getCatagories")
-        const brandResponse=await fetch("/admin/getBrand")
+            console.log("catres:", categoryResult);
+            console.log("brandres:", brandResult);
 
-        const categoryResult=await categoryResponse.json()
-        const brandResult=await brandResponse.json()
+            // Category dropdown
+            const categorySelect = document.getElementById("category");
+            categoryResult.forEach(category => {
+                const option = document.createElement("option");
+                option.value = category._id;
+                option.textContent = category.name;
+                categorySelect.appendChild(option);
+            });
 
-        console.log("catres:",categoryResult)
-        console.log("brandres:",brandResult)
+            // Brand dropdown
+            const brandSelect = document.getElementById("brand");
+            brandResult.forEach(brand => {
+                const option = document.createElement("option");
+                option.value = brand._id;
+                option.textContent = brand.name;
+                brandSelect.appendChild(option);
+            });
 
-        //category dropdown
-
-        const catagorySelect=document.getElementById("category")
-        catagorySelect.innerHTML=""
-        categoryResult.forEach(category=>{
-            const option=document.createElement("option")
-            option.value=category._id
-            option.textContent=category.name
-            catagorySelect.appendChild(option)
-        })
-
-        //brand dropdown
-        const brandSelect=document.getElementById("brand")
-        brandSelect.innerHTML=""
-        brandResult.forEach(brand=>{
-            const option=document.createElement("option")
-            option.value=brand._id
-            option.textContent=brand.name
-            brandSelect.appendChild(option)
-        })
-      
-
-    } catch (error) {
-        console.log(error.message)
-    }
- }
-
- fetchCategoriesandBrand()
-
- document.addEventListener("DOMContentLoaded", fetchCategoriesandBrand);
-
-
-
-document.getElementById("addProduct").addEventListener("submit", async function(event) {
-    event.preventDefault();
-
-    let isValid = true;
-
-    function validateField(id, message) {
-        const field = document.getElementById(id);
-        if (!field.value.trim()) {
-            field.classList.add("is-invalid");
-            field.nextElementSibling.textContent = message;
-            isValid = false;
-        } else {
-            field.classList.remove("is-invalid");
-            field.classList.add("is-valid");
+        } catch (error) {
+            console.log(error.message);
         }
     }
 
-    validateField("name", "Please enter a product name");
-    validateField("brand", "Please select a brand");
-    validateField("category", "Please select a category");
-    validateField("description", "Please enter the description");
+    document.addEventListener("DOMContentLoaded", fetchCategoriesandBrand);
 
-    if (!isValid) {
-        return; // Stop form submission if validation fails
-    }
+    document.getElementById("addProduct").addEventListener("submit", async function(event) {
+        event.preventDefault();
 
-    if (croppedImages.length < 4) {
-    Swal.fire({
-        icon: "warning",
-        title: "Minimum 4 Images Required",
-        text: "Please upload at least 4 images before submitting."
-    });
-    return;
-}
+        let isValid = true;
 
-    // Create a new FormData object
-    const formData = new FormData(this);
-    
-    // Remove any images that might have been automatically added from the file input
-    formData.delete("images");
-    
-    // Now add only the cropped images
-    croppedImages.forEach((file, index) => {
-        console.log(`File ${index}:`, file); 
-        formData.append("images", file, `image_${index}.jpg`);
-    });
+        function validateField(id, message) {
+            const field = document.getElementById(id);
+            if (!field.value.trim() || field.value === "") {
+                field.classList.add("is-invalid");
+                field.nextElementSibling.textContent = message;
+                isValid = false;
+            } else {
+                field.classList.remove("is-invalid");
+                field.classList.add("is-valid");
+            }
+        }
 
-    formData.append("variantCount", variantCount);
+        validateField("name", "Please enter a product name");
+        validateField("brand", "Please select a brand");
+        validateField("category", "Please select a category");
+        validateField("description", "Please enter the description");
 
-    try {
-        const response = await fetch("/admin/addProducts", {
-            method: "POST",
-            body: formData
+        if (!isValid) {
+            return; // Stop form submission if validation fails
+        }
+
+        if (croppedImages.length < 4) {
+            Swal.fire({
+                icon: "warning",
+                title: "Minimum 4 Images Required",
+                text: "Please upload at least 4 images before submitting."
+            });
+            return;
+        }
+
+        // Create a new FormData object
+        const formData = new FormData(this);
+        
+        // Remove any images that might have been automatically added from the file input
+        formData.delete("images");
+        
+        // Now add only the cropped images
+        croppedImages.forEach((file, index) => {
+            console.log(`File ${index}:`, file); 
+            formData.append("images", file, `image_${index}.jpg`);
         });
 
-        const result = await response.json();
-        // alert(result.message);
-        // if (result.success) {
-        //     window.location.href = "/admin/products"; // Redirect after successful submission
-        // }
-        Swal.fire({
-    icon: result.success ? "success" : "error",
-    title: result.success ? "Success" : "Error",
-    text: result.message,
-}).then(() => {
-    if (result.success) {
-        window.location.href = "/admin/products"; // Redirect after successful submission
-    }
-});
+        formData.append("variantCount", variantCount);
 
-    } catch (error) {
-        console.log(error.message);
-    }
-});
+        try {
+            const response = await fetch("/admin/addProducts", {
+                method: "POST",
+                body: formData
+            });
 
-// Remove validation error when user types
-document.querySelectorAll("input, select, textarea").forEach((element) => {
-    element.addEventListener("input", function () {
-        this.classList.remove("is-invalid");
+            const result = await response.json();
+            Swal.fire({
+                icon: result.success ? "success" : "error",
+                title: result.success ? "Success" : "Error",
+                text: result.message,
+            }).then(() => {
+                if (result.success) {
+                    window.location.href = "/admin/products"; // Redirect after successful submission
+                }
+            });
+
+        } catch (error) {
+            console.log(error.message);
+        }
     });
-});
 
-
-
-
-
+    // Remove validation error when user types
+    document.querySelectorAll("input, select, textarea").forEach((element) => {
+        element.addEventListener("input", function () {
+            this.classList.remove("is-invalid");
+        });
+    });
 </script>
 
 <%- include("partials/footer") %>
