@@ -24,7 +24,7 @@
     <div class="bg-white rounded-lg shadow-md p-6 mb-8">
       <h2 class="text-gray-500 text-sm font-medium mb-2">Available Balance</h2>
       <div class="flex items-baseline">
-        <span class="text-4xl font-bold text-gray-900">₹<%= user.wallet ? user.wallet.balance : 0 %></span>
+        <span class="text-4xl font-bold text-gray-900">₹<%= Math.round(user.wallet ? user.wallet.balance : 0) %></span>
         <span class="ml-2 text-sm text-gray-500">Rs</span>
       </div>
     </div>
