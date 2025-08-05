@@ -144,7 +144,7 @@
                           data-product-id="<%= item.productId._id %>"
                           data-original-value="<%= item.itemStatus %>"
                           data-is-item="true"
-                          <%= (item.itemStatus === 'delivered' || item.itemStatus === 'returned' || item.itemStatus === 'cancelled') ? 'disabled' : '' %>
+                          <%= (item.itemStatus === 'delivered' || item.itemStatus === 'returned' || item.itemStatus === 'cancelled'||item.itemStatus==='payment failed') ? 'disabled' : '' %>
                         >
                           <option value="pending" <%= item.itemStatus === 'pending' ? 'selected' : '' %>>Pending</option>
                           <option value="confirmed" <%= item.itemStatus === 'confirmed' ? 'selected' : '' %>>Confirmed</option>
@@ -154,6 +154,7 @@
                           <option value="cancelled" <%= item.itemStatus === 'cancelled' ? 'selected' : '' %>>Cancelled</option>
                           <option value="return request" <%= item.itemStatus === 'return request' ? 'selected' : '' %>>Return Request</option>
                           <option value="returned" <%= item.itemStatus === 'returned' ? 'selected' : '' %>>Returned</option>
+                          <option value="paymentFailed" <%= item.itemStatus === 'payment failed' ? 'selected' : '' %>>payment failed</option>
                         </select>
                       </td>
                       <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">

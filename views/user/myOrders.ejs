@@ -7,7 +7,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Orders | YourBrand</title>
     <script src="https://cdn.tailwindcss.com"></script>
-   
     <script>
         tailwind.config = {
             theme: {
@@ -30,10 +29,10 @@
     </script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 </head>
 
 <body class="bg-gray-50 font-sans text-gray-800 antialiased min-h-screen">
-   
     <!-- Main Content -->
     <main class="container mx-auto px-4 py-8 max-w-6xl">
         <!-- Breadcrumb -->
@@ -115,18 +114,27 @@
                             <div class="bg-white rounded-lg shadow-sm overflow-hidden border border-gray-100 hover:shadow-md transition-shadow duration-200">
                                 <!-- Order Header -->
                                 <div class="bg-gray-50 p-4 border-b border-gray-100">
-                                    <div class="flex flex-wrap justify-between items-center">
+                                    <div class="flex flex-wrap justify-between items-center gap-4">
                                         <div>
                                             <h3 class="font-semibold text-gray-800">Order #<span class="text-primary"><%= order.orderId %></span></h3>
                                             <p class="text-sm text-gray-500 mt-1">Placed on <%= new Date(order.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) %></p>
                                         </div>
-                                        <% if (order.status === 'pending') { %>
-                                            <button type="button" 
-                                                class="bg-red-50 text-red-600 hover:bg-red-100 text-sm font-medium py-2 px-4 rounded-full mt-2 sm:mt-0 transition-colors duration-200 flex items-center"
-                                                onclick="cancelEntireOrder('<%= order.orderId %>')">
-                                                <i class="fas fa-times-circle mr-2"></i> Cancel Order
-                                            </button>
-                                        <% } %>
+                                        <div class="flex flex-wrap gap-3">
+                                            <% if (order.status === 'pending') { %>
+                                                <button type="button" 
+                                                    class="bg-red-50 text-red-600 hover:bg-red-100 text-sm font-medium py-2 px-4 rounded-full transition-colors duration-200 flex items-center"
+                                                    onclick="cancelEntireOrder('<%= order.orderId %>')">
+                                                    <i class="fas fa-times-circle mr-2"></i> Cancel Order
+                                                </button>
+                                            <% } %>
+                                            <% if (order.paymentStatus === 'failed') { %>
+                                                <button 
+                                                    class="bg-yellow-500 text-white text-sm font-medium py-2 px-4 rounded-full hover:bg-yellow-600 transition-colors duration-200 flex items-center"
+                                                    onclick="retryPayment('<%= order._id %>')">
+                                                    <i class="fas fa-redo mr-2"></i> Retry Payment
+                                                </button>
+                                            <% } %>
+                                        </div>
                                     </div>
                                 </div>
                                 
@@ -136,7 +144,7 @@
                                     <div class="p-4 border-b border-gray-100 hover:bg-gray-50 transition-colors duration-200">
                                         <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4">
                                             <div class="sm:w-20 h-20 flex-shrink-0 bg-gray-50 p-2 rounded-md border border-gray-100">
-                                                <img src="/uploads/<%= item.productId.images[0] %>" alt="<%= item.productId.name %>" class="w-full h-full object-contain">
+                                                <img src="/Uploads/<%= item.productId.images[0] %>" alt="<%= item.productId.name %>" class="w-full h-full object-contain">
                                             </div>
                                             <div class="flex-grow">
                                                 <h3 class="font-medium text-gray-800 hover:text-primary transition-colors duration-200"><%= item.productId.name %></h3>
@@ -165,6 +173,9 @@
                                                     } else if (item.itemStatus === 'cancelled') {
                                                         statusColor = 'red';
                                                         statusIcon = 'times-circle';
+                                                    } else if (item.itemStatus === 'payment failed') {
+                                                        statusColor = 'red';
+                                                        statusIcon = 'exclamation-circle';
                                                     }
                                                     %>
                                                     <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-<%= statusColor %>-100 text-<%= statusColor %>-800">
@@ -195,6 +206,11 @@
                                         <!-- Action buttons -->
                                         <div class="mt-4 flex flex-wrap gap-3 justify-end">
                                             <% if (item.itemStatus === 'delivered') { %>
+                                                <button 
+                                                    class="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-md text-sm hover:bg-gray-50 transition-colors duration-200 flex items-center"
+                                                    onclick="returnRequest('<%= order.orderId %>', '<%= item._id %>', '<%= item.productId._id %>', <%= item.quantity %>)">
+                                                    <i class="fas fa-undo mr-2"></i> Return Item
+                                                </button>
                                                 <a href="#" class="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-md text-sm hover:bg-gray-50 transition-colors duration-200 flex items-center">
                                                     <i class="fas fa-shopping-cart mr-2"></i> Buy Again
                                                 </a>
@@ -547,6 +563,198 @@
                 Swal.fire({
                     title: 'Error!',
                     text: 'An error occurred while cancelling the item',
+                    icon: 'error',
+                    confirmButtonColor: '#3b82f6'
+                });
+            }
+        }
+
+        async function returnRequest(orderId, itemId, productId, quantity) {
+            Swal.fire({
+                title: 'Request Return',
+                text: 'Please select a reason for returning this item:',
+                icon: 'question',
+                input: 'select',
+                inputOptions: {
+                    'Defective product': 'Defective product',
+                    'Wrong item received': 'Wrong item received',
+                    'Not as described': 'Not as described',
+                    'Changed my mind': 'Changed my mind',
+                    'Other': 'Other'
+                },
+                inputPlaceholder: 'Select a reason',
+                showCancelButton: true,
+                confirmButtonColor: '#3b82f6',
+                cancelButtonColor: '#6b7280',
+                confirmButtonText: 'Submit Return Request',
+                cancelButtonText: 'Cancel',
+                inputValidator: (value) => {
+                    if (!value) {
+                        return 'You need to select a reason!';
+                    }
+                }
+            }).then(async (result) => {
+                if (result.isConfirmed) {
+                    try {
+                        const response = await fetch('/user/returnRequest', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                orderId,
+                                itemId,
+                                productId,
+                                quantity,
+                                reason: result.value
+                            })
+                        });
+
+                        const resultData = await response.json();
+                        if (resultData.success) {
+                            Swal.fire({
+                                title: 'Success!',
+                                text: resultData.message || 'Your return request has been submitted successfully.',
+                                icon: 'success',
+                                confirmButtonColor: '#3b82f6'
+                            }).then(() => {
+                                window.location.reload();
+                            });
+                        } else {
+                            Swal.fire({
+                                title: 'Error!',
+                                text: resultData.message || 'Failed to submit return request',
+                                icon: 'error',
+                                confirmButtonColor: '#3b82f6'
+                            });
+                        }
+                    } catch (error) {
+                        console.error('Error submitting return request:', error);
+                        Swal.fire({
+                            title: 'Error!',
+                            text: 'An error occurred while submitting the return request',
+                            icon: 'error',
+                            confirmButtonColor: '#3b82f6'
+                        });
+                    }
+                }
+            });
+        }
+
+        async function retryPayment(orderId) {
+            try {
+                // Show loading indicator
+                Swal.fire({
+                    title: 'Initiating Payment',
+                    text: 'Please wait while we set up your payment...',
+                    icon: 'info',
+                    allowOutsideClick: false,
+                    showConfirmButton: false,
+                    willOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+
+                // Call the createRazorpayOrder endpoint
+                const response = await fetch('/user/createRazorpayOrder', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ orderId })
+                });
+
+                const result = await response.json();
+
+                if (!result.success) {
+                    Swal.fire({
+                        title: 'Error!',
+                        text: result.message || 'Failed to initiate payment',
+                        icon: 'error',
+                        confirmButtonColor: '#3b82f6'
+                    });
+                    return;
+                }
+
+                // Close loading indicator
+                Swal.close();
+
+                // Open Razorpay payment modal
+                const options = {
+                    key: result.razorpayKeyId,
+                    amount: result.order.amount,
+                    currency: result.order.currency,
+                    name: 'Aromatique',
+                    description: `Payment for Order #${result.orderId}`,
+                    order_id: result.order.id,
+                    handler: async function (response) {
+                        try {
+                            // Verify payment
+                            const verifyResponse = await fetch('/user/verifyRazorpayPayment', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    razorpay_payment_id: response.razorpay_payment_id,
+                                    razorpay_order_id: response.razorpay_order_id,
+                                    razorpay_signature: response.razorpay_signature,
+                                    orderId: result.orderId
+                                })
+                            });
+
+                            const verifyResult = await verifyResponse.json();
+
+                            if (verifyResult.success) {
+                                Swal.fire({
+                                    title: 'Payment Successful!',
+                                    text: verifyResult.message || 'Your payment was successful.',
+                                    icon: 'success',
+                                    confirmButtonColor: '#3b82f6'
+                                }).then(() => {
+                                    window.location.href = verifyResult.redirectUrl;
+                                });
+                            } else {
+                                Swal.fire({
+                                    title: 'Payment Failed!',
+                                    text: verifyResult.message || 'Payment verification failed.',
+                                    icon: 'error',
+                                    confirmButtonColor: '#3b82f6'
+                                }).then(() => {
+                                    window.location.href = verifyResult.redirectUrl || '/user/myOrders';
+                                });
+                            }
+                        } catch (error) {
+                            console.error('Error verifying payment:', error);
+                            Swal.fire({
+                                title: 'Error!',
+                                text: 'An error occurred while verifying the payment',
+                                icon: 'error',
+                                confirmButtonColor: '#3b82f6'
+                            });
+                        }
+                    },
+                    prefill: {
+                        name: result.customerName,
+                        email: result.email,
+                        contact: result.phone
+                    },
+                    theme: {
+                        color: '#2874f0'
+                    }
+                };
+
+                const rzp = new Razorpay(options);
+                rzp.on('payment.failed', function (response) {
+                    Swal.fire({
+                        title: 'Payment Failed!',
+                        text: 'The payment attempt was unsuccessful. Please try again.',
+                        icon: 'error',
+                        confirmButtonColor: '#3b82f6'
+                    }).then(() => {
+                        window.location.href = `/user/paymentFailed?orderId=${result.orderId}`;
+                    });
+                });
+                rzp.open();
+            } catch (error) {
+                console.error('Error initiating payment:', error);
+                Swal.fire({
+                    title: 'Error!',
+                    text: 'An error occurred while initiating the payment',
                     icon: 'error',
                     confirmButtonColor: '#3b82f6'
                 });
