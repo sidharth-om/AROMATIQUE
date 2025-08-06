@@ -252,6 +252,9 @@ console.log("ordd::",order)
       // Update item status and reason
       orderItem.itemStatus = 'cancelled';
       orderItem.reason = reason;
+      order.total-=orderItem.itemSalePrice
+      order.amountPaid-=orderItem.itemSalePrice
+      order.subtotal-=variant.regularPrice
 
       // If all items are cancelled, update overall order status
       const allCancelled = order.items.every(item => item.itemStatus === 'cancelled');
@@ -263,7 +266,10 @@ console.log("ordd::",order)
       await order.save();
 
       // Update wallet balance
-      const refundAmount = orderItem.itemSalePrice;
+      let refundAmount = orderItem.itemSalePrice;
+
+     
+
       const user = await User.findById(userId);
       if (!user) {
         return res.status(404).json({ success: false, message: 'User not found' });
@@ -356,9 +362,7 @@ console.log("ordd::",order)
       });
       await order.save();
 
-      if(order.items.productId<5 && order.item.offer >20){
-
-      }
+     
 
       // Refund full order total
       const refundAmount = order.amountPaid;
