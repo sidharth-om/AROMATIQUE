@@ -1,4 +1,6 @@
 const Coupon = require("../../models/couponModel");
+const statusCode=require("../../config/statusCode")
+const message=require("../../config/adminMessages")
 
 const adminCouponController = {
     // Load coupon management page
@@ -51,8 +53,8 @@ const adminCouponController = {
             });
         } catch (error) {
             console.log("Error loading coupons:", error.message);
-            res.status(500).render("admin/error", { 
-                message: "Error loading coupons" 
+            res.status(statusCode.INTERNAL_SERVER_ERROR).render("admin/error", { 
+                message: message.loadCouponsGeneralError
             });
         }
     },
@@ -175,7 +177,7 @@ const adminCouponController = {
         
         // If validation errors exist, return JSON error response
         if (errors.length > 0) {
-            return res.status(400).json({
+            return res.status(statusCode.BAD_REQUEST).json({
                 success: false,
                 message: errors.join(', '),
                 errors: errors
@@ -200,16 +202,16 @@ const adminCouponController = {
         await newCoupon.save();
         
         // Return JSON success response
-        res.status(201).json({
+        res.status(statusCode.CREATED).json({
             success: true,
-            message: "Coupon created successfully",
+            message: message.createCouponSuccess,
             redirectUrl: "/admin/coupon",
             coupon: newCoupon
         });
         
     } catch (error) {
         console.log("Error creating coupon:", error.message);
-        res.status(500).json({
+        res.status(statusCode.INTERNAL_SERVER_ERROR).json({
             success: false,
             message: "An error occurred while creating the coupon",
             error: error.message
@@ -252,7 +254,7 @@ updateCoupon: async (req, res) => {
         const coupon = await Coupon.findById(couponId);
         
         if (!coupon) {
-            return res.status(404).json({
+            return res.status(statusCode.NOT_FOUND).json({
                 success: false,
                 message: "Coupon not found"
             });
@@ -347,7 +349,7 @@ updateCoupon: async (req, res) => {
         
         // If validation errors exist, return JSON error response
         if (errors.length > 0) {
-            return res.status(400).json({
+            return res.status(statusCode.BAD_REQUEST).json({
                 success: false,
                 message: errors.join(', '),
                 errors: errors
@@ -369,17 +371,17 @@ updateCoupon: async (req, res) => {
         await coupon.save();
         
         // Return JSON success response
-        res.status(200).json({
+        res.status(statusCode.OK).json({
             success: true,
-            message: "Coupon updated successfully",
+            message: message.editCouponSuccess,
             coupon: coupon
         });
         
     } catch (error) {
         console.log("Error updating coupon:", error.message);
-        res.status(500).json({
+        res.status(statusCode.INTERNAL_SERVER_ERROR).json({
             success: false,
-            message: "An error occurred while updating the coupon",
+            message: message.editCouponGeneralError,
             error: error.message
         });
     }
@@ -392,9 +394,9 @@ updateCoupon: async (req, res) => {
             const coupon = await Coupon.findById(couponId);
             
             if (!coupon) {
-                return res.status(404).json({ 
+                return res.status(statusCode.NOT_FOUND).json({ 
                     success: false, 
-                    message: "Coupon not found" 
+                    message: message.toggleCouponNotFound
                 });
             }
             
@@ -409,9 +411,9 @@ updateCoupon: async (req, res) => {
             
         } catch (error) {
             console.log("Error toggling coupon status:", error.message);
-            res.status(500).json({ 
+            res.status(statusCode.INTERNAL_SERVER_ERROR).json({ 
                 success: false, 
-                message: "An error occurred while updating coupon status" 
+                message:message.toggleCouponGeneralError
             });
         }
     },
@@ -423,17 +425,17 @@ updateCoupon: async (req, res) => {
             const coupon = await Coupon.findById(couponId);
             
             if (!coupon) {
-                return res.status(404).json({ 
+                return res.status(statusCode.NOT_FOUND).json({ 
                     success: false, 
-                    message: "Coupon not found" 
+                    message: message.deleteCouponNotFound
                 });
             }
             
             // Check if coupon has been used
             if (coupon.usedCount > 0) {
-                return res.status(400).json({ 
+                return res.status(statusCode.BAD_REQUEST).json({ 
                     success: false, 
-                    message: "Cannot delete coupon that has been used by customers" 
+                    message: message.deleteCouponUsed
                 });
             }
             
@@ -441,14 +443,14 @@ updateCoupon: async (req, res) => {
             
             res.json({ 
                 success: true, 
-                message: "Coupon deleted successfully" 
+                message: message.deleteCouponSuccess
             });
             
         } catch (error) {
             console.log("Error deleting coupon:", error.message);
-            res.status(500).json({ 
+            res.status(statusCode.INTERNAL_SERVER_ERROR).json({ 
                 success: false, 
-                message: "An error occurred while deleting coupon" 
+                message: message.deleteCouponGeneralError
             });
         }
     },
@@ -460,9 +462,9 @@ updateCoupon: async (req, res) => {
             const coupon = await Coupon.findById(couponId);
             
             if (!coupon) {
-                return res.status(404).json({ 
+                return res.status(statusCode.NOT_FOUND).json({ 
                     success: false, 
-                    message: "Coupon not found" 
+                    message: message.getCouponDetailsNotFound
                 });
             }
             
@@ -473,9 +475,9 @@ updateCoupon: async (req, res) => {
             
         } catch (error) {
             console.log("Error getting coupon details:", error.message);
-            res.status(500).json({ 
+            res.status(statusCode.INTERNAL_SERVER_ERROR).json({ 
                 success: false, 
-                message: "An error occurred while fetching coupon details" 
+                message: message.getCouponDetailsGeneralError
             });
         }
     }

@@ -4,6 +4,8 @@ const Cart=require("../../models/cartModel")
 const Wishlist=require("../../models/wishlist")
 const Product=require("../../models/productModel")
 const Category=require("../../models/category")
+const statusCode=require("../../config/statusCode")
+const message=require("../../config/userMessages")
 
 const wishlistController={
 
@@ -46,7 +48,7 @@ const wishlistController={
         res.render("user/wishlist", {user, cart, wishlist})
     } catch (error) {
         console.log(error.message)
-        res.status(500).send("Error loading wishlist");
+        res.status(statusCode.INTERNAL_SERVER_ERROR).send("Error loading wishlist");
     }
 },
     addtoWishlist:async (req,res) => {
@@ -68,7 +70,7 @@ const wishlistController={
               );
               
               if (productExists) {
-                return res.status(400).json({success:false, message: 'Product already in wishlist' });
+                return res.status(statusCode.BAD_REQUEST).json({success:false, message: message.addtoWishlistAlreadyExists });
               }
               
               // Add product to existing wishlist
@@ -83,7 +85,7 @@ const wishlistController={
               await wishlist.save();
             }
             
-            return res.status(200).json({ success:true,message: 'Product added to wishlist' });
+            return res.status(statusCode.OK).json({ success:true,message: message.addtoWishlistSuccess });
          
 
         } catch (error) {
@@ -99,7 +101,7 @@ const wishlistController={
        const wishlist=await Wishlist.findOne({userId})
 
        if (!wishlist) {
-        return res.status(404).json({ success: false, message: 'Wishlist not found' })
+        return res.status(statusCode.NOT_FOUND).json({ success: false, message: message.removeFromWishlistNotFound })
       }
 
       const productIndex=wishlist.products.findIndex(item=>
@@ -107,14 +109,14 @@ const wishlistController={
       )
 
       if (productIndex === -1) {
-        return res.status(404).json({ success: false, message: 'Product not found in wishlist' })
+        return res.status(statusCode.NOT_FOUND).json({ success: false, message: message.removeFromWishlistProductNotFound })
       }
 
       wishlist.products.splice(productIndex,1)
 
       await wishlist.save()
 
-      return res.status(200).json({ success: true, message: 'Product removed from wishlist' })
+      return res.status(statusCode.OK).json({ success: true, message: message.removeFromWishlistSuccess })
       } catch (error) {
         console.log(error.message)
       }

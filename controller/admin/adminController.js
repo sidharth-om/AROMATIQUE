@@ -3,6 +3,8 @@ const Admin=require("../../models/adminModel")
 const Category=require("../../models/category")
 const Brand=require("../../models/brandModel")
 const bcrypt = require("bcrypt")
+const statusCode=require("../../config/statusCode")
+const message=require("../../config/adminMessages")
 
 
 const adminController={
@@ -29,27 +31,27 @@ const adminController={
             };
 
             if(!email.trim()||!password.trim()){
-                return res.status(400).json({message:"email and password is required"})
+                return res.status(statusCode.BAD_REQUEST).json({message:message.verifyLoginEmailPasswordRequired})
             }
             if(!regexPatterns.email.test(email)){
-                return res.status(400).json({message:"email is invalid"})
+                return res.status(statusCode.BAD_REQUEST).json({message:message.verifyLoginEmailInvalid})
             }
 
             if(!regexPatterns.password.test(password)){
-                return res.status(400).json({message:"Password must be 8-20 characters, include at least one letter, one number, and one special character"})
+                return res.status(statusCode.BAD_REQUEST).json({message:message.verifyLoginPasswordInvalid})
             }
 
             const admin=await Admin.findOne({email})
 
             if(!admin){
-                return res.status(400).json({message:"Admin not found,check the email and password"})
+                return res.status(statusCode.BAD_REQUEST).json({message:message.verifyLoginAdminNotFound})
             }
 
             const isPasswordValid = await bcrypt.compare(password,admin.password.trim())
             console.log("ad pass:",admin.password)
 
             if(!isPasswordValid){
-                return res.status(400).json({message:"Invalid password,please try again"})
+                return res.status(statusCode.BAD_REQUEST).json({message:message.verifyLoginInvalidPassword})
             }
 
             req.session.admin={
@@ -57,7 +59,7 @@ const adminController={
                 adminId:admin._id
             }
 
-            return res.status(200).json({success:true,redirectUrl:"/admin/loadDashboard"})
+            return res.status(statusCode.OK).json({success:true,redirectUrl:"/admin/loadDashboard"})
 
         } catch (error) {
             console.log(error.message)

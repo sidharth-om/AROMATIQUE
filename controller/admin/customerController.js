@@ -1,4 +1,6 @@
 const User=require("../../models/userModel")
+const statusCode=require("../../config/statusCode")
+const message=require("../../config/adminMessages")
 
 
 
@@ -36,7 +38,7 @@ const customerController={
     
         } catch (error) {
             console.error("Error fetching users:", error);
-            res.status(500).send("Server error");
+            res.status(statusCode.INTERNAL_SERVER_ERROR).send("Server error");
         }
     },
     customerStatus:async (req,res) => {
@@ -46,7 +48,7 @@ const customerController={
             const userId=req.params.id
             const user=await User.findById(userId)
 
-            if(!user) return res.json({success:false,message:"user not found"})
+            if(!user) return res.json({success:false,message:message.customerStatusUserNotFound})
 
                 user.isActive=!user.isActive
                 await user.save()

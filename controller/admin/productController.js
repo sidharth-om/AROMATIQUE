@@ -2,6 +2,8 @@ const Category = require("../../models/category");
 const Product = require("../../models/productModel");
 const Brand = require("../../models/brandModel");
 const { calculateBestPrice } = require("../../config/calculateBestPrice");
+const statusCode=require("../../config/statusCode")
+const message=require("../../config/adminMessages")
 
 const productController = {
   loadProducts: async (req, res) => {
@@ -75,7 +77,7 @@ const productController = {
       });
     } catch (error) {
       console.log("Error fetching products:", error.message);
-      return res.status(500).json({ message: "Server Error" });
+      return res.status(statusCode.INTERNAL_SERVER_ERROR).json({ message: "Server Error" });
     }
   },
 
@@ -94,12 +96,12 @@ const productController = {
       const images = req.files.length > 0 ? req.files.map(file => file.filename) : [];
 
       if (!name.trim() || !brand.trim() || !description.trim() || !category.trim()) {
-        return res.status(400).json({ message: "Please fill all the fields" });
+        return res.status(statusCode.BAD_REQUEST).json({ message: message.addProductsMissingFields });
       }
 
       const offerPercentage = Number(offer) || 0;
       if (offerPercentage < 0 || offerPercentage > 100) {
-        return res.status(400).json({ message: "Offer must be between 0 and 100%" });
+        return res.status(statusCode.BAD_REQUEST).json({ message:message.addProductsInvalidOffer });
       }
 
       const variantCount = parseInt(req.body.variantCount) || 1;
@@ -119,7 +121,7 @@ const productController = {
         const quant = Number(quantity);
 
         if (price < 0 || quant < 0 || vol < 0) {
-          return res.status(400).json({ message: "Variants should be positive numbers" });
+          return res.status(statusCode.BAD_REQUEST).json({ message: message.addProductsInvalidVariantValues });
         }
 
         variants.push({
@@ -130,13 +132,13 @@ const productController = {
       }
 
       if (variants.length === 0) {
-        return res.status(400).json({ message: "At least one valid variant is required" });
+        return res.status(statusCode.BAD_REQUEST).json({ message: "At least one valid variant is required" });
       }
 
       const existingProduct = await Product.findOne({ name: { $regex: new RegExp(`^${name}$`, "i") } });
 
       if (existingProduct) {
-        return res.status(400).json({ message: "Product already existing" });
+        return res.status(statusCode.BAD_REQUEST).json({ message: message.addProductsAlreadyExists });
       }
 
       const newProduct = new Product({
@@ -151,10 +153,10 @@ const productController = {
 
       await newProduct.save();
 
-      return res.status(200).json({ message: "Successfully added product", success: true });
+      return res.status(statusCode.OK).json({ message:message.addProductsSuccess, success: true });
     } catch (error) {
       console.log(error.message);
-      return res.status(500).json({ message: "Server error", success: false });
+      return res.status(statusCode.INTERNAL_SERVER_ERROR).json({ message: message.addProductGeneralError, success: false });
     }
   },
 
@@ -193,7 +195,7 @@ const productController = {
 
       const offerPercentage = Number(offer) || 0;
       if (offerPercentage < 0 || offerPercentage > 100) {
-        return res.status(400).json({ message: "Offer must be between 0 and 100%" });
+        return res.status(statusCode.BAD_REQUEST).json({ message: message.addProductsInvalidOffer});
       }
 
       const volumes = Array.isArray(req.body.volume) ? req.body.volume : [req.body.volume];
@@ -210,12 +212,12 @@ const productController = {
       }
 
       if (!name.trim() || !brand.trim() || !category.trim() || !description.trim()) {
-        return res.status(400).json({ message: "Product update failed, please fill all required fields" });
+        return res.status(statusCode.BAD_REQUEST).json({ message: "Product update failed, please fill all required fields" });
       }
 
       for (const variant of variants) {
         if (!variant.volume.trim() || !variant.regularPrice.trim() || !variant.quantity.trim()) {
-          return res.status(400).json({ message: "All variant fields must be filled" });
+          return res.status(statusCode.BAD_REQUEST).json({ message: message.editProductInvalidVariants });
         }
 
         const price = Number(variant.regularPrice);
@@ -227,7 +229,7 @@ const productController = {
           isNaN(quantity) || quantity < 0 ||
           isNaN(volume) || volume <= 0
         ) {
-          return res.status(400).json({ message: "All variant values (volume, price, quantity) must be positive numbers" });
+          return res.status(statusCode.BAD_REQUEST).json({ message:message.editProductInvalidVariantValues });
         }
       }
 
@@ -241,7 +243,7 @@ const productController = {
       });
 
       if (existingProduct) {
-        return res.status(400).json({ message: "Product already exists" });
+        return res.status(statusCode.BAD_REQUEST).json({ message:message.editProductAlreadyExists });
       }
 
       await Product.findByIdAndUpdate(productId, {
@@ -257,7 +259,7 @@ const productController = {
       res.json({ success: true });
     } catch (error) {
       console.log("Update Error: ", error);
-      res.status(500).json({ success: false, message: "Error updating product" });
+      res.status(statusCode.INTERNAL_SERVER_ERROR).json({ success: false, message: message.editProductGeneralError });
     }
   },
 
@@ -268,16 +270,16 @@ const productController = {
 
       const product = await Product.findById(productId);
       if (!product) {
-        return res.status(404).json({ success: false, message: "Product not found" });
+        return res.status(statusCode.NOT_FOUND).json({ success: false, message: message.removeImageProductNotFound });
       }
 
       if (index >= 0 && index < product.images.length) {
         product.images.splice(index, 1);
         await product.save();
-        return res.json({ success: true, message: "Image deleted successfully" });
+        return res.json({ success: true, message: message.removeImageSuccess });
       }
 
-      res.status(400).json({ success: false, message: "Invalid image index" });
+      res.status(400).json({ success: false, message: message.removeImageInvalidIndex});
     } catch (error) {
       console.log(error.message);
     }
@@ -289,7 +291,7 @@ const productController = {
       const productId = req.params.id;
       const product = await Product.findById(productId);
 
-      if (!product) return res.json({ success: false, message: "product not found" });
+      if (!product) return res.json({ success: false, message: message.productStatusNotFound });
 
       product.isActive = !product.isActive;
       await product.save();

@@ -4,6 +4,8 @@ const Product = require("../../models/productModel");
 const User = require("../../models/userModel");
 const PDFDocument = require('pdfkit');
 const ExcelJS = require('exceljs');
+const statusCode=require("../../config/statusCode")
+const message=require("../../config/adminMessages")
 
 
 
@@ -184,8 +186,8 @@ const orderController = {
       });
     } catch (error) {
       console.log('Error in loadOrderList:', error.message);
-      res.status(500).render("error", {
-        message: "Failed to load orders. Please try again later."
+      res.status(statusCode.INTERNAL_SERVER_ERROR).render("error", {
+        message: message.loadOrderListGeneralError
       });
     }
   },
@@ -225,7 +227,7 @@ const orderController = {
         dateLabel = `Yearly Report - ${now.getFullYear()}`;
       } else if (reportType === 'custom') {
         if (!dateFrom || !dateTo) {
-          return res.status(400).json({ success: false, message: 'Date range required for custom report' });
+          return res.status(statusCode.BAD_REQUEST).json({ success: false, message: 'Date range required for custom report' });
         }
         filter.createdAt = {
           $gte: new Date(dateFrom),
@@ -233,7 +235,7 @@ const orderController = {
         };
         dateLabel = `Custom Report - ${new Date(dateFrom).toLocaleDateString('en-US')} to ${new Date(dateTo).toLocaleDateString('en-US')}`;
       } else {
-        return res.status(400).json({ success: false, message: 'Invalid report type' });
+        return res.status(statusCode.BAD_REQUEST).json({ success: false, message: 'Invalid report type' });
       }
 
       // MongoDB aggregation pipeline for sales report
@@ -442,7 +444,7 @@ report.orders.forEach((order) => {
       });
     } catch (error) {
       console.log('Error in generateSalesReport:', error.message);
-      res.status(500).render('error', {
+      res.status(statusCode.INTERNAL_SERVER_ERROR).render('error', {
         message: 'Failed to generate sales report. Please try again later.'
       });
     }
@@ -453,13 +455,13 @@ report.orders.forEach((order) => {
     const { orderId, status, reason } = req.body;
 
     if (!orderId || !status) {
-      return res.status(400).json({ success: false, message: 'Order ID and status are required' });
+      return res.status(statusCode.BAD_REQUEST).json({ success: false, message: message.updateOrderStatusInvalid});
     }
 
     const order = await Order.findOne({ orderId: orderId });
 
     if (!order) {
-      return res.status(404).json({ success: false, message: 'Order not found' });
+      return res.status(statusCode.NOT_FOUND).json({ success: false, message: message.updateOrderStatusNotFound });
     }
 
     const updateData = { 
@@ -490,14 +492,14 @@ report.orders.forEach((order) => {
     
     console.log(`Order #${orderId} status changed to ${status} by admin`);
     
-    return res.status(200).json({ 
+    return res.status(statusCode.OK).json({ 
       success: true, 
-      message: 'Order status updated successfully',
+      message: message.updateOrderStatusSuccess,
       order: updatedOrder
     });
   } catch (error) {
     console.log(error.message);
-    res.status(500).json({ success: false, message: 'Server error' });
+    res.status(statusCode.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Server error' });
   }
 },
 
@@ -505,7 +507,7 @@ report.orders.forEach((order) => {
     try {
       const { orderId, productId, status, reason } = req.body;
       if (!orderId || !productId || !status) {
-        return res.status(400).json({ 
+        return res.status(statusCode.BAD_REQUEST).json({ 
           success: false, 
           message: 'Order ID, product ID, and status are required' 
         });
@@ -514,7 +516,7 @@ report.orders.forEach((order) => {
       const order = await Order.findOne({ orderId: orderId });
 
       if (!order) {
-        return res.status(404).json({ success: false, message: 'Order not found' });
+        return res.status(statusCode.NOT_FOUND).json({ success: false, message: 'Order not found' });
       }
 
       const itemIndex = order.items.findIndex(item => 
@@ -522,7 +524,7 @@ report.orders.forEach((order) => {
       );
 
       if (itemIndex === -1) {
-        return res.status(404).json({ success: false, message: 'Product not found in order' });
+        return res.status(statusCode.NOT_FOUND).json({ success: false, message: 'Product not found in order' });
       }
       
       const updateQuery = {
@@ -611,7 +613,7 @@ report.orders.forEach((order) => {
         const user = await User.findById(order.userId);
         if (!user) {
           console.log(`User not found for userId: ${order.userId}`);
-          return res.status(404).json({ success: false, message: 'User not found' });
+          return res.status(statusCode.NOT_FOUND).json({ success: false, message: 'User not found' });
         }
 
         user.wallet.balance += refundAmount;
@@ -628,14 +630,14 @@ report.orders.forEach((order) => {
 
       console.log(`Order #${orderId}, product ${productId} status changed to ${status}`);
       
-      return res.status(200).json({ 
+      return res.status(statusCode.OK).json({ 
         success: true, 
         message: 'Item status updated successfully',
         order: updatedOrder
       });
     } catch (error) {
       console.log(error.message);
-      res.status(500).json({ success: false, message: 'Server error' });
+      res.status(statusCode.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Server error' });
     }
   },
 
@@ -649,7 +651,7 @@ report.orders.forEach((order) => {
       const order = await Order.findOne({ orderId: orderId }).populate("items.productId").populate("address");
 
       if (!order) {
-        return res.status(404).render("error", { 
+        return res.status(statusCode.NOT_FOUND).render("error", { 
           message: "Order not found" 
         });
       }
@@ -659,7 +661,7 @@ report.orders.forEach((order) => {
       console.log("orderitem::", orderItem);
       
       if (!orderItem) {
-        return res.status(404).render("error", { 
+        return res.status(statusCode.NOT_FOUND).render("error", { 
           message: "Product not found in this order" 
         });
       }
@@ -706,7 +708,7 @@ report.orders.forEach((order) => {
       res.render("admin/viewOrderDetails", { viewData, subtotal, discount, totalAmount });
     } catch (error) {
       console.log(error.message);
-      res.status(500).render("error", { message: "Server error" });
+      res.status(statusCode.INTERNAL_SERVER_ERROR).render("error", { message: "Server error" });
     }
   },
 
@@ -721,18 +723,18 @@ report.orders.forEach((order) => {
       .populate("userId");
 
     if (!order) {
-      return res.status(404).render("error", { message: "Order not found" });
+      return res.status(statusCode.NOT_FOUND).render("error", { message: "Order not found" });
     }
 
     const orderItem = order.items[productIndex];
     if (!orderItem) {
-      return res.status(404).render("error", { message: "Product not found in this order" });
+      return res.status(statusCode.NOT_FOUND).render("error", { message: "Product not found in this order" });
     }
 
     // Fetch the product and its category to compare discounts
     const product = await Product.findById(productId).populate("categoryId");
     if (!product) {
-      return res.status(404).render("error", { message: "Product not found" });
+      return res.status(statusCode.NOT_FOUND).render("error", { message: "Product not found" });
     }
 
     // Calculate offer discount: compare product.offer and category.offer
@@ -801,7 +803,7 @@ report.orders.forEach((order) => {
     console.log("orderrtt::", order);
   } catch (error) {
     console.log(error.message);
-    res.status(500).render("error", { message: "Server error" });
+    res.status(statusCode.INTERNAL_SERVER_ERROR).render("error", { message: "Server error" });
   }
 },
 };

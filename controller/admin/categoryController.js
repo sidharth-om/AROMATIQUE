@@ -1,4 +1,6 @@
 const Category = require("../../models/category");
+const statusCode=require("../../config/statusCode")
+const message=require("../../config/adminMessages")
 
 const categoryController = {
   loadCategory: async (req, res) => {
@@ -31,7 +33,7 @@ const categoryController = {
       res.render("admin/category", { categories, currentPage: page, totalPages, searchQuery });
     } catch (error) {
       console.error(error.message);
-      return res.status(500).json({ message: "Server Error" });
+      return res.status(statusCode.INTERNAL_SERVER_ERROR).json({ message: message.loadCategoryGeneralError });
     }
   },
 
@@ -44,16 +46,16 @@ const categoryController = {
       const image = req.file ? `uploads/${req.file.filename}` : null;
 
       if (!image) {
-        return res.status(400).json({ message: "Please select an image!" });
+        return res.status(statusCode.BAD_REQUEST).json({ message: message.createCategoryMissingImage });
       }
 
       if (!name.trim() || !description.trim()) {
-        return res.status(400).json({ message: "Name and description required" });
+        return res.status(statusCode.BAD_REQUEST).json({ message: message.createCategoryMissingFields });
       }
 
       const offerPercentage = Number(offer) || 0;
       if (offerPercentage < 0 || offerPercentage > 100) {
-        return res.status(400).json({ message: "Offer must be between 0 and 100%" });
+        return res.status(statusCode.BAD_REQUEST).json({ message: message.createCategoryInvalidOffer });
       }
 
       const existingCategory = await Category.findOne({
@@ -61,7 +63,7 @@ const categoryController = {
       });
 
       if (existingCategory) {
-        return res.status(400).json({ message: "Category already exists!" });
+        return res.status(statusCode.BAD_REQUEST).json({ message: message.createCategoryAlreadyExists });
       }
 
       const newCategory = new Category({
@@ -73,10 +75,10 @@ const categoryController = {
 
       await newCategory.save();
 
-      return res.status(200).json({ success: true, redirectUrl: "/admin/category" });
+      return res.status(statusCode.OK).json({ success: true, redirectUrl: "/admin/category" });
     } catch (error) {
       console.error(error.message);
-      return res.status(500).json({ message: "Internal Server Error" });
+      return res.status(statusCode.INTERNAL_SERVER_ERROR).json({ message: "Internal Server Error" });
     }
   },
 
@@ -91,12 +93,12 @@ const categoryController = {
     console.log("Uploaded file:", req.file);
 
     if (!name.trim() || !description.trim() || !status.trim()) {
-      return res.status(400).json({ message: "Please fill the required fields" });
+      return res.status(statusCode.BAD_REQUEST).json({ message: message.editCategoryMissingFields });
     }
 
     offer = Number(offer) || 0;
     if (offer < 0 || offer > 100) {
-      return res.status(400).json({ message: "Offer must be between 0 and 100%" });
+      return res.status(statusCode.BAD_REQUEST).json({ message:message.editCategoryInvalidOffer});
     }
 
     const existingCategory = await Category.findOne({
@@ -105,7 +107,7 @@ const categoryController = {
     });
 
     if (existingCategory) {
-      return res.status(400).json({ message: "Category already exists!" });
+      return res.status(statusCode.BAD_REQUEST).json({ message: message.editCategoryAlreadyExists });
     }
 
     console.log("🔹 Category ID:", id);
@@ -132,14 +134,14 @@ const categoryController = {
 
       if (!updatedCategory) {
         console.log("❌ Update Failed!");
-        return res.status(400).json({ success: false, message: "Update failed" });
+        return res.status(statusCode.BAD_REQUEST).json({ success: false, message: message.editCategoryUpdateFailed});
       }
 
       console.log("✅ Successfully Updated Category:", updatedCategory);
-      res.json({ success: true, message: "Category updated successfully", updatedCategory });
+      res.json({ success: true, message: message.editCategorySuccess, updatedCategory });
     } catch (error) {
       console.log("❌ Error Updating Category:", error.message);
-      res.status(500).json({ success: false, message: "Server error" });
+      res.status(statusCode.INTERNAL_SERVER_ERROR).json({ success: false, message: message.editCategoryGeneralError });
     }
   },
 };

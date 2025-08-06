@@ -1,4 +1,6 @@
 const Brand=require("../../models/brandModel")
+const statusCode=require("../../config/statusCode")
+const message=require("../../config/adminMessages")
 
 const brandController={
     loadBrands:async (req,res) => {
@@ -36,20 +38,20 @@ const brandController={
            
 
             if(!name||!name.trim()||!image||!image.trim()){
-                return res.status(400).json({message:"name and image is required"})
+                return res.status(statusCode.BAD_REQUEST).json({message:message.addBrandMissingFields})
             }
 
             const existingBrand=await Brand.findOne({name: { $regex: new RegExp(`^${name}$`, "i") }})
 
             if(existingBrand){
-                return res.status(400).json({message:"brand is already existing"})
+                return res.status(statusCode.BAD_REQUEST).json({message:message.addBrandAlreadyExists})
             }
 
             const newBrand=new Brand({name,image})
             await newBrand.save()
 
 
-           return res.status(200).json({success:true,redirectUrl:"/admin/brands"})
+           return res.status(statusCode.OK).json({success:true,redirectUrl:"/admin/brands"})
         } catch (error) {
             console.log(error.message)
         }
@@ -63,13 +65,13 @@ const brandController={
             console.log("hehe:",name,status,"img:",image)
 
             if(!name.trim()||!status.trim()){
-                return res.status(400).json({message:"name and status required"})
+                return res.status(statusCode.BAD_REQUEST).json({message:message.editBrandMissingFields})
             }
 
             const existingBrand=await Brand.findOne({name: { $regex: new RegExp(`^${name}$`, "i") },_id: { $ne: id}})
 
             if(existingBrand){
-                return res.status(400).json({message:"brand is already existing"})
+                return res.status(statusCode.BAD_REQUEST).json({message:message.editBrandAlreadyExists})
             }
 
             const updatedData={
@@ -87,7 +89,7 @@ const brandController={
                 {new:true}
             )
 
-            return res.status(200).json({success:true,message:"Brand updated successfully"})
+            return res.status(statusCode.OK).json({success:true,message:message.editBrandSuccess})
         } catch (error) {
             console.log(error.message)
         }

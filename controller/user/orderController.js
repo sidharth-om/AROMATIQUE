@@ -5,6 +5,8 @@ const Product=require("../../models/productModel")
 const WalletTransaction =require("../../models/walletTransactionModel")
 const userAddress = require("../../models/userAdressModel");
 const PDFDocument = require('pdfkit')
+const statusCode=require("../../config/statusCode")
+const message=require("../../config/userMessages")
 
 const orderController={
  myOrders: async (req, res) => {
@@ -98,8 +100,8 @@ const orderController={
             });
         } catch (error) {
             console.error("Error in myOrders:", error.message);
-            res.status(500).render("error", {
-                message: "Failed to load orders. Please try again later.",
+            res.status(statusCode.INTERNAL_SERVER_ERROR).render("error", {
+                message: message.myOrdersGeneralError,
             });
         }
     },
@@ -122,8 +124,8 @@ const orderController={
 
                 
             if (!order) {
-                return res.status(404).render("error", { 
-                    message: "Order not found" 
+                return res.status(statusCode.NOT_FOUND).render("error", { 
+                    message: message.viewOrderNotFound 
                 });
             }
 
@@ -136,8 +138,8 @@ const orderController={
             const orderItem = order.items[index];
             
             if (!orderItem) {
-                return res.status(404).render("error", { 
-                    message: "Product not found in this order" 
+                return res.status(statusCode.NOT_FOUND).render("error", { 
+                    message: message.viewOrderItemNotFound
                 });
             }
             
@@ -205,11 +207,11 @@ console.log("ordd::",order)
 
       const order = await Order.findById(orderId);
       if (!order) {
-        return res.status(404).json({ success: false, message: 'Order not found' });
+        return res.status(statusCode.NOT_FOUND).json({ success: false, message: message.cancelEntireOrderNotFound });
       }
 
       if (itemIndex === undefined || !order.items[itemIndex]) {
-        return res.status(404).json({ success: false, message: 'Order item not found' });
+        return res.status(statusCode.NOT_FOUND).json({ success: false, message:message.cancelOrderItemNotFound });
       }
 
       const orderItem = order.items[itemIndex];
@@ -223,27 +225,27 @@ console.log("ordd::",order)
         'Other'
       ];
       if (!validReasons.includes(reason)) {
-        return res.status(400).json({ success: false, message: 'Invalid cancellation reason' });
+        return res.status(statusCode.BAD_REQUEST).json({ success: false, message: message.cancelEntireOrderInvalidReason });
       }
 
       // Only allow cancellation before shipping
       const cancellableItemStatuses = ["pending", "confirmed", "processing"];
       if (!cancellableItemStatuses.includes(orderItem.itemStatus)) {
-        return res.status(400).json({
+        return res.status(statusCode.BAD_REQUEST).json({
           success: false,
-          message: 'This item cannot be cancelled as it is already shipped or delivered'
+          message: message.cancelOrderNotCancellable
         });
       }
 
       // Update product stock
       const product = await Product.findById(orderItem.productId);
       if (!product) {
-        return res.status(404).json({ success: false, message: 'Product not found for stock update' });
+        return res.status(statusCode.NOT_FOUND).json({ success: false, message: message.cancelOrderProductNotFound});
       }
 
       const variant = product.variants.find(v => v.volume === orderItem.volume);
       if (!variant) {
-        return res.status(404).json({ success: false, message: 'Product variant not found' });
+        return res.status(statusCode.NOT_FOUND).json({ success: false, message:message.cancelOrderVariantNotFound });
       }
 
       variant.quantity += orderItem.quantity;
@@ -266,7 +268,7 @@ console.log("ordd::",order)
       const refundAmount = orderItem.itemSalePrice;
       const user = await User.findById(userId);
       if (!user) {
-        return res.status(404).json({ success: false, message: 'User not found' });
+        return res.status(statusCode.NOT_FOUND).json({ success: false, message: message.cancelOrderUserNotFound});
       }
 
       user.wallet.balance += refundAmount;
@@ -289,14 +291,14 @@ console.log("ordd::",order)
 
       await transaction.save();
 
-      return res.status(200).json({
+      return res.status(statusCode.OK).json({
         success: true,
-        message: 'Item cancelled successfully and refund added to wallet',
+        message: message.cancelOrderSuccess,
         order
       });
     } catch (error) {
       console.log(error.message);
-      return res.status(500).json({ success: false, message: 'Server error during item cancellation' });
+      return res.status(statusCode.INTERNAL_SERVER_ERROR).json({ success: false, message: message.cancelOrderGeneralError });
     }
   },
   cancelEntireOrder: async (req, res) => {
@@ -307,7 +309,7 @@ console.log("ordd::",order)
 
       const order = await Order.findOne({ orderId });
       if (!order) {
-        return res.status(404).json({ success: false, message: 'Order not found' });
+        return res.status(statusCode.NOT_FOUND).json({ success: false, message:message.cancelEntireOrderNotFound });
       }
 
       // Validate cancellation reason
@@ -319,15 +321,15 @@ console.log("ordd::",order)
         'Other'
       ];
       if (!validReasons.includes(reason)) {
-        return res.status(400).json({ success: false, message: 'Invalid cancellation reason' });
+        return res.status(statusCode.BAD_REQUEST).json({ success: false, message: message.cancelEntireOrderInvalidReason });
       }
 
       // Only allow cancellation before shipping
       const cancellableOrderStatuses = ['pending', 'confirmed', 'processing'];
       if (!cancellableOrderStatuses.includes(order.status)) {
-        return res.status(400).json({
+        return res.status(statusCode.BAD_REQUEST).json({
           success: false,
-          message: 'This order cannot be cancelled as it is already shipped or delivered'
+          message: message.cancelEntireOrderNotCancellable
         });
       }
 
@@ -335,12 +337,12 @@ console.log("ordd::",order)
       for (const item of order.items) {
         const product = await Product.findById(item.productId);
         if (!product) {
-          return res.status(404).json({ success: false, message: `Product not found for item: ${item.productId}` });
+          return res.status(statusCode.NOT_FOUND).json({ success: false, message: `Product not found for item: ${item.productId}` });
         }
 
         const variant = product.variants.find(v => v.volume === item.volume);
         if (!variant) {
-          return res.status(404).json({ success: false, message: `Product variant not found for item: ${item.productId}` });
+          return res.status(statusCode.NOT_FOUND).json({ success: false, message: `Product variant not found for item: ${item.productId}` });
         }
 
         variant.quantity += item.quantity;
@@ -364,7 +366,7 @@ console.log("ordd::",order)
       const refundAmount = order.amountPaid;
       const user = await User.findById(userId);
       if (!user) {
-        return res.status(404).json({ success: false, message: 'User not found' });
+        return res.status(statusCode.NOT_FOUND).json({ success: false, message: message.cancelEntireOrderUserNotFound});
       }
 
       user.wallet.balance += refundAmount;
@@ -387,14 +389,14 @@ console.log("ordd::",order)
 
       await transaction.save();
 
-      return res.status(200).json({
+      return res.status(statusCode.OK).json({
         success: true,
-        message: 'Order cancelled and full amount refunded to wallet',
+        message: message.cancelEntireOrderSuccess,
         order
       });
     } catch (error) {
       console.log(error.message);
-      return res.status(500).json({ success: false, message: 'Server error during order cancellation' });
+      return res.status(statusCode.INTERNAL_SERVER_ERROR).json({ success: false, message: message.cancelEntireOrderGeneralError });
     }
   },
 
@@ -408,9 +410,9 @@ console.log("ordd::",order)
             // console.log("orr:",order)
 
             if (!order) {
-                return res.status(404).json({ 
+                return res.status(statusCode.NOT_FOUND).json({ 
                   success: false, 
-                  message: 'Order not found or does not belong to this user' 
+                  message: message.returnRequestOrderNotFound
                 });
               }
 
@@ -421,9 +423,9 @@ console.log("ordd::",order)
               const orderItem = order.items[itemIndex];
 
               if (orderItem.itemStatus !== 'delivered') {
-                return res.status(400).json({ 
+                return res.status(statusCode.BAD_REQUEST).json({ 
                   success: false, 
-                  message: 'Only delivered items can be returned' 
+                  message: message.returnRequestNotDelivered
                 });
               }
 
@@ -441,9 +443,9 @@ console.log("ordd::",order)
                 // Save the updated order
                 await order.save();              
 
-                return res.status(200).json({
+                return res.status(statusCode.OK).json({
                     success: true,
-                    message: 'Return request submitted successfully',
+                    message: message.returnRequestSuccess,
                     data: {
                       orderId: order.orderId,
                       itemStatus: orderItem.itemStatus,
@@ -474,8 +476,8 @@ console.log("ordd::",order)
             .populate("address");
             
         if (!order) {
-            return res.status(404).render("error", { 
-                message: "Order not found" 
+            return res.status(statusCode.NOT_FOUND).render("error", { 
+                message: message.generateInvoiceOrderNotFound
             });
         }
         
@@ -484,8 +486,8 @@ console.log("ordd::",order)
         
         // If itemId is provided but item not found
         if (itemId && !orderItem) {
-            return res.status(404).render("error", { 
-                message: "Item not found in this order" 
+            return res.status(statusCode.NOT_FOUND).render("error", { 
+                message:message.generateInvoiceItemNotFound
             });
         }
         
@@ -711,8 +713,8 @@ console.log("ordd::",order)
         
     } catch (error) {
         console.log(error.message);
-        res.status(500).render("error", { 
-            message: "Failed to generate invoice" 
+        res.status(statusCode.INTERNAL_SERVER_ERROR).render("error", { 
+            message: message.generateInvoiceGeneralError
         });
     }
 }

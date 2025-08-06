@@ -80,7 +80,7 @@
                                 
                                 <% if (product.offer > 0) { %>
                                     <span class="text-sm line-through text-gray-400">₹<%= variant.regularPrice.toFixed(2) %></span>
-                                    <span class="text-xl font-bold text-gray-900 ml-2">₹<%= discountedPrice.toFixed(2) %></span>
+                                    <span class="text-xl font-bold text-gray-900 ml-2">₹<%= Math.round(discountedPrice.toFixed(2)) %></span>
                                     <span class="text-sm text-perfume-600 ml-2 font-medium">(<%= product.offer %>% off)</span>
                                 <% } else { %>
                                     <span class="text-xl font-bold text-gray-900">₹<%= variant.regularPrice.toFixed(2) %></span>
@@ -184,7 +184,7 @@
                                 
                                 <% if (product.offer > 0) { %>
                                     <span class="text-sm line-through text-gray-400">₹<%= variant.regularPrice.toFixed(2) %></span>
-                                    <span class="text-xl font-bold text-gray-900 ml-2">₹<%= discountedPrice.toFixed(2) %></span>
+                                    <span class="text-xl font-bold text-gray-900 ml-2">₹<%= Math.round(discountedPrice.toFixed(2)) %></span>
                                     <span class="text-sm text-perfume-600 ml-2 font-medium">(<%= product.offer %>% off)</span>
                                 <% } else { %>
                                     <span class="text-xl font-bold text-gray-900">₹<%= variant.regularPrice.toFixed(2) %></span>

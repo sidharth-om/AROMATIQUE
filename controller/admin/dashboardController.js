@@ -1,5 +1,6 @@
 const Order = require("../../models/orderModel");
 const Product = require("../../models/productModel");
+const statusCode=require("../../config/statusCode")
 
 const dashboardController = {
   loadDashboard: async (req, res) => {
@@ -222,7 +223,7 @@ const dashboardController = {
       });
     } catch (error) {
       console.log('Error in loadDashboard:', error.message);
-      res.status(500).render('error', {
+      res.status(statusCode.INTERNAL_SERVER_ERROR).render('error', {
         message: 'Failed to load dashboard data. Please try again later.'
       });
     }

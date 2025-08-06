@@ -3,6 +3,8 @@ const Category = require("../../models/category")
 const Brand = require("../../models/brandModel")
 const User = require("../../models/userModel")
 const Cart = require("../../models/cartModel")
+const statusCode=require("../../config/statusCode")
+const message=require("../../config/userMessages")
 
 const userProductController = {
     productView: async (req, res) => {

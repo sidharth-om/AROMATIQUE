@@ -11,6 +11,8 @@ const express = require("express");
 const session = require("express-session");
 const { OAuth2Client } = require("google-auth-library");
 const client = new OAuth2Client("142815468591-rc6ar61c1r1sd4sm1nsv0h5cos2r6hk6.apps.googleusercontent.com");
+const statusCode=require("../../config/statusCode")
+const message=require("../../config/userMessages")
 
 const generateOtpCode = () => Math.floor(100000 + Math.random() * 900000).toString();
 
@@ -71,7 +73,7 @@ loadLandingPage:async (req,res) => {
             res.render("user/signup");
         } catch (error) {
             console.error(error.message);
-            res.status(500).render('error', { message: 'Something went wrong' });
+            res.status(statusCode.INTERNAL_SERVER_ERROR).render('error', { message: message.loadRegisterPageGeneralError });
         }
     },
 
@@ -88,27 +90,27 @@ loadLandingPage:async (req,res) => {
             };
 
             if (!fullname?.trim()) {
-                return res.status(400).json({ message: "Fullname is required" });
+                return res.status(statusCode.BAD_REQUEST).json({ message: message.verifyRegisterFullnameRequired });
             } else if (!regexPatterns.fullname.test(fullname)) {
-                return res.status(400).json({ message: "Name is invalid, only letters and spaces are allowed" });
+                return res.status(statusCode.BAD_REQUEST).json({ message: message.verifyRegisterFullnameInvalid });
             }
             if (!email?.trim()) {
-                return res.status(400).json({ message: "Email is required" });
+                return res.status(statusCode.BAD_REQUEST).json({ message: message.verifyRegisterEmailRequired });
             } else if (!regexPatterns.email.test(email)) {
-                return res.status(400).json({ message: "Invalid email format" });
+                return res.status(statusCode.BAD_REQUEST).json({ message: message.verifyRegisterEmailInvalid });
             }
             if (!phone?.trim()) {
-                return res.status(400).json({ message: "Phone number is required" });
+                return res.status(statusCode.BAD_REQUEST).json({ message: message.verifyRegisterPhoneRequired });
             } else if (!regexPatterns.phone.test(phone)) {
-                return res.status(400).json({ message: "Invalid phone number. Must be a 10-digit " });
+                return res.status(statusCode.BAD_REQUEST).json({ message: message.verifyRegisterPhoneInvalid });
             }
             if (!password?.trim()) {
-                return res.status(400).json({ message: "Password is required" });
+                return res.status(statusCode.BAD_REQUEST).json({ message: message.verifyRegisterPasswordRequired });
             } else if (!regexPatterns.password.test(password)) {
-                return res.status(400).json({ message: "Password must be 8-20 characters, include at least one letter, one number, and one special character" });
+                return res.status(statusCode.BAD_REQUEST).json({ message: message.verifyRegisterPasswordInvalid});
             }
             if (password !== confirmPassword) {
-                return res.status(400).json({ message: "Password and confirm password must match" });
+                return res.status(statusCode.BAD_REQUEST).json({ message:message.verifyRegisterPasswordMismatch });
             }
 
             // Validate referral code if provided
@@ -116,16 +118,16 @@ loadLandingPage:async (req,res) => {
             if (referralCode?.trim()) {
                 referrerUser = await User.findOne({ referralCode: referralCode.trim().toUpperCase() });
                 if (!referrerUser) {
-                    return res.status(400).json({ message: "Invalid referral code" });
+                    return res.status(statusCode.BAD_REQUEST).json({ message: message.verifyRegisterInvalidReferralCode });
                 }
                 if (referrerUser.email === email) {
-                    return res.status(400).json({ message: "You cannot use your own referral code" });
+                    return res.status(statusCode.BAD_REQUEST).json({ message:message.verifyRegisterOwnReferralCode });
                 }
             }
 
             const existingUser = await User.findOne({ email });
             if (existingUser) {
-                return res.status(400).json({ message: "User already exists" });
+                return res.status(statusCode.BAD_REQUEST).json({ message: message.verifyRegisterUserExists });
             }
 
             const hashedPassword = await bcrypt.hash(password, 10);
@@ -144,10 +146,10 @@ loadLandingPage:async (req,res) => {
             await sendOtpByEmail(email, otp);
            
 
-            return res.status(200).json({ success: true, redirectUrl: "/user/enterOtp" });
+            return res.status(statusCode.OK).json({ success: true, redirectUrl: "/user/enterOtp" });
         } catch (error) {
             console.error(error.message);
-            res.status(500).json({ message: "Server error during registration" });
+            res.status(statusCode.INTERNAL_SERVER_ERROR).json({ message:message.verifyRegisterGeneralError });
         }
     },
 
@@ -156,7 +158,7 @@ loadLandingPage:async (req,res) => {
             res.render("user/otp");
         } catch (error) {
             console.error(error.message);
-            res.status(500).render('error', { message: 'Something went wrong' });
+            res.status(statusCode.INTERNAL_SERVER_ERROR).render('error', { message: message.loadOtpPageGeneralError});
         }
     },
 
@@ -166,24 +168,24 @@ loadLandingPage:async (req,res) => {
             const otpRegex = /^\d{6}$/;
 
             if (!otp?.trim()) {
-                return res.status(400).json({ message: "OTP is required" });
+                return res.status(statusCode.BAD_REQUEST).json({ message:message.verifyOtpRequired });
             } else if (!otpRegex.test(otp)) {
-                return res.status(400).json({ message: "Invalid OTP, must be a 6-digit number" });
+                return res.status(statusCode.BAD_REQUEST).json({ message: message.verifyOtpInvalid });
             }
 
             const storedOtpData = req.session.otpData;
             if (!storedOtpData) {
-                return res.status(400).json({ message: "No OTP found, request a new one" });
+                return res.status(statusCode.BAD_REQUEST).json({ message:message.verifyOtpNotFound });
             }
 
             const { otp: storedOtp, expiresAt } = storedOtpData;
             if (Date.now() > expiresAt) {
                 delete req.session.otpData;
-                return res.status(400).json({ message: "OTP has expired, request a new one" });
+                return res.status(statusCode.BAD_REQUEST).json({ message:message.verifyOtpExpired });
             }
 
             if (otp !== storedOtp) {
-                return res.status(400).json({ message: "Invalid OTP, please try again" });
+                return res.status(statusCode.BAD_REQUEST).json({ message: message.verifyOtpIncorrect });
             }
 
             delete req.session.otpData;
@@ -224,10 +226,10 @@ loadLandingPage:async (req,res) => {
             delete req.session.email;
             delete req.session.password;
 
-            return res.status(200).json({ success: true, redirectUrl: "/user/userLogin" });
+            return res.status(statusCode.OK).json({ success: true, redirectUrl: "/user/userLogin" });
         } catch (error) {
             console.error(error.message);
-            res.status(500).json({ message: "Server error during OTP verification" });
+            res.status(statusCode.INTERNAL_SERVER_ERROR).json({ message: message.verifyOtpGeneralError });
         }
     },
 
@@ -235,16 +237,16 @@ loadLandingPage:async (req,res) => {
         try {
             const email = req.session.email;
             if (!email) {
-                return res.status(400).json({ message: "No email found. Please start registration again." });
+                return res.status(statusCode.BAD_REQUEST).json({ message: message.resendOtpNoEmail });
             }
             const otp = generateOtpCode();
             const expiresAt = Date.now() + 60 * 1000;
             req.session.otpData = { otp, expiresAt };
             await sendOtpByEmail(email, otp);
-            return res.status(200).json({ message: "OTP sent successfully" });
+            return res.status(statusCode.OK).json({ message:message.resendOtpSuccess });
         } catch (error) {
             console.error(error.message);
-            res.status(500).json({ message: "Server error during OTP resend" });
+            res.status(statusCode.INTERNAL_SERVER_ERROR).json({ message: message.resendOtpGeneralError });
         }
     },
 
@@ -253,7 +255,7 @@ loadLandingPage:async (req,res) => {
             res.render("user/userlogin");
         } catch (error) {
             console.error(error.message);
-            res.status(500).render('error', { message: 'Something went wrong' });
+            res.status(statusCode.INTERNAL_SERVER_ERROR).render('error', { message: message.loadUserLoginGeneralError });
         }
     },
 
@@ -266,26 +268,26 @@ loadLandingPage:async (req,res) => {
             };
 
             if (!email?.trim() || !password?.trim()) {
-                return res.status(400).json({ message: "Email and password are required" });
+                return res.status(statusCode.BAD_REQUEST).json({ message: message.verifyLoginEmailPasswordRequired });
             }
             if (!regexPatterns.email.test(email)) {
-                return res.status(400).json({ message: "Invalid email format" });
+                return res.status(statusCode.BAD_REQUEST).json({ message: message.verifyLoginEmailInvalid});
             }
             if (!regexPatterns.password.test(password)) {
-                return res.status(400).json({ message: "Password must be 8-20 characters, include at least one letter, one number, and one special character" });
+                return res.status(statusCode.BAD_REQUEST).json({ message: message.verifyLoginPasswordInvalid });
             }
 
             const user = await User.findOne({ email });
             if (!user) {
-                return res.status(400).json({ message: "User not found, please sign up" });
+                return res.status(statusCode.BAD_REQUEST).json({ message: message.verifyLoginUserNotFound });
             }
             if (!user.isActive) {
-                return res.status(400).json({ message: "Blocked user" });
+                return res.status(statusCode.BAD_REQUEST).json({ message:message.verifyLoginBlockedUser });
             }
 
             const isPasswordValid = await bcrypt.compare(password, user.password);
             if (!isPasswordValid) {
-                return res.status(400).json({ message: "Invalid password, please try again" });
+                return res.status(statusCode.BAD_REQUEST).json({ message: message.verifyLoginInvalidPassword });
             }
 
             req.session.user = {
@@ -295,10 +297,10 @@ loadLandingPage:async (req,res) => {
                 email: user.email
             };
 
-            return res.status(200).json({ success: true, redirectUrl: "/user/userHome" });
+            return res.status(statusCode.OK).json({ success: true, redirectUrl: "/user/userHome" });
         } catch (error) {
             console.error(error.message);
-            res.status(500).json({ message: "Server error during login" });
+            res.status(statusCode.INTERNAL_SERVER_ERROR).json({ message: message.verifyLoginGeneralError });
         }
     },
 
@@ -316,7 +318,7 @@ loadLandingPage:async (req,res) => {
             res.render("user/userHome", { user, products, brands, categories, cart });
         } catch (error) {
             console.error(error.message);
-            res.status(500).render('error', { message: 'Something went wrong' });
+            res.status(statusCode.INTERNAL_SERVER_ERROR).render('error', { message: message.loadUserHomeGeneralError });
         }
     },
 
@@ -343,7 +345,7 @@ loadLandingPage:async (req,res) => {
             });
         } catch (error) {
             console.error(error.message);
-            res.status(500).render('error', { message: 'Something went wrong' });
+            res.status(statusCode.INTERNAL_SERVER_ERROR).render('error', { message: message.loadReferralPageGeneralError });
         }
     },
 
@@ -351,7 +353,7 @@ loadLandingPage:async (req,res) => {
         try {
             const { referralCode } = req.body;
             if (!referralCode?.trim()) {
-                return res.json({ valid: false, message: 'Referral code is required' });
+                return res.json({ valid: false, message: message.checkReferralCodeRequired });
             }
 
             const referrerUser = await User.findOne({ 
@@ -359,7 +361,7 @@ loadLandingPage:async (req,res) => {
             });
 
             if (!referrerUser) {
-                return res.json({ valid: false, message: 'Invalid referral code' });
+                return res.json({ valid: false, message: message.checkReferralCodeInvalid });
             }
 
             return res.json({ 
@@ -369,7 +371,7 @@ loadLandingPage:async (req,res) => {
             });
         } catch (error) {
             console.error(error.message);
-            res.json({ valid: false, message: 'Error validating referral code' });
+            res.json({ valid: false, message: message.checkReferralCodeGeneralError });
         }
     },
 
@@ -377,7 +379,7 @@ loadLandingPage:async (req,res) => {
         try {
             const { token } = req.body;
             if (!token) {
-                return res.status(400).json({ success: false, message: "Token is required" });
+                return res.status(statusCode.BAD_REQUEST).json({ success: false, message:message.googleLoginTokenRequired });
             }
 
             const ticket = await client.verifyIdToken({
@@ -400,10 +402,10 @@ loadLandingPage:async (req,res) => {
                 isActive: user.isActive,
                 email: user.email
             };
-            return res.status(200).json({ success: true, message: "User verified successfully", redirectUrl: "/user/userHome" });
+            return res.status(statusCode.OK).json({ success: true, message: message.googleLoginSuccess, redirectUrl: "/user/userHome" });
         } catch (error) {
             console.error(error.message);
-            res.status(500).json({ message: "Server error during Google login" });
+            res.status(statusCode.INTERNAL_SERVER_ERROR).json({ message: message.googleLoginGeneralError});
         }
     },
 
@@ -412,7 +414,7 @@ loadLandingPage:async (req,res) => {
             res.render("user/forgot");
         } catch (error) {
             console.error(error.message);
-            res.status(500).render('error', { message: 'Something went wrong' });
+            res.status(statusCode.INTERNAL_SERVER_ERROR).render('error', { message: message.loadForgotPasswordGeneralError });
         }
     },
 
@@ -421,7 +423,7 @@ loadLandingPage:async (req,res) => {
             const { email } = req.body;
             const user = await User.findOne({ email });
             if (!user) {
-                return res.json({ success: false, message: "User not found" });
+                return res.json({ success: false, message: message.sendForgotOtpUserNotFound });
             }
 
             const otp = generateOtpCode();
@@ -434,10 +436,10 @@ loadLandingPage:async (req,res) => {
 
             console.log("forgot otp",otp)
 
-            res.json({ success: true, message: "OTP sent to your email" });
+            res.json({ success: true, message: message.sendForgotOtpSuccess });
         } catch (error) {
             console.error(error.message);
-            res.status(500).json({ message: "Server error during OTP send" });
+            res.status(statusCode.INTERNAL_SERVER_ERROR).json({ message: message.sendForgotOtpGeneralError });
         }
     },
 
@@ -446,7 +448,7 @@ loadLandingPage:async (req,res) => {
             res.render("user/resetPassword");
         } catch (error) {
             console.error(error.message);
-            res.status(500).render('error', { message: 'Something went wrong' });
+            res.status(statusCode.INTERNAL_SERVER_ERROR).render('error', { message: message.loadResetPasswordGeneralError });
         }
     },
 
@@ -454,35 +456,35 @@ loadLandingPage:async (req,res) => {
         try {
             const { email, otp, newPassword, confirmPassword } = req.body;
             if (!req.session.userEmail) {
-                return res.status(400).json({ message: "Email not found" });
+                return res.status(statusCode.BAD_REQUEST).json({ message: message.enterNewPasswordEmailNotFound });
             }
 
             if (newPassword !== confirmPassword) {
-                return res.status(400).json({ message: "Password and confirm password must be same" });
+                return res.status(statusCode.BAD_REQUEST).json({ message: message.enterNewPasswordMismatch});
             }
 
             if (!newPassword?.trim() || !confirmPassword?.trim()) {
-                return res.status(400).json({ message: "Enter password and confirm password" });
+                return res.status(statusCode.BAD_REQUEST).json({ message: message.enterNewPasswordRequired });
             }
 
             if (!otp?.trim()) {
-                return res.status(400).json({ message: "Enter OTP" });
+                return res.status(statusCode.BAD_REQUEST).json({ message: message.enterNewPasswordOtpRequired });
             }
 
             const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,20}$/;
             const otpRegex = /^\d{6}$/;
 
             if (!passwordRegex.test(newPassword) || !passwordRegex.test(confirmPassword)) {
-                return res.status(400).json({ message: "Password must be 8-20 characters, include at least one letter, one number, and one special character" });
+                return res.status(statusCode.BAD_REQUEST).json({ message: message.enterNewPasswordInvalid });
             }
 
             if (!otpRegex.test(otp)) {
-                return res.status(400).json({ message: "Invalid OTP, it should be a 6-digit number" });
+                return res.status(statusCode.BAD_REQUEST).json({ message: message.enterNewPasswordOtpInvalid });
             }
 
             const user = await User.findOne({ email: req.session.userEmail });
             if (!user || user.otp !== otp || Date.now() > user.expiresAt) {
-                return res.json({ success: false, message: "Invalid or expired OTP" });
+                return res.json({ success: false, message: message.enterNewPasswordOtpInvalidOrExpired });
             }
 
             user.password = await bcrypt.hash(newPassword, 10);
@@ -493,17 +495,17 @@ loadLandingPage:async (req,res) => {
             res.json({ success: true, redirectUrl: '/user/userLogin' });
         } catch (error) {
             console.error(error.message);
-            res.status(500).json({ message: "Server error during password reset" });
+            res.status(statusCode.INTERNAL_SERVER_ERROR).json({ message: message.enterNewPasswordGeneralError });
         }
     },
 
     logout: async (req, res) => {
         try {
             req.session.destroy();
-            return res.status(200).json({ redirectUrl: "/userLogin" });
+            return res.status(statusCode.OK).json({ redirectUrl: "/userLogin" });
         } catch (error) {
             console.error(error.message);
-            res.status(500).json({ message: "Server error during logout" });
+            res.status(statusCode.INTERNAL_SERVER_ERROR).json({ message: message.logoutGeneralError});
         }
     }
 };

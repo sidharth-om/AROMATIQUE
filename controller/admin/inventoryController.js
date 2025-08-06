@@ -1,5 +1,7 @@
 const Product = require('../../models/productModel');
 const mongoose = require('mongoose');
+const statusCode=require("../../config/statusCode")
+const message=require("../../config/adminMessages")
 
 const inventoryController = {
   // Load Inventory List with Search & Pagination
@@ -87,34 +89,34 @@ const inventoryController = {
       // Validate authentication
       if (!req.session.admin) {
         console.warn('Unauthorized stock update attempt');
-        return res.status(401).json({ 
+        return res.status(statusCode.UNAUTHORIZED).json({ 
           success: false,
-          message: 'Unauthorized: Please log in again' 
+          message: message.updateStockUnauthorized
         });
       }
 
       // Validate input data
       if (!volume || quantity === undefined || quantity === null) {
         console.warn('Missing required fields:', { volume, quantity });
-        return res.status(400).json({ 
+        return res.status(statusCode.BAD_REQUEST).json({ 
           success: false,
-          message: 'Volume and quantity are required' 
+          message: message.updateStockMissingFields
         });
       }
 
       const parsedQuantity = parseInt(quantity);
       if (isNaN(parsedQuantity) || parsedQuantity < 0) {
         console.warn('Invalid quantity value:', quantity);
-        return res.status(400).json({ 
+        return res.status(statusCode.BAD_REQUEST).json({ 
           success: false,
-          message: 'Quantity must be a non-negative number' 
+          message: message.updateStockInvalidQuantity
         });
       }
 
       // Validate productId format
       if (!mongoose.Types.ObjectId.isValid(productId)) {
         console.warn(`Invalid productId format: ${productId}`);
-        return res.status(400).json({ 
+        return res.status(statusCode.BAD_REQUEST).json({ 
           success: false,
           message: 'Invalid product ID format. Must be a valid MongoDB ObjectId.' 
         });
@@ -124,9 +126,9 @@ const inventoryController = {
       const product = await Product.findById(productId);
       if (!product) {
         console.warn(`Product not found: ${productId}`);
-        return res.status(404).json({ 
+        return res.status(statusCode.NOT_FOUND).json({ 
           success: false,
-          message: 'Product not found' 
+          message: message.updateStockProductNotFound
         });
       }
 
@@ -134,7 +136,7 @@ const inventoryController = {
       const variant = product.variants.find(v => v.volume.trim().toLowerCase() === volume.trim().toLowerCase());
       if (!variant) {
         console.warn(`Variant not found: productId=${productId}, volume=${volume}`);
-        return res.status(404).json({ 
+        return res.status(statusCode.NOT_FOUND).json({ 
           success: false,
           message: `Variant with volume "${volume}" not found` 
         });
@@ -152,7 +154,7 @@ const inventoryController = {
         await product.save();
       } catch (saveErr) {
         console.error('Failed to save product:', saveErr);
-        return res.status(500).json({ 
+        return res.status(statusCode.INTERNAL_SERVER_ERROR).json({ 
           success: false,
           message: 'Failed to save stock update to database.' 
         });
@@ -169,7 +171,7 @@ const inventoryController = {
       });
 
       // Send success response
-      res.status(200).json({
+      res.status(statusCode.OK).json({
         success: true,
         message: `Stock updated successfully. ${product.name} (${volume}) quantity changed from ${oldQuantity} to ${parsedQuantity}`,
         quantity: parsedQuantity,
@@ -190,9 +192,9 @@ const inventoryController = {
       });
 
       // Send error response
-      res.status(500).json({ 
+      res.status(statusCode.INTERNAL_SERVER_ERROR).json({ 
         success: false,
-        message: 'Server error occurred while updating stock. Please try again.',
+        message: message.updateStockGeneralError,
         error: process.env.NODE_ENV === 'development' ? err.message : undefined
       });
     }
@@ -204,9 +206,9 @@ const inventoryController = {
       const { updates } = req.body; // Array of {productId, volume, quantity}
       
       if (!Array.isArray(updates) || updates.length === 0) {
-        return res.status(400).json({
+        return res.status(statusCode.BAD_REQUEST).json({
           success: false,
-          message: 'Updates array is required'
+          message: message.bulkUpdateStockMissingUpdates
         });
       }
 
@@ -223,7 +225,7 @@ const inventoryController = {
               productId,
               volume,
               success: false,
-              message: 'Product not found'
+              message: message.bulkUpdateStockProductNotFound
             });
             continue;
           }
@@ -234,7 +236,7 @@ const inventoryController = {
               productId,
               volume,
               success: false,
-              message: 'Variant not found'
+              message: message.bulkUpdateStockVariantNotFound
             });
             continue;
           }
@@ -264,15 +266,15 @@ const inventoryController = {
 
       res.status(200).json({
         success: true,
-        message: 'Bulk update completed',
+        message: message.bulkUpdateStockSuccess,
         results
       });
 
     } catch (err) {
       console.error('Error in bulk stock update:', err);
-      res.status(500).json({
+      res.status(statusCode.INTERNAL_SERVER_ERROR).json({
         success: false,
-        message: 'Server error occurred during bulk update'
+        message: message.bulkUpdateStockGeneralError
       });
     }
   }

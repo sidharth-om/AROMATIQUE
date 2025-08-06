@@ -1,6 +1,8 @@
 const User = require("../../models/userModel")
 const Coupon = require("../../models/couponModel")
 const Order = require("../../models/orderModel")
+const statusCode=require("../../config/statusCode")
+const message=require("../../config/userMessages")
 
 const referralController = {
     // Load referral page with user data and referral coupons
@@ -31,7 +33,7 @@ const referralController = {
             })
         } catch (error) {
             console.log("Error in loadRefferal:", error.message)
-            res.status(500).render("error", { message: "Error loading referral page" })
+            res.status(statusCode.INTERNAL_SERVER_ERROR).render("error", { message: message.loadReferralGeneralError })
         }
     },
 
@@ -39,12 +41,12 @@ const referralController = {
      applyReferralCode: async (referralCode, newUserId) => {
         try {
             if (!referralCode || !newUserId) {
-                return { success: false, message: "Missing referral code or user ID" };
+                return { success: false, message: message.applyReferralCodeMissing };
             }
 
             const referrer = await User.findOne({ referralCode: referralCode.toUpperCase() });
             if (!referrer || referrer._id.toString() === newUserId.toString()) {
-                return { success: false, message: "Invalid referral code" };
+                return { success: false, message: message.applyReferralCodeInvalid };
             }
 
             const newUser = await User.findByIdAndUpdate(
@@ -105,7 +107,7 @@ const referralController = {
 
         } catch (error) {
             console.error("Referral error:", error);
-            return { success: false, message: "Referral processing failed" };
+            return { success: false, message:message.applyReferralCodeGeneralError };
         }
     },
 
@@ -117,7 +119,7 @@ const referralController = {
             const { referralCode } = req.body
             
             if (!referralCode) {
-                return res.json({ success: false, message: "Referral code is required" })
+                return res.json({ success: false, message: message.validateReferralCodeMissing })
             }
 
             const referrer = await User.findOne({ 
@@ -125,7 +127,7 @@ const referralController = {
             }).select('fullname referralCode')
             
             if (!referrer) {
-                return res.json({ success: false, message: "Invalid referral code" })
+                return res.json({ success: false, message: message.validateReferralCodeInvalid })
             }
 
             return res.json({ 
@@ -136,7 +138,7 @@ const referralController = {
 
         } catch (error) {
             console.log("Error in validateReferralCode:", error.message)
-            return res.json({ success: false, message: "Error validating referral code" })
+            return res.json({ success: false, message: message.validateReferralCodeGeneralError })
         }
     },
 
@@ -176,7 +178,7 @@ const referralController = {
 
         } catch (error) {
             console.log("Error in getReferralStats:", error.message)
-            return res.json({ success: false, message: "Error getting referral stats" })
+            return res.json({ success: false, message: message.getReferralStatsGeneralError })
         }
     },
 
@@ -186,7 +188,7 @@ const referralController = {
             const user = await User.findById(userId)
             
             if (!user || !user.referredBy) {
-                return { success: false, message: "User not found or not referred" }
+                return { success: false, message:message.processReferralCompletionUserNotFound }
             }
 
             // Check if this is the user's first successful order
@@ -197,7 +199,7 @@ const referralController = {
             })
 
             if (previousOrders > 0) {
-                return { success: false, message: "Not the first order" }
+                return { success: false, message: message.processReferralCompletionNotFirstOrder }
             }
 
             // Update referrer's earnings
@@ -238,17 +240,17 @@ const referralController = {
 
                 return {
                     success: true,
-                    message: "Referral completion processed",
+                    message: message.processReferralCompletionSuccess,
                     bonusAmount: bonusAmount,
                     bonusCoupon: bonusCouponCode
                 }
             }
 
-            return { success: false, message: "Referrer not found" }
+            return { success: false, message: message.processReferralCompletionReferrerNotFound}
 
         } catch (error) {
             console.log("Error in processReferralCompletion:", error.message)
-            return { success: false, message: "Error processing referral completion" }
+            return { success: false, message: message.processReferralCompletionGeneralError}
         }
     }
 }

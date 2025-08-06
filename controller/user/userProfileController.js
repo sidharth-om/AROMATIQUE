@@ -3,6 +3,8 @@ const userAddress = require("../../models/userAdressModel");
 const Cart=require("../../models/cartModel")
 const { sendOtpByEmail } = require("./sendOtp")
 const bcrypt=require("bcrypt")
+const statusCode=require("../../config/statusCode")
+const message=require("../../config/userMessages")
 
 
 const generateOtpCode=()=>Math.floor(100000 +Math.random() * 900000).toString()
@@ -43,36 +45,36 @@ const userProfileController = {
 
             // Validation
             if (!fullname || !phoneNumber) {
-                return res.status(400).json({ 
+                return res.status(statusCode.BAD_REQUEST).json({ 
                     success: false, 
-                    message: "Please fill all required fields" 
+                    message:message.updateProfileMissingFields
                 });
             }
 
             // Validate fullname (letters, spaces, hyphens, apostrophes, 2-50 characters)
             const nameRegex = /^[a-zA-ZÀ-ÖØ-öø-ÿ\s'-]{2,50}$/;
             if (!nameRegex.test(fullname.trim())) {
-                return res.status(400).json({ 
+                return res.status(statusCode.BAD_REQUEST).json({ 
                     success: false, 
-                    message: "Name should contain only letters, spaces, hyphens, or apostrophes (2-50 characters)" 
+                    message: message.updateProfileInvalidName 
                 });
             }
 
             // Validate phone number (10 digits)
             const phoneRegex = /^\d{10}$/;
             if (!phoneRegex.test(phoneNumber.trim())) {
-                return res.status(400).json({ 
+                return res.status(statusCode.BAD_REQUEST).json({ 
                     success: false, 
-                    message: "Please enter a valid 10-digit mobile number" 
+                    message: message.updateProfileInvalidPhone 
                 });
             }
 
             // Check if user exists
             const user = await User.findById(userId);
             if (!user) {
-                return res.status(404).json({ 
+                return res.status(statusCode.NOT_FOUND).json({ 
                     success: false, 
-                    message: "User not found" 
+                    message:message.updateProfileUserNotFound
                 });
             }
 
@@ -91,9 +93,9 @@ const userProfileController = {
 
             console.log("Profile updated successfully for user:", userId);
             
-            return res.status(200).json({ 
+            return res.status(statusCode.OK).json({ 
                 success: true, 
-                message: "Profile updated successfully",
+                message: message.updateProfileSuccess,
                 user: {
                     fullname: updatedUser.fullname,
                     phoneNumber: updatedUser.phoneNumber,
@@ -103,9 +105,9 @@ const userProfileController = {
 
         } catch (error) {
             console.log("Error updating profile:", error.message);
-            return res.status(500).json({ 
+            return res.status(statusCode.INTERNAL_SERVER_ERROR).json({ 
                 success: false, 
-                message: "Internal server error. Please try again." 
+                message: message.updateProfileGeneralError 
             });
         }
     },
@@ -127,12 +129,12 @@ const userProfileController = {
             const userId = req.session.user?.userId; // Get the logged-in user ID
 
             if (!userId) {
-                return res.status(401).json({ message: "Unauthorized: Please log in." });
+                return res.status(statusCode.UNAUTHORIZED).json({ message: message.verifyAddressUnauthorized });
             }
 
             // Check for empty fields
             if (!fullName.trim() || !address.trim() || !phone.trim() || !pincode.trim()) {
-                return res.status(400).json({ message: "Please fill all the fields" });
+                return res.status(statusCode.BAD_REQUEST).json({ message: message.verifyAddressMissingFields });
             }
 
             // Regular Expressions for validation
@@ -145,16 +147,16 @@ const userProfileController = {
 
             // Validate inputs
             if (!regexPatterns.nameRegex.test(fullName)) {
-                return res.status(400).json({ message: "Name should contain only letters, spaces, hyphens, or apostrophes (2-50 characters)." });
+                return res.status(statusCode.BAD_REQUEST).json({ message: message.verifyAddressInvalidName });
             }
             if (!regexPatterns.addressRegex.test(address)) {
-                return res.status(400).json({ message: "Invalid address format." });
+                return res.status(statusCode.BAD_REQUEST).json({ message: message.verifyAddressInvalidAddress });
             }
             if (!regexPatterns.phoneRegex.test(phone)) {
-                return res.status(400).json({ message: "Invalid phone number format." });
+                return res.status(statusCode.BAD_REQUEST).json({ message: message.verifyAddressInvalidPhone });
             }
             if (!regexPatterns.pincodeRegex.test(pincode)) {
-                return res.status(400).json({ message: "Invalid pincode format." });
+                return res.status(statusCode.BAD_REQUEST).json({ message:message.verifyAddressInvalidPincode });
             }
 
             // ✅ Create and save the address
@@ -169,16 +171,16 @@ const userProfileController = {
             await newAddress.save(); // Save to DB
             console.log("Address saved successfully");
 
-            return res.status(200).json({ success: true, message: "User address saved successfully",  });
+            return res.status(statusCode.OK).json({ success: true, message:message.verifyAddressSuccess,  });
 
         } catch (error) {
             console.log("Error saving address:", error.message);
-            res.status(500).json({ message: "Internal server error" });
+            res.status(statusCode.INTERNAL_SERVER_ERROR).json({ message: message.verifyAddressGeneralError });
         }
     },
     editAddress:async (req,res) => {
         try {
-            console.log("hummmmmmmmm")
+           
             const userId = req.session.user?.userId;
             const {addressId}=req.body
             console.log("address:+",addressId)
@@ -206,7 +208,7 @@ const userProfileController = {
 
     
     if (!address) {
-        return res.status(404).json({ success: false, message: 'Address not found or does not belong to you' });
+        return res.status(statusCode.NOT_FOUND).json({ success: false, message: message.deleteAddressNotFound });
       }
 
       address.status = address.status === 'active' ? 'blocked' : 'active';
@@ -215,7 +217,7 @@ const userProfileController = {
       await address.save();
 
        console.log("urr:",address.status)
-      return res.status(200).json({ 
+      return res.status(statusCode.OK).json({ 
           success: true, 
           message: `Address ${address.status === 'active' ? 'unblocked' : 'blocked'} successfully`, 
           status: address.status 
@@ -233,7 +235,7 @@ const userProfileController = {
             console.log("ith req body",fullName,fullAddress,phone,pincode,addressId,)
 
             if(!fullName.trim()||!fullAddress.trim()||!phone.trim()||!pincode.trim()||!addressId.trim()){
-                return res.status(400).json({message:"please fill the fields"})
+                return res.status(statusCode.BAD_REQUEST).json({message:"please fill the fields"})
             }
 
             const regexPatterns = {
@@ -245,16 +247,16 @@ const userProfileController = {
 
             // Validate inputs
             if (!regexPatterns.nameRegex.test(fullName)) {
-                return res.status(400).json({ message: "Name should contain only letters, spaces, hyphens, or apostrophes (2-50 characters)." });
+                return res.status(statusCode.BAD_REQUEST).json({ message: "Name should contain only letters, spaces, hyphens, or apostrophes (2-50 characters)." });
             }
             if (!regexPatterns.addressRegex.test(fullAddress)) {
-                return res.status(400).json({ message: "Invalid address format." });
+                return res.status(statusCode.BAD_REQUEST).json({ message: "Invalid address format." });
             }
             if (!regexPatterns.phoneRegex.test(phone)) {
-                return res.status(400).json({ message: "Invalid phone number format." });
+                return res.status(statusCode.BAD_REQUEST).json({ message: "Invalid phone number format." });
             }
             if (!regexPatterns.pincodeRegex.test(pincode)) {
-                return res.status(400).json({ message: "Invalid pincode format." });
+                return res.status(statusCode.BAD_REQUEST).json({ message: "Invalid pincode format." });
             }
 
 
@@ -270,7 +272,7 @@ const userProfileController = {
 
 
             console.log("Address updated successfully",updatedAddress)
-            res.json({success:true,message:"Address updated successfully",redirectUrl:"/user/viewProfile"})
+            res.json({success:true,message:message.updateAddressSuccess,redirectUrl:"/user/viewProfile"})
 
 
         } catch (error) {
@@ -300,7 +302,7 @@ const userProfileController = {
            
             console.log("otp sended successfully");
             // console.log("userrr:::",user)
-            return res.status(200).json({success:true,message:"otp sended successfully"})
+            return res.status(statusCode.OK).json({success:true,message:message.changeEmailOtpSuccess})
 
         } catch (error) {
             console.log(error.message)
@@ -315,27 +317,27 @@ const userProfileController = {
 
 
             if(!otp.trim()){
-                return res.status(400).json({message:"otp is required"})
+                return res.status(statusCode.BAD_REQUEST).json({message:message.verifyChangeEmailOtpRequired})
             }
             else if(!otpRegex.test(otp)){
-                return res.status(400).json({message:"invalid otp"})
+                return res.status(statusCode.BAD_REQUEST).json({message:message.verifyChangeEmailOtpInvalid})
             }
 
             const storedOtpData=req.session.otpData
 
             if(!storedOtpData){
-                return res.status(400).json({message:"No otp found,Request a new one"})
+                return res.status(statusCode.BAD_REQUEST).json({message:message.verifyChangeEmailOtpNotFound})
             }
 
             const {otp:storedOtp,expiresAt} = storedOtpData
 
             if(Date.now()>expiresAt){
                 delete req.session.otpData
-                return res.status(400).json({message:"OTP has expired,request a new one"})
+                return res.status(statusCode.BAD_REQUEST).json({message:message.verifyChangeEmailOtpExpired})
             }
 
             if(otp!==storedOtp){
-                return res.status(400).json({message:"Invalid otp,please try again"})
+                return res.status(statusCode.BAD_REQUEST).json({message:message.verifyChangeEmailOtpIncorrect})
             }
 
             delete req.session.otpData
@@ -353,7 +355,7 @@ const userProfileController = {
             req.session.user.email=newEmail
       
 
-            return res.status(200).json({success:true,message:"successfully changed email"})
+            return res.status(statusCode.OK).json({success:true,message:message.verifyChangeEmailSuccess})
            
          
         } catch (error) {
@@ -368,30 +370,30 @@ const userProfileController = {
 
             // Validate inputs
             if (!currentPassword || !newPassword || !confirmPassword) {
-                return res.status(400).json({ message: "Please fill all password fields" });
+                return res.status(statusCode.BAD_REQUEST).json({ message: message.changePasswordOtpMissingFields });
             }
 
             // Fetch user
             const user = await User.findOne({ email });
             if (!user) {
-                return res.status(404).json({ message: "User not found" });
+                return res.status(statusCode.NOT_FOUND).json({ message:message.changePasswordOtpUserNotFound });
             }
 
             // Check if current password matches
             const isPasswordMatch = await bcrypt.compare(currentPassword, user.password);
             if (!isPasswordMatch) {
-                return res.status(400).json({ message: "Current password is incorrect" });
+                return res.status(statusCode.BAD_REQUEST).json({ message: message.changePasswordOtpIncorrectCurrent });
             }
 
             // Validate new password and confirm password
             if (newPassword !== confirmPassword) {
-                return res.status(400).json({ message: "New password and confirm password must match" });
+                return res.status(statusCode.BAD_REQUEST).json({ message:message.changePasswordOtpMismatch});
             }
 
             const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,20}$/;
             if (!passwordRegex.test(newPassword)) {
-                return res.status(400).json({
-                    message: "New password must be 8-20 characters, include at least one letter, one number, and one special character"
+                return res.status(statusCode.BAD_REQUEST).json({
+                    message: message.changePasswordOtpInvalidNew
                 });
             }
 
@@ -409,11 +411,11 @@ const userProfileController = {
             await sendOtpByEmail(email, otp);
 
             console.log("otp sended successfully");
-            return res.status(200).json({ success: true, message: "otp sended successfully" });
+            return res.status(statusCode.OK).json({ success: true, message: message.changePasswordOtpSuccess });
 
         } catch (error) {
             console.log(error.message);
-            return res.status(500).json({ message: "Internal server error" });
+            return res.status(statusCode.INTERNAL_SERVER_ERROR).json({ message: message.changePasswordOtpGeneralError });
         }
     }, 
     
@@ -429,28 +431,28 @@ const userProfileController = {
             const confirmPassword=req.session.changePassword.confirmPassword
 
           if(! req.session.user.email){
-            return res.status(400).json({message:"email not found"})
+            return res.status(statusCode.BAD_REQUEST).json({message:message.verifyChangePasswordEmailNotFound})
           }
 
           if(newPassword!==confirmPassword){
-            return res.status(400).json({message:"password and confirm password must be same"})
+            return res.status(statusCode.BAD_REQUEST).json({message:message.verifyChangePasswordMismatch})
           }
           if(!newPassword.trim()||!confirmPassword.trim()){
-            return res.status(400).json({message:"Enter password and New password"})
+            return res.status(statusCode.BAD_REQUEST).json({message:message.verifyChangePasswordRequired})
           }
           if(!passwordOtpCode.trim()){
-            return res.status(400).json({message:"Enter otp"})
+            return res.status(statusCode.BAD_REQUEST).json({message:message.verifyChangePasswordOtpRequired})
           }
 
           const passwordRegex=/^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,20}$/
           const otpRegex=/^\d{6}$/
 
           if(!passwordRegex.test(newPassword)||!passwordRegex.test(confirmPassword)){
-            return res.status(400).json({message:"Password must be 8-20 characters, include at least one letter, one number, and one special character"})
+            return res.status(statusCode.BAD_REQUEST).json({message:message.verifyChangePasswordInvalid})
           }
       
           if(!otpRegex.test(passwordOtpCode)){
-            return res.status(400).json({message: "Invalid OTP, it should be a 6-digit number"})
+            return res.status(statusCode.BAD_REQUEST).json({message: message.verifyChangePasswordOtpInvalid})
           }
 
           const user=await User.findOne({email})
@@ -464,7 +466,7 @@ const userProfileController = {
             user.expiresAt=undefined
             await user.save()
             
-           return res.status(200).json({success:true,message:"Password changed successfully"})
+           return res.status(statusCode.OK).json({success:true,message:message.verifyChangePasswordSuccess})
         } catch (error) {
             console.log(error.message)
         }

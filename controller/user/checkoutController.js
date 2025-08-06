@@ -6,6 +6,8 @@ const Product = require("../../models/productModel")
 const Coupon = require("../../models/couponModel")
 const WalletTransaction = require("../../models/walletTransactionModel")
 const Razorpay = require('razorpay');
+const statusCode=require("../../config/statusCode")
+const message=require("../../config/userMessages")
 
 const razorpay = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID,
@@ -162,13 +164,13 @@ const checkoutController = {
             const address = await userAddress.findOne({ _id: addressId, userId: userId });
     
             if (!address) {
-                return res.status(404).json({ success: false, message: 'Address not found or does not belong to you' });
+                return res.status(statusCode.NOT_FOUND).json({ success: false, message: message.checkoutDeleteAddressNotFound });
             }
 
             address.status = address.status === 'active' ? 'blocked' : 'active';
             await address.save();
 
-            return res.status(200).json({ 
+            return res.status(statusCode.OK).json({ 
                 success: true, 
                 message: `Address ${address.status === 'active' ? 'unblocked' : 'blocked'} successfully`, 
                 status: address.status 
@@ -194,7 +196,7 @@ const checkoutController = {
             if (!coupon) {
                 return res.status(400).json({
                     success: false,
-                    message: 'Invalid or expired coupon code'
+                    message: message.validateCouponInvalidOrExpired
                 });
             }
             
@@ -208,9 +210,9 @@ const checkoutController = {
             });
             
             if (!cart || !cart.items || cart.items.length === 0) {
-                return res.status(400).json({
+                return res.status(statusCode.BAD_REQUEST).json({
                     success: false,
-                    message: 'Your cart is empty'
+                    message: message.validateCouponEmptyCart
                 });
             }
             
@@ -238,7 +240,7 @@ const checkoutController = {
             
             // Check if cart total meets minimum order requirement
             if (discountedSubtotal < coupon.minOrder) {
-                return res.status(400).json({
+                return res.status(statusCode.BAD_REQUEST).json({
                     success: false,
                     message: `This coupon requires a minimum order of ₹${coupon.minOrder}`
                 });
@@ -247,9 +249,9 @@ const checkoutController = {
             // Check if user has already used this coupon
             const hasUsedCoupon = await Order.findOne({ userId, couponUsed: couponCode.toUpperCase() });
             if (hasUsedCoupon) {
-                return res.status(400).json({
+                return res.status(statusCode.BAD_REQUEST).json({
                     success: false,
-                    message: 'You have already used this coupon'
+                    message: message.validateCouponAlreadyUsed
                 });
             }
             
@@ -280,7 +282,7 @@ const checkoutController = {
             
             const newTotal = discountedSubtotal + shipping - couponDiscount;
             
-            return res.status(200).json({
+            return res.status(statusCode.OK).json({
                 success: true,
                 message: 'Coupon applied successfully',
                 couponDiscount: couponDiscount,
@@ -291,9 +293,9 @@ const checkoutController = {
             });
         } catch (error) {
             console.log(error.message);
-            return res.status(500).json({
+            return res.status(statusCode.INTERNAL_SERVER_ERROR).json({
                 success: false,
-                message: 'An error occurred while validating the coupon'
+                message: message.validateReferralCodeGeneralError
             });
         }
     },
@@ -311,7 +313,7 @@ const checkoutController = {
             });
             
             if (!cart) {
-                return res.status(400).json({
+                return res.status(statusCode.BAD_REQUEST).json({
                     success: false,
                     message: 'Cart not found'
                 });
@@ -342,17 +344,17 @@ const checkoutController = {
             
             req.session.appliedCoupon = null;
             
-            return res.status(200).json({
+            return res.status(statusCode.OK).json({
                 success: true,
-                message: 'Coupon removed successfully',
+                message: message.removeCouponSuccess,
                 newTotal: newTotal,
                 shipping: shipping
             });
         } catch (error) {
             console.log(error.message);
-            return res.status(500).json({
+            return res.status(statusCode.INTERNAL_SERVER_ERROR).json({
                 success: false,
-                message: 'An error occurred while removing the coupon'
+                message: message.removeCouponGeneralError
             });
         }
     },
@@ -370,9 +372,9 @@ const checkoutController = {
             const address = await userAddress.findOne({ _id: addressId, userId });
 
             if (!cart || !address) {
-                return res.status(400).json({
+                return res.status(statusCode.BAD_REQUEST).json({
                     success: false,
-                    message: "Cart or address not found",
+                    message: message.placeOrderCartOrAddressNotFound,
                 });
             }
 
@@ -439,9 +441,9 @@ const checkoutController = {
                 } else {
                     const hasUsedCoupon = await Order.findOne({ userId, couponUsed: couponCode });
                     if (hasUsedCoupon) {
-                        return res.status(400).json({
+                        return res.status(statusCode.BAD_REQUEST).json({
                             success: false,
-                            message: 'You have already used this coupon',
+                            message: message.placeOrderCouponAlreadyUsed,
                         });
                     }
                     await Coupon.findByIdAndUpdate(coupon._id, { $inc: { usedCount: 1 } });
@@ -452,9 +454,9 @@ const checkoutController = {
 
             // COD restriction: Orders above Rs 1000 cannot use COD
             if (paymentMethod === 'cod' && finalTotal > 1000) {
-                return res.status(400).json({
+                return res.status(statusCode.BAD_REQUEST).json({
                     success: false,
-                    message: 'Cash on Delivery is not available for orders above ₹1000. Please choose online payment.',
+                    message: message.placeOrderCodNotAllowed,
                 });
             }
 
@@ -500,7 +502,7 @@ const checkoutController = {
                 const walletBalance = latestTransaction ? latestTransaction.wallet.balance : 0;
 
                 if (walletBalance < finalTotal) {
-                    return res.status(400).json({
+                    return res.status(statusCode.BAD_REQUEST).json({
                         success: false,
                         message: `Insufficient wallet balance. Available: ₹${walletBalance}, Required: ₹${finalTotal}`,
                     });
@@ -609,7 +611,7 @@ const checkoutController = {
                     payment_capture: 1,
                 });
 
-                return res.status(200).json({
+                return res.status(statusCode.OK).json({
                     success: true,
                     razorpayOrderId: razorpayOrder.id,
                     amount: finalTotal * 100,
@@ -697,9 +699,9 @@ const checkoutController = {
             });
         } catch (error) {
             console.log(error.message);
-            return res.status(500).json({
+            return res.status(statusCode.INTERNAL_SERVER_ERROR).json({
                 success: false,
-                message: "An error occurred while placing the order",
+                message: message.placeOrderGeneralError,
             });
         }
     },
@@ -780,25 +782,25 @@ const checkoutController = {
                 const order = await Order.findById(orderId).populate('address');
                 
                 if (!order) {
-                    return res.status(404).json({ 
+                    return res.status(statusCode.NOT_FOUND).json({ 
                         success: false, 
-                        message: "Order not found" 
+                        message: message.createRazorpayOrderNotFound
                     });
                 }
 
                 // Check if order belongs to current user
                 if (order.userId.toString() !== userId) {
-                    return res.status(403).json({ 
+                    return res.status(statusCode.FORBIDDEN).json({ 
                         success: false, 
-                        message: "Unauthorized access" 
+                        message: message.createRazorpayOrderUnauthorized
                     });
                 }
 
                 // Check if order is eligible for retry (failed payment)
                 if (order.paymentStatus !== 'failed') {
-                    return res.status(400).json({ 
+                    return res.status(statusCode.BAD_REQUEST).json({ 
                         success: false, 
-                        message: "Order payment status doesn't allow retry" 
+                        message: message.createRazorpayOrderInvalidStatus
                     });
                 }
 
@@ -850,16 +852,15 @@ const checkoutController = {
             const address = await userAddress.findOne({ _id: addressId, userId });
 
             if (!cart || !cart.items || cart.items.length === 0) {
-                return res.status(400).json({
+                return res.status(statusCode.BAD_REQUEST).json({
                     success: false,
-                    message: 'Cart is empty'
+                    message: message.createRazorpayOrderEmptyCart
                 });
             }
 
             if (!address) {
-                return res.status(400).json({
-                    success: false,
-                    message: 'Address not found'
+                return res.status(statusCode.BAD_REQUEST).json({
+                    success: message.createRazorpayOrderAddressNotFound
                 });
             }
 
@@ -974,7 +975,7 @@ const checkoutController = {
 
             const user = await User.findById(userId);
 
-            return res.status(200).json({
+            return res.status(statusCode.OK).json({
                 success: true,
                 razorpayKeyId: process.env.RAZORPAY_KEY_ID,
                 order: {
@@ -989,9 +990,9 @@ const checkoutController = {
             });
         } catch (error) {
             console.log('Error in createRazorpayOrder:', error.message);
-            return res.status(500).json({
+            return res.status(statusCode.INTERNAL_SERVER_ERROR).json({
                 success: false,
-                message: 'Error creating Razorpay order'
+                message: message.createRazorpayOrderGeneralError
             });
         }
     },
@@ -1015,9 +1016,9 @@ const checkoutController = {
                     $set: { 'items.$[].itemStatus': 'payment failed' }
                 });
 
-                return res.status(400).json({
+                return res.status(statusCode.BAD_REQUEST).json({
                     success: false,
-                    message: 'Payment verification failed',
+                    message: message.verifyRazorpayPaymentFailed,
                     redirectUrl: `/user/paymentFailed?orderId=${orderId}`
                 });
             }
@@ -1025,17 +1026,17 @@ const checkoutController = {
             const order = await Order.findById(orderId).populate('address');
             
             if (!order) {
-                return res.status(404).json({
+                return res.status(statusCode.NOT_FOUND).json({
                     success: false,
-                    message: 'Order not found',
+                    message: message.verifyRazorpayPaymentOrderNotFound,
                     redirectUrl: '/user/checkout'
                 });
             }
 
             if (order.userId.toString() !== userId) {
-                return res.status(403).json({
+                return res.status(statusCode.FORBIDDEN).json({
                     success: false,
-                    message: 'Unauthorized access',
+                    message: message.verifyRazorpayPaymentUnauthorized,
                     redirectUrl: '/user/checkout'
                 });
             }
@@ -1103,9 +1104,9 @@ const checkoutController = {
                 req.session.appliedCoupon = null;
             }
 
-            return res.status(200).json({
+            return res.status(statusCode.OK).json({
                 success: true,
-                message: 'Payment verified successfully',
+                message:message.verifyRazorpayPaymentSuccess,
                 redirectUrl: '/user/orderSuccessful'
             });
         } catch (error) {
@@ -1119,9 +1120,9 @@ const checkoutController = {
                 });
             }
             
-            return res.status(500).json({
+            return res.status(statusCode.INTERNAL_SERVER_ERROR).json({
                 success: false,
-                message: 'Error verifying payment',
+                message: message.verifyRazorpayPaymentGeneralError,
                 redirectUrl: `/user/paymentFailed?orderId=${req.body.orderId}`
             });
         }
@@ -1150,7 +1151,7 @@ const checkoutController = {
             }
 
             res.render('user/paymentFailed', {
-                message: 'Payment was unsuccessful. Please try again.',
+                message: message.paymentFailedMessage,
                 orderId: orderId,
                 cart,
                 user
