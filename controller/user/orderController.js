@@ -457,7 +457,7 @@ console.log("ordd::",order)
         }
     },
 
-   generateInvoice: async (req, res) => {
+  generateInvoice: async (req, res) => {
     try {
         const { orderId, itemId } = req.params;
         const userId = req.session.user.userId;
@@ -619,23 +619,25 @@ console.log("ordd::",order)
         doc.moveTo(50, yPos + 5).lineTo(550, yPos + 5).stroke();
         yPos += 15;
         
-        // Calculate additional discounts (system discount, coupon, etc.)
-        // let systemDiscount = 0;
+        // Calculate additional discounts and shipping
         let couponDiscount = 0;
+        let shippingAmount = 0;
         
         if (itemId) {
             // For single item, calculate proportional discounts
-            const itemProportion = subtotalOffer / order.total;
-            // systemDiscount = (order.systemDiscount || 0) * itemProportion;
+            const totalItems = order.items.length;
+            const itemProportion = 1 / totalItems; // Equal distribution for single item
+            
             couponDiscount = (order.couponDiscount || 0) * itemProportion;
+            // For single item, don't include full shipping, or distribute proportionally
+            shippingAmount = (order.shipping || 0) * itemProportion;
         } else {
             // For full order
-            // systemDiscount = order.systemDiscount || 0;
             couponDiscount = order.couponDiscount || 0;
+            shippingAmount = order.shipping || 0;
         }
         
-        const deliveryFee = itemId ? 0 : (order.shipping || 0);
-        const finalTotal = subtotalOffer  - couponDiscount + deliveryFee;
+        const finalTotal = subtotalOffer - couponDiscount + shippingAmount;
         
         // Add pricing breakdown
         doc.fontSize(10);
@@ -653,23 +655,20 @@ console.log("ordd::",order)
         doc.text(`₹${subtotalOffer.toFixed(2)}`, 470, yPos);
         yPos += 15;
         
-        // if (systemDiscount > 0) {
-        //     doc.text('Additional Discount:', 350, yPos);
-        //     doc.text(`-₹${systemDiscount.toFixed(2)}`, 470, yPos);
-        //     yPos += 15;
-        // }
-        
         if (couponDiscount > 0) {
             doc.text('Coupon Discount:', 350, yPos);
             doc.text(`-₹${couponDiscount.toFixed(2)}`, 470, yPos);
             yPos += 15;
         }
         
-        if (deliveryFee > 0) {
-            doc.text('Delivery Fee:', 350, yPos);
-            doc.text(`₹${deliveryFee.toFixed(2)}`, 470, yPos);
-            yPos += 15;
+        // Always show shipping amount (even if it's 0)
+        doc.text('Shipping Charges:', 350, yPos);
+        if (shippingAmount === 0) {
+            doc.text('FREE', 470, yPos);
+        } else {
+            doc.text(`₹${shippingAmount.toFixed(2)}`, 470, yPos);
         }
+        yPos += 15;
         
         // Add a line before the total
         doc.moveTo(350, yPos).lineTo(550, yPos).stroke();
@@ -681,7 +680,7 @@ console.log("ordd::",order)
         doc.text(`₹${finalTotal.toFixed(2)}`, 470, yPos);
         
         // Add savings summary
-        const totalSavings = totalDiscount  + couponDiscount;
+        const totalSavings = totalDiscount + couponDiscount;
         if (totalSavings > 0) {
             yPos += 20;
             doc.fontSize(10).font('Helvetica').fillColor('green');
@@ -699,6 +698,14 @@ console.log("ordd::",order)
         // Add coupon information if used
         if (order.couponUsed) {
             doc.text(`Coupon Used: ${order.couponUsed}`);
+        }
+        
+        // Add shipping information
+        if (order.trackingNumber) {
+            doc.text(`Tracking Number: ${order.trackingNumber}`);
+        }
+        if (order.estimatedDelivery) {
+            doc.text(`Estimated Delivery: ${new Date(order.estimatedDelivery).toLocaleDateString()}`);
         }
         
         // Add footer with terms
