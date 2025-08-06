@@ -9,6 +9,8 @@
   <title>Order Management | Admin Dashboard</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+  <!-- SweetAlert2 -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body class="bg-gray-50">
   <div class="min-h-screen flex flex-col">
@@ -74,33 +76,6 @@
                     </span>
                   </p>
                 </div>
-                <!-- <div class="flex items-center space-x-2">
-                  <span class="text-gray-600">Order Status:</span>
-                  <select 
-                    class="form-select order-status-dropdown rounded-md py-1 px-2 border text-sm
-                    <%= order.status === 'pending' ? 'bg-yellow-100 text-yellow-800 border-yellow-300' : 
-                       order.status === 'confirmed' ? 'bg-blue-100 text-blue-800 border-blue-300' :
-                       order.status === 'processing' ? 'bg-blue-100 text-blue-800 border-blue-300' :
-                       order.status === 'shipped' ? 'bg-indigo-100 text-indigo-800 border-indigo-300' : 
-                       order.status === 'delivered' ? 'bg-green-100 text-green-800 border-green-300' :
-                       order.status === 'cancelled' ? 'bg-red-100 text-red-800 border-red-300' :
-                       order.status === 'return request' ? 'bg-purple-100 text-purple-800 border-purple-300' :
-                       order.status === 'returned' ? 'bg-purple-100 text-purple-800 border-purple-300' :
-                       'bg-gray-100 text-gray-800 border-gray-300' %>"
-                    data-order-id="<%= order.orderId %>"
-                    data-original-value="<%= order.status %>"
-                    <%= (order.status === 'delivered' || order.status === 'returned' || order.status === 'cancelled') ? 'disabled' : '' %>
-                  >
-                    <option value="pending" <%= order.status === 'pending' ? 'selected' : '' %>>Pending</option>
-                    <option value="confirmed" <%= order.status === 'confirmed' ? 'selected' : '' %>>Confirmed</option>
-                    <option value="processing" <%= order.status === 'processing' ? 'selected' : '' %>>Processing</option>
-                    <option value="shipped" <%= order.status === 'shipped' ? 'selected' : '' %>>Shipped</option>
-                    <option value="delivered" <%= order.status === 'delivered' ? 'selected' : '' %>>Delivered</option>
-                    <option value="cancelled" <%= order.status === 'cancelled' ? 'selected' : '' %>>Cancelled</option>
-                    <option value="return request" <%= order.status === 'return request' ? 'selected' : '' %>>Return Request</option>
-                    <option value="returned" <%= order.status === 'returned' ? 'selected' : '' %>>Returned</option>
-                  </select>
-                </div> -->
               </div>
               <table class="w-full mb-4">
                 <thead class="bg-gray-100">
@@ -224,14 +199,27 @@
             return;
           }
           
-          dropdown.addEventListener('change', function(e) {
+          dropdown.addEventListener('change', async function(e) {
             const newStatus = this.value.toLowerCase();
             const orderId = this.getAttribute('data-order-id');
             const productId = this.getAttribute('data-product-id');
             
-            let confirmMessage = `Are you sure you want to change the item status in order #${orderId} to ${newStatus}?`;
+            // Show SweetAlert confirmation
+            const result = await Swal.fire({
+              title: 'Confirm Status Change',
+              html: `Are you sure you want to change the item status in order <strong>#${orderId}</strong> to <strong>${newStatus}</strong>?`,
+              icon: 'question',
+              showCancelButton: true,
+              confirmButtonColor: '#3085d6',
+              cancelButtonColor: '#d33',
+              confirmButtonText: 'Yes, change it!',
+              cancelButtonText: 'Cancel',
+              customClass: {
+                popup: 'swal2-popup-custom'
+              }
+            });
             
-            if (confirm(confirmMessage)) {
+            if (result.isConfirmed) {
               updateOrderItemStatus(orderId, productId, newStatus, this);
             } else {
               this.value = originalValue;
@@ -251,13 +239,26 @@
             return;
           }
           
-          dropdown.addEventListener('change', function(e) {
+          dropdown.addEventListener('change', async function(e) {
             const newStatus = this.value.toLowerCase();
             const orderId = this.getAttribute('data-order-id');
             
-            let confirmMessage = `Are you sure you want to change the order #${orderId} status to ${newStatus}? This will update all items in this order.`;
+            // Show SweetAlert confirmation
+            const result = await Swal.fire({
+              title: 'Confirm Order Status Change',
+              html: `Are you sure you want to change order <strong>#${orderId}</strong> status to <strong>${newStatus}</strong>?<br><br><small>This will update all items in this order.</small>`,
+              icon: 'warning',
+              showCancelButton: true,
+              confirmButtonColor: '#3085d6',
+              cancelButtonColor: '#d33',
+              confirmButtonText: 'Yes, change it!',
+              cancelButtonText: 'Cancel',
+              customClass: {
+                popup: 'swal2-popup-custom'
+              }
+            });
             
-            if (confirm(confirmMessage)) {
+            if (result.isConfirmed) {
               updateOrderStatus(orderId, newStatus, this);
             } else {
               this.value = originalValue;
@@ -270,14 +271,34 @@
         });
         
         // Function to send order status update to backend
-        function updateOrderStatus(orderId, status, dropdownElement) {
+        async function updateOrderStatus(orderId, status, dropdownElement) {
           dropdownElement.disabled = true;
           
           let additionalData = {};
           if (status === 'return request') {
-            const reason = prompt("Please enter reason for return request:", "");
-            if (reason !== null) {
+            const { value: reason } = await Swal.fire({
+              title: 'Return Request Reason',
+              input: 'textarea',
+              inputLabel: 'Please enter reason for return request:',
+              inputPlaceholder: 'Enter the reason...',
+              inputAttributes: {
+                'aria-label': 'Enter the reason for return request'
+              },
+              showCancelButton: true,
+              confirmButtonText: 'Submit',
+              cancelButtonText: 'Cancel',
+              inputValidator: (value) => {
+                if (!value) {
+                  return 'You need to write a reason!'
+                }
+              }
+            });
+            
+            if (reason) {
               additionalData.reason = reason;
+            } else {
+              dropdownElement.disabled = false;
+              return;
             }
           }
           
@@ -323,14 +344,34 @@
         }
         
         // Function to send item status update to backend
-        function updateOrderItemStatus(orderId, productId, status, dropdownElement) {
+        async function updateOrderItemStatus(orderId, productId, status, dropdownElement) {
           dropdownElement.disabled = true;
           
           let additionalData = {};
           if (status === 'return request') {
-            const reason = prompt("Please enter reason for return request:", "");
-            if (reason !== null) {
+            const { value: reason } = await Swal.fire({
+              title: 'Return Request Reason',
+              input: 'textarea',
+              inputLabel: 'Please enter reason for return request:',
+              inputPlaceholder: 'Enter the reason...',
+              inputAttributes: {
+                'aria-label': 'Enter the reason for return request'
+              },
+              showCancelButton: true,
+              confirmButtonText: 'Submit',
+              cancelButtonText: 'Cancel',
+              inputValidator: (value) => {
+                if (!value) {
+                  return 'You need to write a reason!'
+                }
+              }
+            });
+            
+            if (reason) {
               additionalData.reason = reason;
+            } else {
+              dropdownElement.disabled = false;
+              return;
             }
           }
           
@@ -374,14 +415,27 @@
         
         // Handle successful response
         function handleSuccess(data, dropdownElement, status) {
-          showNotification('Status updated successfully!', 'success');
+          Swal.fire({
+            title: 'Success!',
+            text: 'Status updated successfully!',
+            icon: 'success',
+            timer: 2000,
+            showConfirmButton: false,
+            toast: true,
+            position: 'top-end'
+          });
           updateDropdownStyle(dropdownElement, status);
         }
         
         // Handle error
         function handleError(error, dropdownElement, originalValue) {
           console.error('Error updating status:', error);
-          showNotification('Failed to update status. Please try again.', 'error');
+          Swal.fire({
+            title: 'Error!',
+            text: 'Failed to update status. Please try again.',
+            icon: 'error',
+            confirmButtonText: 'OK'
+          });
           dropdownElement.value = originalValue;
         }
         
@@ -412,24 +466,6 @@
           } else {
             dropdown.classList.add('bg-gray-100', 'text-gray-800', 'border-gray-300');
           }
-        }
-        
-        // Function to show notification
-        function showNotification(message, type) {
-          const notification = document.createElement('div');
-          notification.className = `fixed top-4 right-4 px-6 py-3 rounded-md shadow-md transition-opacity duration-300 z-50 ${
-            type === 'success' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
-          }`;
-          notification.textContent = message;
-          
-          document.body.appendChild(notification);
-          
-          setTimeout(() => {
-            notification.style.opacity = '0';
-            setTimeout(() => {
-              document.body.removeChild(notification);
-            }, 300);
-          }, 3000);
         }
         
         // Handle view order buttons
@@ -464,6 +500,21 @@
         });
       });
     </script>
+
+    <style>
+      .swal2-popup-custom {
+        border-radius: 12px;
+      }
+      
+      .swal2-title {
+        font-size: 1.5em;
+        font-weight: 600;
+      }
+      
+      .swal2-content {
+        font-size: 1em;
+      }
+    </style>
   </div>
 </body>
 </html>
