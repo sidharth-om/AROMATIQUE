@@ -171,44 +171,48 @@
                 </div>
                 
                 <!-- Image Gallery - All images in one field -->
-                <div class="border rounded-md p-4">
-                    <div id="imageGallery" class="image-gallery">
-                        <% product.images.forEach((img, index) => { %>
-                            <div class="image-item" data-index="<%= index %>" data-filename="<%= img %>">
-                                <img src="/uploads/<%= img %>" alt="Product Image <%= index + 1 %>">
-                                <div class="image-actions">
-                                    <div class="image-action-btn replace-btn" title="Replace">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                                            <polyline points="17 8 12 3 7 8"></polyline>
-                                            <line x1="12" y1="3" x2="12" y2="15"></line>
-                                        </svg>
-                                    </div>
-                                    <div class="image-action-btn delete-btn" title="Delete">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                            <polyline points="3 6 5 6 21 6"></polyline>
-                                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                                        </svg>
-                                    </div>
-                                </div>
-                                <input type="file" class="hidden replace-image-input" accept="image/*" data-index="<%= index %>">
-                            </div>
-                        <% }) %>
-                        
-                        <!-- Add New Image Button -->
-                        <div id="addImageBtn" class="image-item flex items-center justify-center bg-gray-100 cursor-pointer hover:bg-gray-200">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <line x1="12" y1="5" x2="12" y2="19"></line>
-                                <line x1="5" y1="12" x2="19" y2="12"></line>
-                            </svg>
-                        </div>
-                        <input type="file" id="add-new-image" class="hidden" accept="image/*">
-                    </div>
-                    
-                    <div class="mt-2 text-sm text-gray-500">
-                        Click on the + button to add a new image, or use the icons on existing images to replace or delete them.
-                    </div>
-                </div>
+              <div class="border rounded-md p-4">
+  <div id="imageGallery" class="image-gallery">
+    <% if (product.images && Array.isArray(product.images) && product.images.length > 0) { %>
+      <% product.images.forEach((img, index) => { %>
+        <div class="image-item" data-index="<%= index %>" data-filename="<%= img %>">
+          <img src="<%= img %>" alt="Product Image <%= index + 1 %>">
+          <div class="image-actions">
+            <div class="image-action-btn replace-btn" title="Replace">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="17 8 12 3 7 8"></polyline>
+                <line x1="12" y1="3" x2="12" y2="15"></line>
+              </svg>
+            </div>
+            <div class="image-action-btn delete-btn" title="Delete">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="3 6 5 6 21 6"></polyline>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+              </svg>
+            </div>
+          </div>
+          <input type="file" class="hidden replace-image-input" accept="image/*" data-index="<%= index %>">
+        </div>
+      <% }) %>
+    <% } else { %>
+      <span>No images available</span>
+    <% } %>
+    
+    <!-- Add New Image Button -->
+    <div id="addImageBtn" class="image-item flex items-center justify-center bg-gray-100 cursor-pointer hover:bg-gray-200">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="12" y1="5" x2="12" y2="19"></line>
+        <line x1="5" y1="12" x2="19" y2="12"></line>
+      </svg>
+    </div>
+    <input type="file" id="add-new-image" class="hidden" accept="image/*">
+  </div>
+  
+  <div class="mt-2 text-sm text-gray-500">
+    Click on the + button to add a new image, or use the icons on existing images to replace or delete them.
+  </div>
+</div>
                 
                 <!-- Hidden container for new images preview -->
                 <div id="newImagesPreview" class="hidden mt-4">
@@ -530,7 +534,7 @@ setTimeout(() => {
             existingImages.forEach((filename, index) => {
                 if (!filename) return; // Skip deleted images
                 
-                const imageItem = createImageItem(`/uploads/${filename}`, index, true, filename);
+                const imageItem = createImageItem(filename, index, true, filename);
                 imageGallery.insertBefore(imageItem, addImageBtn);
             });
             
@@ -591,39 +595,39 @@ setTimeout(() => {
         }
         
         // Create image item
-        function createImageItem(src, index, isExisting, filename = null) {
-            const div = document.createElement('div');
-            div.className = 'image-item';
-            div.dataset.index = index;
-            
-            if (filename) {
-                div.dataset.filename = filename;
-            }
-            
-            div.innerHTML = `
-                <img src="${src}" alt="Product Image">
-                <div class="image-actions">
-                    ${isExisting ? `
-                        <div class="image-action-btn replace-btn" title="Replace">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                                <polyline points="17 8 12 3 7 8"></polyline>
-                                <line x1="12" y1="3" x2="12" y2="15"></line>
-                            </svg>
-                        </div>
-                    ` : ''}
-                    <div class="image-action-btn delete-btn" title="Delete">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <polyline points="3 6 5 6 21 6"></polyline>
-                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                        </svg>
-                    </div>
-                </div>
-                ${isExisting ? `<input type="file" class="hidden replace-image-input" accept="image/*" data-index="${index}">` : ''}
-            `;
-            
-            return div;
-        }
+       function createImageItem(src, index, isExisting, filename = null) {
+  const div = document.createElement('div');
+  div.className = 'image-item';
+  div.dataset.index = index;
+  
+  if (filename) {
+    div.dataset.filename = filename;
+  }
+  
+  div.innerHTML = `
+    <img src="${src}" alt="Product Image">
+    <div class="image-actions">
+      ${isExisting ? `
+        <div class="image-action-btn replace-btn" title="Replace">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="17 8 12 3 7 8"></polyline>
+            <line x1="12" y1="3" x2="12" y2="15"></line>
+          </svg>
+        </div>
+      ` : ''}
+      <div class="image-action-btn delete-btn" title="Delete">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="3 6 5 6 21 6"></polyline>
+          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+        </svg>
+      </div>
+    </div>
+    ${isExisting ? `<input type="file" class="hidden replace-image-input" accept="image/*" data-index="${index}">` : ''}
+  `;
+  
+  return div;
+}
         
         // Handle new image selection
         function handleNewImageSelect(e) {

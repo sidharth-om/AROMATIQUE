@@ -34,7 +34,7 @@
                 <% cart.items.forEach((item,index)=>{ %>
                 <tr class="border-b border-gray-200">
                   <td class="py-4 pr-4 w-200">
-                    <img src="/uploads/<%= item.productId.images[0] %>" alt="Product" class="object-cover rounded-full mr-10">
+                    <img src="<%= item.productId.images[0] %>" alt="Product" class="object-cover rounded-full mr-10">
                   </td>
                   <td class="py-4 w-full">
                     <h3 class="font-medium text-gray-800"><%= item.productId.name %></h3>

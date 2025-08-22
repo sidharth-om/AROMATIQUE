@@ -60,6 +60,7 @@
  
 
 <div class="right mt-5">
+  
   <table class="table table-striped">
     <thead class="table-dark">
      
@@ -85,13 +86,17 @@
 
       <% products.forEach(product=>{ %>
       <tr>
-        <td>
-          <img
-            src="/uploads/<%= product.images[0]  %>"
-            alt="Product Image"
-            class="product-image"
-          />
-        </td>
+       <td>
+  <% if (product.images && product.images.length > 0) { %>
+    <img
+      src="<%= product.images[0] %>"
+      alt="Product Image"
+      class="product-image"
+    />
+  <% } else { %>
+    <span>No Image</span>
+  <% } %>
+</td>
         <!-- <td>Sample Product</td> -->
         <td><%= product.name %></td>
         <td><%= product.brand.name%></td>

@@ -125,6 +125,7 @@ const userProductController = {
                           highestOffer === categoryOffer && categoryOffer > 0 ? 'category' : ''
             };
           });
+
       
           const brands = await Brand.find({ status: "Active" });
           const categories = await Category.find();

@@ -126,24 +126,24 @@
                 <% brands.forEach(brand=>{ %>
                 <tr>
                   <td class="text-start"><%= brand.name %></td>
-                  <td class="text-start">
-                    <div
-                      class="d-flex align-items-center justify-content-center"
-                      style="
-                        width: 40px;
-                        height: 40px;
-                        border-radius: 50%;
-                        overflow: hidden;
-                      "
-                    >
-                      <img
-                        src="/<%= brand.image%>"
-                        alt=""
-                        class="img-fluid rounded-circle"
-                        style="width: 100%; height: auto"
-                      />
-                    </div>
-                  </td>
+                 <td class="text-start">
+  <div
+    class="d-flex align-items-center justify-content-center"
+    style="
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      overflow: hidden;
+    "
+  >
+    <img
+      src="<%= brand.image %>"
+      alt=""
+      class="img-fluid rounded-circle"
+      style="width: 100%; height: auto"
+    />
+  </div>
+</td>
                 
                   <td class="text-start">
                     <div class="form-check form-switch">
@@ -218,19 +218,17 @@
           </div>
 
           <div class="mb-3">
-            <label for="editBrandImagePreview" class="form-label"
-              >Current Image</label
-            >
-            <div>
-              <img
-                id="editBrandImagePreview"
-                src=""
-                alt="Brand Image"
-                class="img-fluid rounded"
-                style="max-width: 100px"
-              />
-            </div>
-          </div>
+  <label for="editBrandImagePreview" class="form-label">Current Image</label>
+  <div>
+    <img
+      id="editBrandImagePreview"
+      src=""
+      alt="Brand Image"
+      class="img-fluid rounded"
+      style="max-width: 100px"
+    />
+  </div>
+</div>
 
           <div class="mb-3">
             <label for="editBrandImage" class="form-label"
