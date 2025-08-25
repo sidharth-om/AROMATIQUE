@@ -20,7 +20,7 @@
         <h2 class="text-3xl font-bold text-gray-800">Order Management</h2>
         <div class="flex items-center space-x-3">
           <!-- Search, Sort, and Filter Form -->
-          <form id="orderFilterForm" action="/admin/orders" method="GET" class="flex items-center space-x-2">
+          <form id="orderFilterForm" action="/orders" method="GET" class="flex items-center space-x-2">
             <div class="flex items-center space-x-2">
               <span class="text-gray-600">Search:</span>
               <input type="text" id="searchInput" name="search" value="<%= search || '' %>" placeholder="Order ID or Customer Name" class="bg-white border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 w-64">
@@ -155,7 +155,7 @@
             Showing <%= (currentPage - 1) * limit + 1 %> to <%= Math.min(currentPage * limit, totalOrders) %> of <%= totalOrders %> orders
           </div>
           <div class="flex items-center space-x-2">
-            <a href="/admin/orders?page=<%= currentPage > 1 ? currentPage - 1 : 1 %>&limit=<%= limit %>&search=<%= encodeURIComponent(search || '') %>&sortBy=<%= sortBy %>&sortOrder=<%= sortOrder %>&status=<%= encodeURIComponent(status || '') %>" 
+            <a href="/orders?page=<%= currentPage > 1 ? currentPage - 1 : 1 %>&limit=<%= limit %>&search=<%= encodeURIComponent(search || '') %>&sortBy=<%= sortBy %>&sortOrder=<%= sortOrder %>&status=<%= encodeURIComponent(status || '') %>" 
                class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 <%= currentPage === 1 ? 'opacity-50 cursor-not-allowed' : '' %>">
               Previous
             </a>
@@ -169,12 +169,12 @@
               }
             %>
             <% for (let i = startPage; i <= endPage; i++) { %>
-              <a href="/admin/orders?page=<%= i %>&limit=<%= limit %>&search=<%= encodeURIComponent(search || '') %>&sortBy=<%= sortBy %>&sortOrder=<%= sortOrder %>&status=<%= encodeURIComponent(status || '') %>" 
+              <a href="/orders?page=<%= i %>&limit=<%= limit %>&search=<%= encodeURIComponent(search || '') %>&sortBy=<%= sortBy %>&sortOrder=<%= sortOrder %>&status=<%= encodeURIComponent(status || '') %>" 
                  class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md <%= i === currentPage ? 'bg-indigo-600 text-white' : 'text-gray-700 bg-white hover:bg-gray-50' %>">
                 <%= i %>
               </a>
             <% } %>
-            <a href="/admin/orders?page=<%= currentPage < totalPages ? currentPage + 1 : totalPages %>&limit=<%= limit %>&search=<%= encodeURIComponent(search || '') %>&sortBy=<%= sortBy %>&sortOrder=<%= sortOrder %>&status=<%= encodeURIComponent(status || '') %>" 
+            <a href="/orders?page=<%= currentPage < totalPages ? currentPage + 1 : totalPages %>&limit=<%= limit %>&search=<%= encodeURIComponent(search || '') %>&sortBy=<%= sortBy %>&sortOrder=<%= sortOrder %>&status=<%= encodeURIComponent(status || '') %>" 
                class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 <%= currentPage === totalPages ? 'opacity-50 cursor-not-allowed' : '' %>">
               Next
             </a>
@@ -302,7 +302,7 @@
             }
           }
           
-          fetch('/admin/updateStatus', {
+          fetch('/updateStatus', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -375,7 +375,7 @@
             }
           }
           
-          fetch('/admin/updateItemStatus', {
+          fetch('/updateItemStatus', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -475,7 +475,7 @@
             const orderId = this.getAttribute('data-order-id');
             const productIndex = this.getAttribute('data-product-index');
             const productId = this.getAttribute('data-product-id');
-            window.location.href = `/admin/orderDetail?orderId=${orderId}&productIndex=${productIndex}&productId=${productId}`;
+            window.location.href = `/orderDetail?orderId=${orderId}&productIndex=${productIndex}&productId=${productId}`;
           });
         });
 

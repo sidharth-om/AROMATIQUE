@@ -11,7 +11,7 @@
 </head>
 <body class="bg-gray-50">
     <!-- Include Admin Header -->
-    <!-- <%- include("partials/header") %> -->
+    <%- include("partials/header") %> 
     
     <div class="flex">
         <!-- Include Admin Sidebar -->
@@ -24,7 +24,7 @@
                 <div class="flex items-center justify-between mb-6">
                     <div>
                         <div class="flex items-center space-x-3">
-                            <a href="/admin/coupon" class="text-gray-600 hover:text-gray-800">
+                            <a href="/coupon" class="text-gray-600 hover:text-gray-800">
                                 <i class="fas fa-arrow-left"></i>
                             </a>
                             <h1 class="text-2xl font-bold text-gray-800">Edit Coupon</h1>
@@ -253,7 +253,7 @@
                         
                         <!-- Form Actions -->
                         <div class="flex items-center justify-between pt-6 border-t border-gray-200">
-                            <a href="/admin/coupon" class="bg-gray-500 text-white px-6 py-2 rounded-md hover:bg-gray-600 transition-colors">
+                            <a href="/coupon" class="bg-gray-500 text-white px-6 py-2 rounded-md hover:bg-gray-600 transition-colors">
                                 <i class="fas fa-times mr-2"></i>Cancel
                             </a>
                             
@@ -421,7 +421,7 @@
             }).then(async (result) => {
                 if (result.isConfirmed) {
                     try {
-                        const response = await fetch(`/admin/coupons/${couponId}`, {
+                        const response = await fetch(`/coupons/${couponId}`, {
                             method: 'DELETE'
                         });
                         
@@ -435,7 +435,7 @@
                                 timer: 2000,
                                 showConfirmButton: false
                             }).then(() => {
-                                window.location.href = '/admin/coupon';
+                                window.location.href = '/coupon';
                             });
                         } else {
                             Swal.fire({
@@ -507,7 +507,7 @@
             submitButton.disabled = true;
             
             try {
-                const response = await fetch(`/admin/updateCoupon/${couponId}`, {
+                const response = await fetch(`/updateCoupon/${couponId}`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
@@ -527,7 +527,7 @@
                         showConfirmButton: false
                     }).then(() => {
                         // Redirect to coupon list
-                        window.location.href = '/admin/coupon';
+                        window.location.href = '/coupon';
                     });
                 } else {
                     // Show error message

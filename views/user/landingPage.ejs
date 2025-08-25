@@ -53,8 +53,8 @@
                 <div class="col-lg-6 col-md-6 flex justify-center">
                     <nav class="header__menu mobile-menu">
                         <ul class="flex space-x-6">
-                            <li class="active"><a href="/user/userHome">Home</a></li>
-                            <li><a href="/user/userLogin">Shop</a></li>
+                            <li class="active"><a href="#">Home</a></li>
+                            <li><a href="/userLogin">Shop</a></li>
                         </ul>
                     </nav>
                 </div>
@@ -67,9 +67,9 @@
                                 <%= user.fullname %>
                             </button>
                             <div id="user-dropdown" class="absolute right-0 mt-2 w-40 bg-white shadow-md rounded-md hidden">
-                                <a href="/user/viewProfile" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Profile</a>
-                                <a href="/user/myOrders" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">My orders</a>
-                                <a href="/user/wallet" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Wallet</a>
+                                <a href="/viewProfile" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Profile</a>
+                                <a href="/myOrders" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">My orders</a>
+                                <a href="/wallet" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Wallet</a>
                                 
                                 <button id="logout-button" class="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-left">
                                     Logout
@@ -78,8 +78,8 @@
                             </div>
                         </div>
                     <% } else { %>
-                        <a href="/user/signup" class="sign-in-link">Sign Up</a>
-                        <a href="/user/userLogin" class="sign-in-link">Log in</a>
+                        <a href="/signup" class="sign-in-link">Sign Up</a>
+                        <a href="/userLogin" class="sign-in-link">Log in</a>
                     <% } %>
                     
                  
@@ -98,7 +98,7 @@
             <div class="text-center px-4 max-w-4xl mx-auto">
                 <h1 class="font-serif text-5xl md:text-6xl lg:text-7xl font-bold text-white mb-6 drop-shadow-sm tracking-tight leading-tight">Discover Your Signature Scent</h1>
                 <p class="text-xl md:text-2xl text-white/90 mb-10 max-w-2xl mx-auto drop-shadow-sm font-light">Exquisite fragrances crafted with the finest ingredients for the discerning individual</p>
-                <a href="/user/userLogin" class="bg-white/90 backdrop-blur-sm text-gray-900 hover:bg-white px-10 py-4 rounded-full font-medium transition-all duration-300 inline-block shadow-md hover:shadow-lg transform hover:-translate-y-1 text-lg">Explore Collection</a>
+                <a href="/userLogin" class="bg-white/90 backdrop-blur-sm text-gray-900 hover:bg-white px-10 py-4 rounded-full font-medium transition-all duration-300 inline-block shadow-md hover:shadow-lg transform hover:-translate-y-1 text-lg">Explore Collection</a>
             </div>
         </div>
     </section>
@@ -122,9 +122,9 @@
             <% products.forEach(product => { %>
                 <div class="group">
                     <div class="bg-white rounded-2xl shadow-sm overflow-hidden hover:shadow-md transition-all duration-300 transform hover:-translate-y-1 border border-gray-100">
-                        <a href="/user/userLogin" class="block relative overflow-hidden">
+                        <a href="/userLogin" class="block relative overflow-hidden">
                             <div class="absolute top-3 right-3 bg-perfume-500 text-white text-xs font-medium px-3 py-1 rounded-full z-10 shadow-sm">SALE</div>
-                            <img src="/uploads/<%=product.images[0]%>" class="w-full h-80 object-cover transition-transform duration-700 ease-out group-hover:scale-105" alt="<%= product.name %>">
+                            <img src="<%=product.images[0]%>" class="w-full h-80 object-cover transition-transform duration-700 ease-out group-hover:scale-105" alt="<%= product.name %>">
                         </a>
                         <div class="p-6">
                             <h5 class="font-serif text-lg font-medium text-gray-800 mb-3 truncate group-hover:text-perfume-600 transition-colors"><%= product.name %></h5>
@@ -154,9 +154,9 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
                 <% brands.forEach(brand => { %>
                     <div class="bg-white rounded-2xl shadow-sm overflow-hidden hover:shadow-md transition-all duration-300 transform hover:-translate-y-1 border border-gray-100">
-                        <a href="/user/userLogin %>" class="block">
+                        <a href="/userLogin %>" class="block">
                             <div class="h-44 flex items-center justify-center p-8 bg-gray-50">
-                                <img src="/<%= brand.image %>" class="h-full object-contain transition-transform duration-500 hover:scale-110" alt="<%= brand.name %>">
+                                <img src="<%= brand.image %>" class="h-full object-contain transition-transform duration-500 hover:scale-110" alt="<%= brand.name %>">
                             </div>
                             <div class="p-6 border-t border-gray-50">
                                 <h5 class="font-serif text-lg font-medium text-gray-800 mb-2"><%= brand.name %></h5>
@@ -175,8 +175,8 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
             <% categories.forEach(category => { %>
                 <div class="relative group overflow-hidden rounded-2xl shadow-sm">
-                    <a href="/user/userLogin">
-                        <img src="/<%= category.image %>" class="w-full h-80 object-cover transition-transform duration-700 ease-out group-hover:scale-110" alt="<%= category.name %>">
+                    <a href="/userLogin">
+                        <img src="<%= category.image %>" class="w-full h-80 object-cover transition-transform duration-700 ease-out group-hover:scale-110" alt="<%= category.name %>">
                         <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent flex items-end transition-opacity duration-300 group-hover:opacity-90">
                             <div class="w-full p-8 transform transition-transform duration-500 group-hover:translate-y-0 translate-y-4">
                                 <h5 class="font-serif text-xl font-bold text-white w-full text-center"><%= category.name %></h5>
@@ -196,7 +196,7 @@
         <div class="container mx-auto px-6">
             <div class="flex flex-col md:flex-row items-center justify-between mb-12">
                 <h2 class="font-serif text-3xl md:text-4xl font-bold text-gray-800 relative pb-2 after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-1/4 after:h-0.5 after:bg-perfume-300 after:rounded-full">New Arrivals</h2>
-                <a href="/user/shopping?sort=newest" class="mt-4 md:mt-0 text-gray-700 hover:text-perfume-600 font-medium flex items-center group transition-colors duration-300">
+                <a href="/shopping?sort=newest" class="mt-4 md:mt-0 text-gray-700 hover:text-perfume-600 font-medium flex items-center group transition-colors duration-300">
                     View All
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-1 transform transition-transform duration-300 group-hover:translate-x-1" viewBox="0 0 20 20" fill="currentColor">
                         <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
@@ -206,9 +206,9 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
                 <% products.forEach(product => { %>
                     <div class="bg-white rounded-2xl shadow-sm overflow-hidden hover:shadow-md transition-all duration-300 transform hover:-translate-y-1 border border-gray-100">
-                        <a href="/user/productView/<%=product._id%>" class="block relative">
+                        <a href="/productView/<%=product._id%>" class="block relative">
                             <div class="absolute top-3 left-3 bg-perfume-100 text-perfume-800 text-xs font-medium px-3 py-1 rounded-full z-10 shadow-sm">NEW</div>
-                            <img src="/uploads/<%= product.images[0] %>" class="w-full h-80 object-cover transition-transform duration-700 ease-out hover:scale-105" alt="<%= product.name %>">
+                            <img src="<%= product.images[0] %>" class="w-full h-80 object-cover transition-transform duration-700 ease-out hover:scale-105" alt="<%= product.name %>">
                         </a>
                         <div class="p-6">
                             <h5 class="font-serif text-lg font-medium text-gray-800 mb-2 truncate hover:text-perfume-600 transition-colors"><%= product.name %></h5>

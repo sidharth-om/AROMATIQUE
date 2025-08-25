@@ -105,7 +105,7 @@
               </p>
               <p class="text-sm mt-2"><%= addr.phoneNumber  %></p>
               <div class="flex mt-3 space-x-3">
-                <a href="/user/checkoutEditAddress/<%= addr._id %>" 
+                <a href="/checkoutEditAddress/<%= addr._id %>" 
                   class="text-sm text-blue-600 hover:text-blue-800">
                  Edit
                </a>
@@ -125,7 +125,7 @@
                 <i class="fas fa-plus text-blue-600"></i>
               </div>
               <h3 class="font-medium">Add New Address</h3>
-              <button class="mt-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm" onclick="window.location.href='/user/addAddress'">Add Address</button>
+              <button class="mt-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm" onclick="window.location.href='/addAddress'">Add Address</button>
             </div>
           </div>
         </div>
@@ -303,7 +303,7 @@
         if (paymentMethod === 'razorpay') {
             try {
                 // First, create order on the server
-                const orderResponse = await fetch('/user/createRazorpayOrder', {
+                const orderResponse = await fetch('/createRazorpayOrder', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -330,7 +330,7 @@
                     handler: async function (response) {
                         // Handle the payment success
                         try {
-                            const verifyResponse = await fetch('/user/verifyRazorpayPayment', {
+                            const verifyResponse = await fetch('/verifyRazorpayPayment', {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json' },
                                 body: JSON.stringify({
@@ -345,14 +345,14 @@
                             
                             if (verifyResult.success) {
                                 // Payment successful
-                                window.location.href = '/user/orderSuccessful';
+                                window.location.href = '/orderSuccessful';
                             } else {
                                 // Payment verification failed
-                                window.location.href = '/user/paymentFailed?orderId=' + orderData.orderId;
+                                window.location.href = '/paymentFailed?orderId=' + orderData.orderId;
                             }
                         } catch (error) {
                             console.error("Error verifying payment:", error);
-                            window.location.href = '/user/paymentFailed?orderId=' + orderData.orderId;
+                            window.location.href = '/paymentFailed?orderId=' + orderData.orderId;
                         }
                     },
                     prefill: {
@@ -390,7 +390,7 @@
                 // Handle payment failures from Razorpay
                 rzp.on('payment.failed', function (response) {
                     console.error("Payment failed:", response.error);
-                    window.location.href = '/user/paymentFailed?orderId=' + orderData.orderId;
+                    window.location.href = '/paymentFailed?orderId=' + orderData.orderId;
                 });
             } catch (error) {
                 console.error("Error starting Razorpay payment:", error);
@@ -404,7 +404,7 @@
         } else {
             // For COD or wallet payment, use existing flow
             try {
-                const response = await fetch('/user/placeOrder', {
+                const response = await fetch('/placeOrder', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -472,7 +472,7 @@
                 document.getElementById('applyButton').innerHTML = 'Applying...';
                 document.getElementById('applyButton').disabled = true;
                 
-                const response = await fetch('/user/validateCoupon', {
+                const response = await fetch('/validateCoupon', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -511,7 +511,7 @@
         // Remove coupon function - calls backend API
         async function removeCoupon() {
             try {
-                const response = await fetch('/user/removeCoupon', {
+                const response = await fetch('/removeCoupon', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -615,7 +615,7 @@
                     return;
                 }
 
-                const response = await fetch('/user/checkoutDeleteAddress', {
+                const response = await fetch('/checkoutDeleteAddress', {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ addressId })

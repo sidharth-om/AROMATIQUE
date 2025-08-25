@@ -51,8 +51,8 @@ app.use((req, res, next) => {
     next()
 })
 
-app.use("/user", userRoute)
-app.use("/admin", adminRoute)
+app.use("/", userRoute)
+app.use("/", adminRoute)
 
 app.get('*', (req, res) => {
  res.status(404).render('user/404');

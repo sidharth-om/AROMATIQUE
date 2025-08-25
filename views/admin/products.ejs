@@ -38,7 +38,7 @@
 </div>
 
 <header class="card-header text-center mb-20">
-  <form action="/admin/products/" method="get" class="d-inline">
+  <form action="/products/" method="get" class="d-inline">
       <div class="input-group input-group-sm border border-1 border-grey rounded-pill" 
            style="width: 500px; margin-left: 230px; display: flex;">
            
@@ -55,7 +55,7 @@
   </form>
 </header>
     <!-- Add Product Button -->
-    <a href="/admin/addProduct" class="btn btn-primary add-product-btn"
+    <a href="/addProduct" class="btn btn-primary add-product-btn"
       >Add Product</a>
  
 
@@ -197,7 +197,7 @@ async function redirectEdit(productid){
           });
           if(result.isConfirmed){
             try {
-                window.location.href=`/admin/editProducts/${productid}`
+                window.location.href=`/editProducts/${productid}`
             } catch (error) {
                 console.log(error)
             }
@@ -208,8 +208,8 @@ async function redirectEdit(productid){
 
  async function fetchCategoriesandBrand(params) {
     try {
-        const categoryResponse=await fetch("/admin/getCatagories")
-        const brandResponse=await fetch("/admin/getBrand")
+        const categoryResponse=await fetch("/getCatagories")
+        const brandResponse=await fetch("/getBrand")
 
         const categoryResult=await categoryResponse.json()
         const brandResult=await brandResponse.json()
@@ -252,7 +252,7 @@ async function redirectEdit(productid){
 
  document.getElementById("clearSearch").addEventListener("click", function () {
     document.getElementById("searchInput").value = ""; // Clear input field
-    window.location.href = "/admin/products"; // Reload page without search query
+    window.location.href = "/products"; // Reload page without search query
 
     
 });
@@ -270,7 +270,7 @@ document.querySelectorAll(".toggle-status").forEach(button => {
 
             // Use SweetAlert or standard confirm
             const confirmAction = () => {
-                fetch(`/admin/productStatus/${productId}`, {
+                fetch(`/productStatus/${productId}`, {
                     method: "POST",
                     headers: { 
                         "Content-Type": "application/json",

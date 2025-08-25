@@ -425,7 +425,7 @@
                     const filename = imageItem.dataset.filename;
                     const productId = document.getElementById("productId").value;
                     console.log("productId:", productId, "index", index);
-                    const response = await fetch("/admin/removeImage", {
+                    const response = await fetch("/removeImage", {
                         method: "DELETE",
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({ productId, index })
@@ -474,7 +474,7 @@ setTimeout(() => {
             
             // Cancel button
             cancelBtn.addEventListener('click', function() {
-                window.location.href = '/admin/products';
+                window.location.href = '/products';
             });
             
             // Cropper modal
@@ -487,8 +487,8 @@ setTimeout(() => {
         async function fetchCategoriesAndBrands() {
             try {
                 const [categoriesRes, brandsRes] = await Promise.all([
-                    fetch('/admin/getCatagories'),
-                    fetch('/admin/getBrand')
+                    fetch('/getCatagories'),
+                    fetch('/getBrand')
                 ]);
                 
                 const categoriesData = await categoriesRes.json(); 
@@ -842,7 +842,7 @@ setTimeout(() => {
                     console.log(key, value);
                 }
                 
-                const response = await fetch('/admin/editedProducts', {
+                const response = await fetch('/editedProducts', {
                     method: 'PATCH',
                     body: formData
                 });
@@ -857,7 +857,7 @@ setTimeout(() => {
                         timer: 2000,
                         showConfirmButton: false
                     }).then(() => {
-                        window.location.href = '/admin/products';
+                        window.location.href = '/products';
                     });
                 } else {
                     Swal.fire({

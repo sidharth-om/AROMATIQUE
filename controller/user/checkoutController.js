@@ -32,24 +32,24 @@ const checkoutController = {
             
             // Check if cart is empty
             if (!cart || !cart.items || cart.items.length <= 0) {
-                return res.redirect('/user/cart?message=Your cart is empty. Please add items before checkout.');
+                return res.redirect('/cart?message=Your cart is empty. Please add items before checkout.');
             }
 
             // Stock Validation
             for (let item of cart.items) {
                 const product = item.productId;
                 if (!product) {
-                    return res.redirect('/user/cart?message=Product not found.');
+                    return res.redirect('/cart?message=Product not found.');
                 }
                 
                 const variant = product.variants.find(v => v.volume === item.volume);
                 
                 if (!variant) {
-                    return res.redirect('/user/cart?message=Product variant not found.');
+                    return res.redirect('/cart?message=Product variant not found.');
                 }
 
                 if (item.quantity > variant.quantity) {
-                    return res.redirect(`/user/cart?message=Insufficient stock for ${product.name} (${variant.volume}). Available: ${variant.quantity}`);
+                    return res.redirect(`/cart?message=Insufficient stock for ${product.name} (${variant.volume}). Available: ${variant.quantity}`);
                 }
             }
             
@@ -141,7 +141,7 @@ const checkoutController = {
             });
         } catch (error) {
             console.log(error.message);
-            res.redirect('/user/cart?message=An error occurred. Please try again.');
+            res.redirect('/cart?message=An error occurred. Please try again.');
         }
     },
 
@@ -598,7 +598,7 @@ const checkoutController = {
 
                 return res.json({
                     success: true,
-                    redirectUrl: "/user/orderSuccessful",
+                    redirectUrl: "/orderSuccessful",
                 });
             }
 
@@ -695,7 +695,7 @@ const checkoutController = {
 
             return res.json({
                 success: true,
-                redirectUrl: "/user/orderSuccessful",
+                redirectUrl: "/orderSuccessful",
             });
         } catch (error) {
             console.log(error.message);
@@ -711,7 +711,7 @@ const checkoutController = {
             const orderDetails = req.session.orderDetails;
             
             if (!orderDetails) {
-                return res.redirect('/user/checkout');
+                return res.redirect('/checkout');
             }
             
             const email = req.session.user.email;
@@ -738,7 +738,7 @@ const checkoutController = {
             });
         } catch (error) {
             console.log(error.message);
-            res.redirect('/user/checkout');
+            res.redirect('/checkout');
         }
     },
 
@@ -747,7 +747,7 @@ const checkoutController = {
             const orderDetails = req.session.orderDetails;
 
             if (!orderDetails) {
-                return res.redirect('/user/checkout');
+                return res.redirect('/checkout');
             }
             
             const email = req.session.user.email;
@@ -1019,7 +1019,7 @@ const checkoutController = {
                 return res.status(statusCode.BAD_REQUEST).json({
                     success: false,
                     message: message.verifyRazorpayPaymentFailed,
-                    redirectUrl: `/user/paymentFailed?orderId=${orderId}`
+                    redirectUrl: `/paymentFailed?orderId=${orderId}`
                 });
             }
 
@@ -1029,7 +1029,7 @@ const checkoutController = {
                 return res.status(statusCode.NOT_FOUND).json({
                     success: false,
                     message: message.verifyRazorpayPaymentOrderNotFound,
-                    redirectUrl: '/user/checkout'
+                    redirectUrl: '/checkout'
                 });
             }
 
@@ -1037,7 +1037,7 @@ const checkoutController = {
                 return res.status(statusCode.FORBIDDEN).json({
                     success: false,
                     message: message.verifyRazorpayPaymentUnauthorized,
-                    redirectUrl: '/user/checkout'
+                    redirectUrl: '/checkout'
                 });
             }
 
@@ -1107,7 +1107,7 @@ const checkoutController = {
             return res.status(statusCode.OK).json({
                 success: true,
                 message:message.verifyRazorpayPaymentSuccess,
-                redirectUrl: '/user/orderSuccessful'
+                redirectUrl: '/orderSuccessful'
             });
         } catch (error) {
             console.log('Error in verifyRazorpayPayment:', error.message);
@@ -1123,7 +1123,7 @@ const checkoutController = {
             return res.status(statusCode.INTERNAL_SERVER_ERROR).json({
                 success: false,
                 message: message.verifyRazorpayPaymentGeneralError,
-                redirectUrl: `/user/paymentFailed?orderId=${req.body.orderId}`
+                redirectUrl: `/paymentFailed?orderId=${req.body.orderId}`
             });
         }
     },
@@ -1158,7 +1158,7 @@ const checkoutController = {
             });
         } catch (error) {
             console.log(error.message);
-            res.redirect('/user/checkout');
+            res.redirect('/checkout');
         }
     }
 }

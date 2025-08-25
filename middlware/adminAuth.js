@@ -3,12 +3,12 @@ const isAdminAuthenticated = (req, res, next) => {
     if (req.session.admin) {
       return next();
     }
-    res.redirect('/admin/adminLogin');
+    res.redirect('/adminLogin');
   };
   
   const isAdminNotAuthenticated = (req, res, next) => {
     if (req.session.admin) {
-      return res.redirect('/admin/loadDashboard');
+      return res.redirect('/loadDashboard');
     }
     next();
   };

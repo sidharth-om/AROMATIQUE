@@ -109,7 +109,7 @@
                 const otp = document.getElementById("otp").value;
 
                 try {
-                    const res = await fetch("/user/verifyOtp", {
+                    const res = await fetch("/verifyOtp", {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({ otp })
@@ -146,7 +146,7 @@
 
             document.getElementById("resendOtp").addEventListener("click", async function () {
                 try {
-                    const res = await fetch("/user/resendOtp", { method: "POST" });
+                    const res = await fetch("/resendOtp", { method: "POST" });
                     const result = await res.json();
                     
                     // Reset and start timers

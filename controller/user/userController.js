@@ -146,7 +146,7 @@ loadLandingPage:async (req,res) => {
             await sendOtpByEmail(email, otp);
            
 
-            return res.status(statusCode.OK).json({ success: true, redirectUrl: "/user/enterOtp" });
+            return res.status(statusCode.OK).json({ success: true, redirectUrl: "/enterOtp" });
         } catch (error) {
             console.error(error.message);
             res.status(statusCode.INTERNAL_SERVER_ERROR).json({ message:message.verifyRegisterGeneralError });
@@ -226,7 +226,7 @@ loadLandingPage:async (req,res) => {
             delete req.session.email;
             delete req.session.password;
 
-            return res.status(statusCode.OK).json({ success: true, redirectUrl: "/user/userLogin" });
+            return res.status(statusCode.OK).json({ success: true, redirectUrl: "/userLogin" });
         } catch (error) {
             console.error(error.message);
             res.status(statusCode.INTERNAL_SERVER_ERROR).json({ message: message.verifyOtpGeneralError });
@@ -297,7 +297,7 @@ loadLandingPage:async (req,res) => {
                 email: user.email
             };
 
-            return res.status(statusCode.OK).json({ success: true, redirectUrl: "/user/userHome" });
+            return res.status(statusCode.OK).json({ success: true, redirectUrl: "/userHome" });
         } catch (error) {
             console.error(error.message);
             res.status(statusCode.INTERNAL_SERVER_ERROR).json({ message: message.verifyLoginGeneralError });
@@ -325,7 +325,7 @@ loadLandingPage:async (req,res) => {
     loadReferralPage: async (req, res) => {
         try {
             if (!req.session.user) {
-                return res.redirect('/user/userLogin');
+                return res.redirect('/userLogin');
             }
 
             const userId = req.session.user.userId;
@@ -402,7 +402,7 @@ loadLandingPage:async (req,res) => {
                 isActive: user.isActive,
                 email: user.email
             };
-            return res.status(statusCode.OK).json({ success: true, message: message.googleLoginSuccess, redirectUrl: "/user/userHome" });
+            return res.status(statusCode.OK).json({ success: true, message: message.googleLoginSuccess, redirectUrl: "/userHome" });
         } catch (error) {
             console.error(error.message);
             res.status(statusCode.INTERNAL_SERVER_ERROR).json({ message: message.googleLoginGeneralError});
@@ -492,7 +492,7 @@ loadLandingPage:async (req,res) => {
             user.expiresAt = undefined;
             await user.save();
 
-            res.json({ success: true, redirectUrl: '/user/userLogin' });
+            res.json({ success: true, redirectUrl: '/userLogin' });
         } catch (error) {
             console.error(error.message);
             res.status(statusCode.INTERNAL_SERVER_ERROR).json({ message: message.enterNewPasswordGeneralError });

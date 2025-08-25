@@ -272,7 +272,7 @@ const userProfileController = {
 
 
             console.log("Address updated successfully",updatedAddress)
-            res.json({success:true,message:message.updateAddressSuccess,redirectUrl:"/user/viewProfile"})
+            res.json({success:true,message:message.updateAddressSuccess,redirectUrl:"/viewProfile"})
 
 
         } catch (error) {

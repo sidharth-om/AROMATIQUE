@@ -57,7 +57,7 @@
   </div> -->
   
   <header class="card-header text-center mb-20">
-    <form action="/admin/brands/" method="get" class="d-inline">
+    <form action="/brands/" method="get" class="d-inline">
         <div class="input-group input-group-sm border border-1 border-grey rounded-pill" 
              style="width: 500px; margin-left: 230px; display: flex;">
              
@@ -264,19 +264,19 @@
   <ul class="pagination">
     <% if (currentPage > 1) { %>
       <li class="page-item">
-        <a class="page-link" href="/admin/brands?page=<%= currentPage - 1 %>&search=<%= searchQuery %>">Previous</a>
+        <a class="page-link" href="/brands?page=<%= currentPage - 1 %>&search=<%= searchQuery %>">Previous</a>
       </li>
     <% } %>
 
     <% for (let i = 1; i <= totalPages; i++) { %>
       <li class="page-item <%= i === currentPage ? 'active' : '' %>">
-        <a class="page-link" href="/admin/brands?page=<%= i %>&search=<%= searchQuery %>"><%= i %></a>
+        <a class="page-link" href="/brands?page=<%= i %>&search=<%= searchQuery %>"><%= i %></a>
       </li>
     <% } %>
 
     <% if (currentPage < totalPages) { %>
       <li class="page-item">
-        <a class="page-link" href="/admin/brands?page=<%= currentPage + 1 %>&search=<%= searchQuery %>">Next</a>
+        <a class="page-link" href="/brands?page=<%= currentPage + 1 %>&search=<%= searchQuery %>">Next</a>
       </li>
     <% } %>
   </ul>
@@ -295,7 +295,7 @@
       event.preventDefault();
       const formData = new FormData(this);
       try {
-        const response = await fetch("/admin/addBrand", {
+        const response = await fetch("/addBrand", {
           method: "POST",
 
           body: formData,
@@ -372,7 +372,7 @@
         formData.append("image", imageFile);
     }
       try {
-        const response=await fetch(`/admin/editBrand/${id}`,{
+        const response=await fetch(`/editBrand/${id}`,{
           method:"POST",
           // headers:{"Content-Type":"application/json"},
           // body:JSON.stringify(updatedData)

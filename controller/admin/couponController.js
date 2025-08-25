@@ -68,7 +68,7 @@ const adminCouponController = {
             });
         } catch (error) {
             console.log("Error loading add coupon page:", error.message);
-            res.redirect("/admin/coupons");
+            res.redirect("/coupons");
         }
     },
     
@@ -205,7 +205,7 @@ const adminCouponController = {
         res.status(statusCode.CREATED).json({
             success: true,
             message: message.createCouponSuccess,
-            redirectUrl: "/admin/coupon",
+            redirectUrl: "/coupon",
             coupon: newCoupon
         });
         
@@ -225,7 +225,7 @@ const adminCouponController = {
             const coupon = await Coupon.findById(couponId);
             
             if (!coupon) {
-                return res.redirect("/admin/coupons?error=Coupon not found");
+                return res.redirect("/coupons?error=Coupon not found");
             }
             
             // Format dates for HTML input
@@ -242,7 +242,7 @@ const adminCouponController = {
             });
         } catch (error) {
             console.log("Error loading edit coupon:", error.message);
-            res.redirect("/admin/coupons?error=Error loading coupon");
+            res.redirect("/coupons?error=Error loading coupon");
         }
     },
     

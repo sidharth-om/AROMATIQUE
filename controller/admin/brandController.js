@@ -182,7 +182,7 @@ const brandController = {
       const newBrand = new Brand({ name, image });
       await newBrand.save();
 
-      return res.status(statusCode.OK).json({ success: true, redirectUrl: "/admin/brands" });
+      return res.status(statusCode.OK).json({ success: true, redirectUrl: "/brands" });
     } catch (error) {
       console.error(error.message);
       return res.status(statusCode.INTERNAL_SERVER_ERROR).json({ message: "Internal Server Error" });

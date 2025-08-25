@@ -8,91 +8,106 @@
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+    <style>
+        .background-image {
+            background-image: url('/uploads/Ice Blue Parfum is a cold scent made for people….jpg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            height: 100vh;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        /* Logo styling for better visibility */
+        .logo-container {
+            margin-bottom: 1.5rem;
+            padding: 0.5rem;
+            background-color: rgba(255, 255, 255, 0.7);
+            border-radius: 0.5rem;
+        }
+        
+        .logo-img {
+            max-height: 80px;
+            width: auto;
+            opacity: 1 !important; /* Force full opacity */
+        }
+    </style>
 </head>
-<body class="bg-gray-100 font-sans">
-    <div class="flex min-h-screen">
-        <!-- Left Section -->
-        <div class="hidden lg:flex lg:w-1/2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white p-12 flex-col justify-between">
-            <div>
-                <h1 class="text-4xl font-bold">Aromatique</h1>
-                <p class="mt-2 text-lg">Discover your perfect scent</p>
+<body class="font-sans">
+    <div class="background-image">
+        <div class="bg-white bg-opacity-50 p-8 rounded-2xl shadow-2xl w-full max-w-md border border-amber-100 ">
+            <!-- Enhanced header with brand styling -->
+            <div class="text-center">
+                <div >
+                    <img src="/uploads/logo.png" alt="Aromatique" class="logo-img mx-auto">
+                </div>
+                <h2 class="text-3xl font-bold text-amber-900 mb-2 ">Create Account</h2>
+                <p class="text-amber-700">Join the Aromatique family today</p>
             </div>
-            <div>
-                <h2 class="text-2xl font-semibold">Join with a Referral Code</h2>
-                <p class="mt-4">Get exclusive welcome offers</p>
-                <p>Help friends earn rewards</p>
-                <p>Join our community of fragrance lovers</p>
-            </div>
-        </div>
 
-        <!-- Right Section -->
-        <div class="w-full lg:w-1/2 flex items-center justify-center p-6">
-            <div class="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
-                <h2 class="text-2xl font-bold text-center text-gray-800">Create Account</h2>
-                <p class="text-center text-gray-600 mb-6">Join the Aromatique family today</p>
-
-                <form id="signupForm" class="space-y-4">
-                    <div>
-                        <input type="text" id="fullname" name="fullname" placeholder="Full Name" class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500" >
-                    </div>
-                    <div>
-                        <input type="email" id="email" name="email" placeholder="Email" class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500" >
-                    </div>
-                    <div>
-                        <input type="tel" id="phone" name="phone" placeholder="Phone Number" class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500" >
-                    </div>
-                    <div>
-                        <div class="relative">
-                            <input type="password" id="password" name="password" placeholder="Password" class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500" >
-                            <button type="button" id="togglePassword" class="absolute right-3 top-3 text-gray-500">
-                                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                </svg>
-                            </button>
-                        </div>
-                    </div>
-                    <div>
-                        <div class="relative">
-                            <input type="password" id="confirmPassword" name="confirmPassword" placeholder="Confirm Password" class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500" >
-                            <button type="button" id="toggleConfirmPassword" class="absolute right-3 top-3 text-gray-500">
-                                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                </svg>
-                            </button>
-                        </div>
-                    </div>
-                    <div>
-                        <input type="text" id="referralCode" name="referralCode" placeholder="Referral Code (Optional)" class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                        <p id="referralMessage" class="text-sm text-gray-500 mt-1"></p>
-                    </div>
-                    <button type="submit" id="submitButton" class="w-full bg-indigo-600 text-white p-3 rounded-lg hover:bg-indigo-700 transition duration-300">
-                        <span id="buttonText">Create Account</span>
-                        <span id="loadingSpinner" class="hidden">
-                            <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            <form id="signupForm" class="space-y-4">
+                <div>
+                    <input type="text" id="fullname" name="fullname" placeholder="Full Name" class="w-full p-3 border border-amber-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-colors" >
+                </div>
+                <div>
+                    <input type="email" id="email" name="email" placeholder="Email" class="w-full p-3 border border-amber-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-colors" >
+                </div>
+                <div>
+                    <input type="tel" id="phone" name="phone" placeholder="Phone Number" class="w-full p-3 border border-amber-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-colors" >
+                </div>
+                <div>
+                    <div class="relative">
+                        <input type="password" id="password" name="password" placeholder="Password" class="w-full p-3 border border-amber-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-colors" >
+                        <button type="button" id="togglePassword" class="absolute right-3 top-3 text-amber-600 hover:text-amber-800 transition-colors">
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                             </svg>
-                            Creating Account...
-                        </span>
-                    </button>
-                </form>
+                        </button>
+                    </div>
+                </div>
+                <div>
+                    <div class="relative">
+                        <input type="password" id="confirmPassword" name="confirmPassword" placeholder="Confirm Password" class="w-full p-3 border border-amber-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-colors" >
+                        <button type="button" id="toggleConfirmPassword" class="absolute right-3 top-3 text-amber-600 hover:text-amber-800 transition-colors">
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                <div>
+                    <input type="text" id="referralCode" name="referralCode" placeholder="Referral Code (Optional)" class="w-full p-3 border border-amber-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-colors">
+                    <p id="referralMessage" class="text-sm text-amber-600 mt-1"></p>
+                </div>
+                <button type="submit" id="submitButton" class="w-full bg-gradient-to-r from-amber-600 to-orange-600 text-white p-3 rounded-lg hover:from-amber-700 hover:to-orange-700 transition duration-300 font-semibold shadow-lg">
+                    <span id="buttonText">Create Account</span>
+                    <span id="loadingSpinner" class="hidden">
+                        <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Creating Account...
+                    </span>
+                </button>
+            </form>
 
-                <p class="text-center text-gray-600 mt-4">
-                    Already have an account? 
-                    <a href="/user/userLogin" class="text-indigo-600 hover:underline">Sign In</a>
-                </p>
+            <p class="text-center text-amber-700 mt-6">
+                Already have an account? 
+                <a href="/userLogin" class="text-amber-800 hover:text-amber-900 font-semibold hover:underline transition-colors">Sign In</a>
+            </p>
 
-                <p class="text-center text-gray-500 text-sm mt-4">
-                    Have a friend's referral code? Enter it above to get started with exclusive benefits!
-                </p>
-            </div>
+            <p class="text-center text-amber-600 text-sm mt-4">
+                Have a friend's referral code? Enter it above to get started with exclusive benefits!
+            </p>
         </div>
     </div>
 
     <script>
-        // Toastify helper functions
         function showSuccessToast(message) {
             Toastify({
                 text: message,
@@ -162,37 +177,33 @@
         }
 
         $(document).ready(function() {
-            // Toggle password visibility
             $('#togglePassword').click(function() {
                 const passwordInput = $('#password');
                 const type = passwordInput.attr('type') === 'password' ? 'text' : 'password';
                 passwordInput.attr('type', type);
-                $(this).find('svg').toggleClass('text-gray-500 text-indigo-500');
+                $(this).find('svg').toggleClass('text-amber-600 text-amber-800');
             });
 
             $('#toggleConfirmPassword').click(function() {
                 const confirmPasswordInput = $('#confirmPassword');
                 const type = confirmPasswordInput.attr('type') === 'password' ? 'text' : 'password';
                 confirmPasswordInput.attr('type', type);
-                $(this).find('svg').toggleClass('text-gray-500 text-indigo-500');
+                $(this).find('svg').toggleClass('text-amber-600 text-amber-800');
             });
 
-            // Real-time referral code validation with debounce
             let referralTimeout;
             $('#referralCode').on('input', function() {
                 const referralCode = $(this).val().trim();
                 const referralMessage = $('#referralMessage');
 
-                // Clear previous timeout
                 clearTimeout(referralTimeout);
 
                 if (referralCode.length > 0) {
-                    // Add debounce to avoid too many API calls
                     referralTimeout = setTimeout(() => {
                         referralMessage.text('Validating...').removeClass('text-red-500 text-green-500').addClass('text-yellow-500');
                         
                         $.ajax({
-                            url: '/user/checkReferralCode',
+                            url: '/checkReferralCode',
                             method: 'POST',
                             data: { referralCode },
                             timeout: 5000,
@@ -210,17 +221,15 @@
                                 showErrorToast('Failed to validate referral code. Please try again.');
                             }
                         });
-                    }, 500); // 500ms debounce
+                    }, 500);
                 } else {
                     referralMessage.text('');
                 }
             });
 
-            // Form submission with improved error handling
             $('#signupForm').submit(function(e) {
                 e.preventDefault();
                 
-                // Client-side validation
                 const formData = {
                     fullname: $('#fullname').val().trim(),
                     email: $('#email').val().trim(),
@@ -230,7 +239,6 @@
                     referralCode: $('#referralCode').val().trim()
                 };
 
-                // Basic client-side validation
                 if (!formData.fullname) {
                     showErrorToast('Full name is required');
                     $('#fullname').focus();
@@ -270,10 +278,10 @@
                 setLoadingState(true);
 
                 $.ajax({
-                    url: '/user/verifyRegister',
+                    url: '/verifyRegister',
                     method: 'POST',
                     data: $(this).serialize(),
-                    timeout: 10000, // 10 second timeout
+                    timeout: 10000,
                     success: function(response) {
                         setLoadingState(false);
                         
@@ -283,7 +291,6 @@
                                 window.location.href = response.redirectUrl;
                             }, 1500);
                         } else {
-                            // Handle server-side validation errors
                             showErrorToast(response.message || 'Registration failed. Please try again.');
                         }
                     },
@@ -310,17 +317,14 @@
                 });
             });
 
-            // Add input validation feedback
             $('input').on('blur', function() {
                 const input = $(this);
                 const value = input.val().trim();
                 const inputName = input.attr('name');
                 
-                // Remove existing validation classes
                 input.removeClass('border-red-500 border-green-500');
                 
                 if (value) {
-                    // Basic validation patterns
                     const patterns = {
                         fullname: /^[A-Za-z\s]{3,50}$/,
                         email: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
@@ -343,7 +347,6 @@
                 }
             });
 
-            // Show welcome message
             setTimeout(() => {
                 showInfoToast('Welcome to Aromatique! Create your account to get started.');
             }, 1000);

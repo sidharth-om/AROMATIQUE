@@ -15,7 +15,7 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center py-6">
                 <div class="flex items-center">
-                    <a href="/user/viewProfile" class="text-indigo-600 hover:text-indigo-800 mr-4">
+                    <a href="/viewProfile" class="text-indigo-600 hover:text-indigo-800 mr-4">
                         <i class="fas fa-arrow-left text-xl"></i>
                     </a>
                     <h1 class="text-2xl font-bold text-gray-900">Edit Profile</h1>
@@ -38,7 +38,7 @@
                     <li>
                         <div class="flex items-center">
                             <i class="fas fa-chevron-right text-gray-400 mx-2"></i>
-                            <a href="/user/viewProfile" class="ml-1 text-sm font-medium text-gray-700 hover:text-indigo-600">Profile</a>
+                            <a href="/viewProfile" class="ml-1 text-sm font-medium text-gray-700 hover:text-indigo-600">Profile</a>
                         </div>
                     </li>
                     <li aria-current="page">
@@ -134,7 +134,7 @@
                             Save Changes
                         </button>
                         <a 
-                            href="/user/viewProfile" 
+                            href="/viewProfile" 
                             class="flex-1 bg-gray-200 text-gray-800 py-3 px-6 rounded-lg font-medium hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition duration-200 ease-in-out text-center"
                         >
                             <i class="fas fa-times mr-2"></i>
@@ -251,7 +251,7 @@
                 };
 
                 try {
-                    const response = await fetch('/user/updateProfile', {
+                    const response = await fetch('/updateProfile', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -265,7 +265,7 @@
                         showToast('Profile updated successfully!', 'success');
                         // Redirect after success
                         setTimeout(() => {
-                            window.location.href = '/user/viewProfile';
+                            window.location.href = '/viewProfile';
                         }, 2000);
                     } else {
                         showToast(result.message || 'Failed to update profile', 'error');

@@ -82,7 +82,7 @@
                                 <td class="py-4 text-center">
                                     <div class="flex items-center justify-center">
                                         <button 
-                                            onclick="changeQuantity('<%= item.productId._id %>', <%= item.quantity %>, -1, <%= finalPrice %>, <%= index %>, <%= variant.quantity %>)" 
+                                            onclick="changeQuantity('<%= item.productId._id %>', <%= item.quantity %>, -1, <%= finalPrice %>, <%= index %>, <%= variant.quantity %>, <%= regularPrice %>, <%= maxOffer %>)" 
                                             class="w-8 h-8 rounded-l bg-gray-200 hover:bg-gray-300 flex items-center justify-center">
                                             <i class="fas fa-minus text-sm"></i>
                                         </button>
@@ -93,7 +93,7 @@
                                             value="<%= item.quantity %>" 
                                             readonly>
                                         <button 
-                                            onclick="changeQuantity('<%= item.productId._id %>', <%= item.quantity %>, 1, <%= finalPrice %>, <%= index %>, <%= variant.quantity %>)" 
+                                            onclick="changeQuantity('<%= item.productId._id %>', <%= item.quantity %>, 1, <%= finalPrice %>, <%= index %>, <%= variant.quantity %>, <%= regularPrice %>, <%= maxOffer %>)" 
                                             class="w-8 h-8 rounded-r bg-gray-200 hover:bg-gray-300 flex items-center justify-center">
                                             <i class="fas fa-plus text-sm"></i>
                                         </button>
@@ -105,7 +105,7 @@
                                     %>
                                     ₹<span id="subTotal<%= index %>"><%= Math.round(subtotal.toFixed(2)) %></span>
                                     <% if (maxOffer > 0) { %>
-                                        <p class="text-xs sm:text-sm text-green-600">Saved: ₹<%= Math.round((discountAmount * item.quantity).toFixed(2)) %></p>
+                                        <p class="text-xs sm:text-sm text-green-600">Saved: ₹<span id="savedAmount<%= index %>"><%= Math.round((discountAmount * item.quantity).toFixed(2)) %></span></p>
                                     <% } %>
                                 </td>
                                 <td class="py-4 text-center">
@@ -132,7 +132,7 @@
                 </div>
                 
                 <div class="mt-6 flex justify-between items-center">
-                    <a href="/user/shopping" class="flex items-center text-blue-600 hover:text-blue-800">
+                    <a href="/shopping" class="flex items-center text-blue-600 hover:text-blue-800">
                         <i class="fas fa-arrow-left mr-2"></i>
                         Continue Shopping
                     </a>
@@ -171,12 +171,12 @@
                     <h2 class="text-xl sm:text-2xl font-bold mb-4">PRICE DETAILS</h2>
                     <div class="border-t pt-4">
                         <div class="flex justify-between py-2">
-                            <span class="text-gray-600 text-sm sm:text-base">Price (<%= itemCount %> items)</span>
-                            <span class="text-sm sm:text-base">₹<%= Math.round(totalRegularAmount.toFixed(2)) %></span>
+                            <span class="text-gray-600 text-sm sm:text-base">Price (<span id="itemCount"><%= itemCount %></span> items)</span>
+                            <span class="text-sm sm:text-base">₹<span id="totalRegularAmount"><%= Math.round(totalRegularAmount.toFixed(2)) %></span></span>
                         </div>
                         <div class="flex justify-between py-2">
                             <span class="text-gray-600 text-sm sm:text-base">Discount</span>
-                            <span class="text-green-600 text-sm sm:text-base">- ₹<%= Math.round(totalSavings.toFixed(2)) %></span>
+                            <span class="text-green-600 text-sm sm:text-base">- ₹<span id="totalSavings"><%= Math.round(totalSavings.toFixed(2)) %></span></span>
                         </div>
                         <div class="flex justify-between py-2">
                             <span class="text-gray-600 text-sm sm:text-base">Delivery Charges</span>
@@ -188,9 +188,9 @@
                             <span class="text-sm sm:text-base">Total Amount</span>
                             <span class="text-sm sm:text-base">₹<span id="total"><%= Math.round(totalAmount.toFixed(2)) %></span></span>
                         </div>
-                        <div class="text-green-600 text-xs sm:text-sm mb-4">You'll save ₹<%= totalSavings.toFixed(2) %> on this order</div>
+                        <div class="text-green-600 text-xs sm:text-sm mb-4">You'll save ₹<span id="totalSavingsText"><%= totalSavings.toFixed(2) %></span> on this order</div>
                     </div>
-                    <button onclick="window.location.href='/user/checkout'" class="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-md font-medium text-sm sm:text-base">
+                    <button onclick="window.location.href='/checkout'" class="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-md font-medium text-sm sm:text-base">
                         PLACE ORDER
                     </button>
                 </div>
@@ -251,15 +251,36 @@
             </div>
         </div>
     </footer>
-    <%- include("partials/footer") %>
 
     <script>
-        async function changeQuantity(productId, cartQuantity, count, productPrice, i, productStock) {
+        // Store product data for calculations
+        const productData = {};
+        <% if (cart && cart.items && cart.items.length > 0) { %>
+            <% cart.items.forEach((item, index) => { %>
+                <%
+                const variant = item.productId.variants.find(v => v.volume === item.volume);
+                const regularPrice = variant ? variant.regularPrice : 0;
+                const productOffer = item.productId.offer || 0;
+                const categoryOffer = item.productId.categoryId.offer || 0;
+                const maxOffer = Math.max(productOffer, categoryOffer);
+                const discountAmount = regularPrice * (maxOffer / 100);
+                const discountedPrice = regularPrice - discountAmount;
+                const finalPrice = discountedPrice;
+                %>
+                productData['<%= index %>'] = {
+                    regularPrice: <%= regularPrice %>,
+                    finalPrice: <%= finalPrice %>,
+                    maxOffer: <%= maxOffer %>,
+                    discountAmount: <%= discountAmount %>
+                };
+            <% }); %>
+        <% } %>
+
+        async function changeQuantity(productId, cartQuantity, count, productPrice, i, productStock, regularPrice, maxOffer) {
             const cartProductQuantityElement = document.getElementById(`cartProductQuantity${i}`);
             const subtotalElement = document.getElementById(`subTotal${i}`);
-            const totalElement = document.getElementById('total');
-            const deliveryChargeElement = document.getElementById('deliveryCharge');
-
+            const savedAmountElement = document.getElementById(`savedAmount${i}`);
+            
             let currentQuantity = parseInt(cartProductQuantityElement.value);
             
             if (currentQuantity + count > 6) {
@@ -278,29 +299,25 @@
         
             // Update UI immediately
             cartProductQuantityElement.value = newQuantity;
+            
+            // Calculate new subtotal and savings for this item
             const newSubtotal = (newQuantity * productPrice).toFixed(2);
             subtotalElement.innerText = newSubtotal;
-        
-            // Calculate total and delivery charge
-            let total = 0;
-            document.querySelectorAll('[id^="subTotal"]').forEach(span => {
-                total += parseFloat(span.innerText);
-            });
-
-            // Apply delivery charge logic
-            const deliveryCharge = total < 1000 ? 40 : 0;
-            total += deliveryCharge;
-
-            // Update delivery charge display
-            deliveryChargeElement.innerText = deliveryCharge === 0 ? 'FREE' : `₹${deliveryCharge.toFixed(2)}`;
-            deliveryChargeElement.className = deliveryCharge === 0 ? 'text-green-600' : '';
-
-            // Update total display
-            totalElement.innerText = total.toFixed(2);
+            
+            if (savedAmountElement) {
+                const newSavedAmount = (newQuantity * (regularPrice - productPrice)).toFixed(2);
+                savedAmountElement.innerText = newSavedAmount;
+            }
+            
+            // Update the product data for this item
+            productData[i].quantity = newQuantity;
+            
+            // Recalculate the entire cart
+            recalculateCartTotals();
         
             // Send update to backend
             try {
-                const res = await fetch('/user/updateCartQuantity', {
+                const res = await fetch('/updateCartQuantity', {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ productId, quantity: newQuantity })
@@ -316,10 +333,44 @@
                 Swal.fire({ title: 'Error', text: 'Something went wrong!', icon: 'error', timer: 3000 });
             }
         }
+        
+        function recalculateCartTotals() {
+            let totalRegularAmount = 0;
+            let totalAmount = 0;
+            let totalSavings = 0;
+            let itemCount = 0;
+            
+            // Calculate totals based on all items
+            for (const index in productData) {
+                const data = productData[index];
+                const quantity = parseInt(document.getElementById(`cartProductQuantity${index}`).value);
+                
+                totalRegularAmount += data.regularPrice * quantity;
+                totalAmount += data.finalPrice * quantity;
+                totalSavings += data.discountAmount * quantity;
+                itemCount += quantity;
+            }
+            
+            // Calculate delivery charge
+            const deliveryCharge = totalAmount < 1000 ? 40 : 0;
+            totalAmount += deliveryCharge;
+            
+            // Update the UI with new totals
+            document.getElementById('itemCount').textContent = itemCount;
+            document.getElementById('totalRegularAmount').textContent = Math.round(totalRegularAmount.toFixed(2));
+            document.getElementById('totalSavings').textContent = Math.round(totalSavings.toFixed(2));
+            document.getElementById('totalSavingsText').textContent = totalSavings.toFixed(2);
+            
+            const deliveryChargeElement = document.getElementById('deliveryCharge');
+            deliveryChargeElement.textContent = deliveryCharge === 0 ? 'FREE' : `₹${deliveryCharge.toFixed(2)}`;
+            deliveryChargeElement.className = deliveryCharge === 0 ? 'text-green-600 text-sm sm:text-base' : 'text-sm sm:text-base';
+            
+            document.getElementById('total').textContent = Math.round(totalAmount.toFixed(2));
+        }
     
         async function confirmRemove(productId) {
             try {
-                const response = await fetch(`/user/deleteCart/${productId}`, {
+                const response = await fetch(`/deleteCart/${productId}`, {
                     method: "DELETE",
                     headers: {"Content-Type": "application/json"},
                 });

@@ -29,7 +29,7 @@
                     Retry Payment
                 </button>
             <% } %>
-            <a href="/user/myOrders"
+            <a href="/myOrders"
                 class="bg-gray-300 text-gray-800 px-6 py-2 rounded hover:bg-gray-400 transition duration-300">
                 View Orders
             </a>
@@ -73,7 +73,7 @@
             retryBtn.textContent = "Processing...";
 
             try {
-                const res = await fetch("/user/createRazorpayOrder", {
+                const res = await fetch("/createRazorpayOrder", {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json"
@@ -100,7 +100,7 @@
                         order_id: data.order.id,
                         handler: async function (response) {
                             try {
-                                const verify = await fetch("/user/verifyRazorpayPayment", {
+                                const verify = await fetch("/verifyRazorpayPayment", {
                                     method: "POST",
                                     headers: {
                                         "Content-Type": "application/json"

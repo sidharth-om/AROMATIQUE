@@ -49,7 +49,7 @@
 <body>
     <div class="login-container">
         <h1>Admin Login</h1>
-        <form action="/login" method="POST" id="adminlogin">
+        <form action="/verifyLogin" method="POST" id="adminlogin">
             <div class="mb-3">
                 <label for="email" class="form-label">Email:</label>
                 <input type="email" class="form-control" id="email" name="email" >
@@ -73,7 +73,7 @@
             const formData=Object.fromEntries(new FormData(this))
             console.log(formData)
             try {
-                const response=await fetch("/admin/verifyLogin",{
+                const response=await fetch("/verifyAdminLogin",{
                     method:"POST",
                     headers:{"Content-Type":"application/json"},
                     body:JSON.stringify(formData)

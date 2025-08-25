@@ -380,7 +380,7 @@
             }
             params.append('page', page);
             
-            window.location.href = `/user/myOrders?${params.toString()}`;
+            window.location.href = `/myOrders?${params.toString()}`;
         }
 
         function performSearch() {
@@ -391,11 +391,11 @@
                 params.append('search', query);
             }
             
-            window.location.href = `/user/myOrders?${params.toString()}`;
+            window.location.href = `/myOrders?${params.toString()}`;
         }
 
         function clearSearch() {
-            window.location.href = '/user/myOrders';
+            window.location.href = '/myOrders';
         }
 
         // Event listeners
@@ -430,7 +430,7 @@
         // Order management functions
         function viewOrder(orderId, index) {
             console.log('Navigating to order:', orderId, 'item index:', index);
-            window.location.href = `/user/orders/${orderId}/item/${index}`;
+            window.location.href = `/orders/${orderId}/item/${index}`;
         }
         
         function cancelEntireOrder(orderId) {
@@ -497,7 +497,7 @@
         
         async function submitCancelOrder(orderId, reason) {
             try {
-                const response = await fetch(`/user/cancelEntireOrder/${orderId}`, {
+                const response = await fetch(`/cancelEntireOrder/${orderId}`, {
                     method: "POST",
                     headers: {"Content-Type": "application/json"},
                     body: JSON.stringify({ reason })
@@ -534,7 +534,7 @@
         
         async function submitCancelItem(orderId, itemIndex, reason) {
             try {
-                const response = await fetch(`/user/cancelOrder/${orderId}`, {
+                const response = await fetch(`/cancelOrder/${orderId}`, {
                     method: "POST",
                     headers: {"Content-Type": "application/json"},
                     body: JSON.stringify({ itemIndex, reason })
@@ -596,7 +596,7 @@
             }).then(async (result) => {
                 if (result.isConfirmed) {
                     try {
-                        const response = await fetch('/user/returnRequest', {
+                        const response = await fetch('/returnRequest', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({
@@ -654,7 +654,7 @@
                 });
 
                 // Call the createRazorpayOrder endpoint
-                const response = await fetch('/user/createRazorpayOrder', {
+                const response = await fetch('/createRazorpayOrder', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ orderId })
@@ -686,7 +686,7 @@
                     handler: async function (response) {
                         try {
                             // Verify payment
-                            const verifyResponse = await fetch('/user/verifyRazorpayPayment', {
+                            const verifyResponse = await fetch('/verifyRazorpayPayment', {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json' },
                                 body: JSON.stringify({
@@ -715,7 +715,7 @@
                                     icon: 'error',
                                     confirmButtonColor: '#3b82f6'
                                 }).then(() => {
-                                    window.location.href = verifyResult.redirectUrl || '/user/myOrders';
+                                    window.location.href = verifyResult.redirectUrl || '/myOrders';
                                 });
                             }
                         } catch (error) {
@@ -746,7 +746,7 @@
                         icon: 'error',
                         confirmButtonColor: '#3b82f6'
                     }).then(() => {
-                        window.location.href = `/user/paymentFailed?orderId=${result.orderId}`;
+                        window.location.href = `/paymentFailed?orderId=${result.orderId}`;
                     });
                 });
                 rzp.open();

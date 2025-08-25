@@ -81,7 +81,7 @@
     </form>
 
     <div class="text-center mt-3">
-        <a href="/admin/products" class="btn btn-secondary">Back to Products</a>
+        <a href="/products" class="btn btn-secondary">Back to Products</a>
     </div>
 </div>
 
@@ -200,8 +200,8 @@
 
     async function fetchCategoriesandBrand() {
         try {
-            const categoryResponse = await fetch("/admin/getCatagories");
-            const brandResponse = await fetch("/admin/getBrand");
+            const categoryResponse = await fetch("/getCatagories");
+            const brandResponse = await fetch("/getBrand");
 
             const categoryResult = await categoryResponse.json();
             const brandResult = await brandResponse.json();
@@ -284,7 +284,7 @@
         formData.append("variantCount", variantCount);
 
         try {
-            const response = await fetch("/admin/addProducts", {
+            const response = await fetch("/addProducts", {
                 method: "POST",
                 body: formData
             });
@@ -296,7 +296,7 @@
                 text: result.message,
             }).then(() => {
                 if (result.success) {
-                    window.location.href = "/admin/products"; // Redirect after successful submission
+                    window.location.href = "/products"; // Redirect after successful submission
                 }
             });
 

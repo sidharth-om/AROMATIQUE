@@ -59,7 +59,7 @@ const adminController={
                 adminId:admin._id
             }
 
-            return res.status(statusCode.OK).json({success:true,redirectUrl:"/admin/loadDashboard"})
+            return res.status(statusCode.OK).json({success:true,redirectUrl:"/loadDashboard"})
 
         } catch (error) {
             console.log(error.message)
@@ -81,7 +81,7 @@ const adminController={
             res.set('Pragma', 'no-cache');
             res.set('Expires', '0');
             
-            res.redirect('/admin/adminLogin');
+            res.redirect('/adminLogin');
            
         } catch (error) {
             console.log(error.message)

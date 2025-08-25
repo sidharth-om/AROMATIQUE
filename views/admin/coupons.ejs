@@ -26,7 +26,7 @@
                         <h1 class="text-2xl font-bold text-gray-800">Coupon Management</h1>
                         <p class="text-gray-600">Manage discount coupons and promotional codes</p>
                     </div>
-                    <a href="/admin/addCoupon" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors mr-100">
+                    <a href="/addCoupon" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors mr-100">
                         <i class="fas fa-plus mr-2"></i>Add New Coupon
                     </a>
                 </div>
@@ -46,7 +46,7 @@
                 
                 <!-- Filters and Search -->
                 <div class="bg-white rounded-lg shadow-md p-6 mb-6">
-                    <form method="GET" action="/admin/coupon" class="flex flex-wrap gap-4 items-end">
+                    <form method="GET" action="/coupon" class="flex flex-wrap gap-4 items-end">
                         <!-- Search -->
                         <div class="flex-1 min-w-64">
                             <label for="search" class="block text-sm font-medium text-gray-700 mb-1">Search Coupons</label>
@@ -74,7 +74,7 @@
                         
                         <!-- Clear Button -->
                         <div>
-                            <a href="/admin/coupon" class="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600 transition-colors">
+                            <a href="/coupon" class="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600 transition-colors">
                                 <i class="fas fa-times mr-2"></i>Clear
                             </a>
                         </div>
@@ -193,7 +193,7 @@
                                             </td>
                                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
                                                 <!-- Edit Button -->
-                                                <a href="/admin/editCoupon/<%= coupon._id %>" 
+                                                <a href="/editCoupon/<%= coupon._id %>" 
                                                    class="text-blue-600 hover:text-blue-900 inline-flex items-center">
                                                     <i class="fas fa-edit mr-1"></i>Edit
                                                 </a>
@@ -242,7 +242,7 @@
             <nav class="inline-flex rounded-md shadow-sm -space-x-px " aria-label="Pagination">
                 <!-- Previous Button -->
                 <% if (hasPrevPage) { %>
-                    <a href="/admin/coupon?page=<%= prevPage %>&search=<%= encodeURIComponent(search) %>&status=<%= status %>" 
+                    <a href="/coupon?page=<%= prevPage %>&search=<%= encodeURIComponent(search) %>&status=<%= status %>" 
                        class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
                         <span class="sr-only">Previous</span>
                         <i class="fas fa-chevron-left"></i>
@@ -260,7 +260,7 @@
                 %>
 
                 <% if (startPage > 1) { %>
-                    <a href="/admin/coupon?page=1&search=<%= encodeURIComponent(search) %>&status=<%= status %>" 
+                    <a href="/coupon?page=1&search=<%= encodeURIComponent(search) %>&status=<%= status %>" 
                        class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">
                         1
                     </a>
@@ -277,7 +277,7 @@
                             <%= i %>
                         </span>
                     <% } else { %>
-                        <a href="/admin/coupon?page=<%= i %>&search=<%= encodeURIComponent(search) %>&status=<%= status %>" 
+                        <a href="/coupon?page=<%= i %>&search=<%= encodeURIComponent(search) %>&status=<%= status %>" 
                            class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">
                             <%= i %>
                         </a>
@@ -290,7 +290,7 @@
                             ...
                         </span>
                     <% } %>
-                    <a href="/admin/coupon?page=<%= totalPages %>&search=<%= encodeURIComponent(search) %>&status=<%= status %>" 
+                    <a href="/coupon?page=<%= totalPages %>&search=<%= encodeURIComponent(search) %>&status=<%= status %>" 
                        class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">
                         <%= totalPages %>
                     </a>
@@ -298,7 +298,7 @@
 
                 <!-- Next Button -->
                 <% if (hasNextPage) { %>
-                    <a href="/admin/coupon?page=<%= nextPage %>&search=<%= encodeURIComponent(search) %>&status=<%= status %>" 
+                    <a href="/coupon?page=<%= nextPage %>&search=<%= encodeURIComponent(search) %>&status=<%= status %>" 
                        class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
                         <span class="sr-only">Next</span>
                         <i class="fas fa-chevron-right"></i>
@@ -327,11 +327,11 @@
                                 <% } %>
                             </p>
                             <% if (search || status !== 'all') { %>
-                                <a href="/admin/coupon" class="text-blue-600 hover:text-blue-800">
+                                <a href="/coupon" class="text-blue-600 hover:text-blue-800">
                                     Clear filters
                                 </a>
                             <% } else { %>
-                                <a href="/admin/coupons/add" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                                <a href="/coupons/add" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
                                     <i class="fas fa-plus mr-2"></i>Add New Coupon
                                 </a>
                             <% } %>
@@ -358,7 +358,7 @@ function toggleCouponStatus(couponId, currentStatus) {
         confirmButtonText: `Yes, ${action} it!`
     }).then((result) => {
         if (result.isConfirmed) {
-            fetch(`/admin/couponStatus/${couponId}`, {
+            fetch(`/couponStatus/${couponId}`, {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',
@@ -400,7 +400,7 @@ function deleteCoupon(couponId) {
         confirmButtonText: 'Yes, delete it!'
     }).then((result) => {
         if (result.isConfirmed) {
-            fetch(`/admin/deleteCoupon/${couponId}`, {
+            fetch(`/deleteCoupon/${couponId}`, {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',
@@ -432,7 +432,7 @@ function deleteCoupon(couponId) {
 
 // View coupon details
 function viewCouponDetails(couponId) {
-    fetch(`/admin/couponDetails/${couponId}`, {
+    fetch(`/couponDetails/${couponId}`, {
         method: 'GET',
         headers: {
             'Content-Type': 'application/json',

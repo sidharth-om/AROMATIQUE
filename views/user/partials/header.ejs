@@ -34,8 +34,8 @@
                 <div class="col-lg-6 col-md-6 flex justify-center">
                     <nav class="header__menu mobile-menu">
                         <ul class="flex space-x-6">
-                            <li class="active"><a href="/user/userHome">Home</a></li>
-                            <li><a href="/user/shopping">Shop</a></li>
+                            <li class="active"><a href="/userHome">Home</a></li>
+                            <li><a href="/shopping">Shop</a></li>
                         </ul>
                     </nav>
                 </div>
@@ -48,9 +48,9 @@
                                 <%= user.fullname %>
                             </button>
                             <div id="user-dropdown" class="absolute right-0 mt-2 w-40 bg-white shadow-md rounded-md hidden">
-                                <a href="/user/viewProfile" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Profile</a>
-                                <a href="/user/myOrders" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">My orders</a>
-                                <a href="/user/wallet" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Wallet</a>
+                                <a href="/viewProfile" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Profile</a>
+                                <a href="/myOrders" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">My orders</a>
+                                <a href="/wallet" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Wallet</a>
                                 
                                 <button id="logout-button" class="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-left">
                                     Logout
@@ -59,17 +59,17 @@
                             </div>
                         </div>
                     <% } else { %>
-                        <a href="/user/signup" class="sign-in-link">Sign Up</a>
-                        <a href="/user/userLogin" class="sign-in-link">Log in</a>
+                        <a href="/signup" class="sign-in-link">Sign Up</a>
+                        <a href="/userLogin" class="sign-in-link">Log in</a>
                     <% } %>
                     
                     <!-- Wishlist Icon -->
-                    <a href="/user/wishlist" class="relative">
+                    <a href="/wishlist" class="relative">
                         <i class="fas fa-heart text-xl text-gray-700"></i>
                     </a>
                     
                     <!-- Cart Icon -->
-                    <a href="/user/cart" class="relative">
+                    <a href="/cart" class="relative">
                         <i class="fas fa-shopping-cart text-xl text-gray-700"></i>
                        <span class="absolute -top-2 -right-2 bg-red-500 text-white text-xs px-2 py-1 rounded-full">
     <%= cart?.items?.length || 0 %>
@@ -109,13 +109,13 @@
         if (logoutButton) {
             logoutButton.addEventListener("click", async function () {
                 try {
-                    const response = await fetch("/user/logout", {
+                    const response = await fetch("/logout", {
                         method: "DELETE", // Ensure it's a POST request
                         credentials: "include" // Send cookies if using sessions
                     });
 
                     if (response.ok) {
-                        window.location.href = "/user/userLogin"; // Redirect to login page
+                        window.location.href = "/userLogin"; // Redirect to login page
                     } else {
                         alert("Logout failed. Please try again.");
                     }

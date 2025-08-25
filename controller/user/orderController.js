@@ -14,7 +14,7 @@ const orderController={
             const userId = req.session.user.userId;
             const searchQuery = req.query.search ? req.query.search.trim() : "";
             const page = parseInt(req.query.page) || 1;
-            const limit = parseInt(req.query.limit) || 10;
+            const limit = parseInt(req.query.limit) || 5;
             const skip = (page - 1) * limit;
 
             console.log("Search Query:", searchQuery);
@@ -255,7 +255,7 @@ console.log("ordd::",order)
       orderItem.itemStatus = 'cancelled';
       orderItem.reason = reason;
       order.total-=orderItem.itemSalePrice
-      order.amountPaid-=orderItem.itemSalePrice
+      order.amountPaid-=orderItem.itemSalePrice *  orderItem.quantity
       order.subtotal-=variant.regularPrice
 
       // If all items are cancelled, update overall order status
@@ -268,7 +268,7 @@ console.log("ordd::",order)
       await order.save();
 
       // Update wallet balance
-      let refundAmount = orderItem.itemSalePrice;
+      let refundAmount = orderItem.itemSalePrice * orderItem.quantity;
 
      
 

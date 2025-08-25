@@ -425,11 +425,11 @@
                 const discountedPrice = Math.round(regularPrice - (regularPrice * relatedHighestOffer / 100));
             %>
             <div class="bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-md transition group">
-                <a href="/user/productView/<%= related._id %>" class="block relative">
+                <a href="/productView/<%= related._id %>" class="block relative">
                     <% if(relatedHighestOffer > 0) { %>
                         <div class="absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-1 rounded">-<%= relatedHighestOffer %>%</div>
                     <% } %>
-                    <img src="/uploads/<%= related.images[0] %>" class="w-full h-48 object-cover group-hover:scale-105 transition duration-300" alt="Related Product">
+                    <img src="<%= related.images[0] %>" class="w-full h-48 object-cover group-hover:scale-105 transition duration-300" alt="Related Product">
                     <div class="p-4">
                         <h5 class="font-medium text-gray-800 truncate"><%= related.name %></h5>
                         <div class="flex items-center mt-1">
@@ -755,7 +755,7 @@ async function addtoCart(productId) {
     // This is crucial - we need to send the volume value with the request
     const volume = variants[currentVariantIndex].volume;
     
-    const response = await fetch(`/user/addtoCart/${productId}`, {
+    const response = await fetch(`/addtoCart/${productId}`, {
       method: "POST",
       headers: {"Content-Type": "application/json"},
       body: JSON.stringify({ 

@@ -26,7 +26,7 @@
       <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mx-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
       </svg>
-      <a href="/user/orders" class="hover:text-blue-600 transition-colors duration-200">My Orders</a>
+      <a href="/orders" class="hover:text-blue-600 transition-colors duration-200">My Orders</a>
       <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mx-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
       </svg>
@@ -640,7 +640,7 @@ document.addEventListener('DOMContentLoaded', function() {
       
       downloadInvoiceButton.addEventListener('click', function() {
         // Generate invoice for this specific item
-        window.location.href = `/user/invoice/${orderData.orderId}/${orderData.itemId}`;
+        window.location.href = `/invoice/${orderData.orderId}/${orderData.itemId}`;
       });
     } else {
       downloadInvoiceButton.style.display = 'none';
@@ -781,7 +781,7 @@ function processReturnRequest(reason, orderData) {
   });
   
   // Send the return request to the server
-  fetch('/user/returnRequest', {
+  fetch('/returnRequest', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'

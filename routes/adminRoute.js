@@ -19,7 +19,7 @@ const userProductController = require("../controller/user/userProductController"
 
 // Routes accessible only when admin is NOT logged in
 admin_route.get("/adminLogin", isAdminNotAuthenticated, adminController.loadAdminLogin)
-admin_route.post("/verifyLogin", isAdminNotAuthenticated, adminController.verifyLogin)
+admin_route.post("/verifyAdminLogin", isAdminNotAuthenticated, adminController.verifyLogin)
 
 // Routes that require admin authentication
 admin_route.get("/loadDashboard", isAdminAuthenticated, dashboardController.loadDashboard)

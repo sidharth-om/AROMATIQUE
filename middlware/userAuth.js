@@ -34,7 +34,7 @@ const isAuthenticated = async (req, res, next) => {
         console.log("User is blocked. Destroying session.");
         req.session.destroy(err => {
           if (err) console.error("Session destroy error:", err);
-          return res.redirect("/user/userLogin?blocked=true");
+          return res.redirect("/userLogin?blocked=true");
         });
         return;
       }
@@ -43,16 +43,16 @@ const isAuthenticated = async (req, res, next) => {
     }
 
     console.log("No user session found.");
-    res.redirect("/user/userLogin");
+    res.redirect("/userLogin");
   } catch (error) {
     console.error("Auth Middleware Error:", error);
-    res.redirect("/user/userLogin");
+    res.redirect("/userLogin");
   }
 };
 
 const isNotAuthenticated = (req, res, next) => {
   if (req.session.user) {
-    return res.redirect("/user/userHome");
+    return res.redirect("/userHome");
   }
   next();
 };

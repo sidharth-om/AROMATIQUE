@@ -241,19 +241,19 @@
             <a class="sidebar-link active mb-2" id="dashboard-tab" data-bs-toggle="pill" href="#dashboard">
               <i class="fas fa-tachometer-alt"></i> Dashboard
             </a>
-            <a class="sidebar-link mb-2" id="edit-profile" href="/user/editProfile">
+            <a class="sidebar-link mb-2" id="edit-profile" href="/editProfile">
               <i class="fas fa-map-marker-alt"></i> Edit profile
             </a>
             <a class="sidebar-link mb-2" id="address-tab" data-bs-toggle="pill" href="#address">
               <i class="fas fa-map-marker-alt"></i> My Address
             </a>
-            <a class="sidebar-link mb-2" id="orders-tab"  href="/user/myOrders">
+            <a class="sidebar-link mb-2" id="orders-tab"  href="/myOrders">
               <i class="fas fa-shopping-bag"></i> Orders
             </a>
-            <a class="sidebar-link mb-2" id="wallet-history-tab" href="/user/wallet">
+            <a class="sidebar-link mb-2" id="wallet-history-tab" href="/wallet">
               <i class="fas fa-history"></i> Wallet 
             </a>
-            <a class="sidebar-link mb-2" id="referral-tab"  href="/user/referralPage">
+            <a class="sidebar-link mb-2" id="referral-tab"  href="/referralPage">
               <i class="fas fa-user-friends"></i> Referrals
             </a>
             <!-- <a class="sidebar-link text-danger" href="/user/logout">
@@ -389,7 +389,7 @@
                           <p class="mb-1"><%= addr.pincode  %></p>
                         </address>
                         <div class="d-flex gap-2">
-                          <form action="/user/editAddress" method="POST">
+                          <form action="/editAddress" method="POST">
                             <input type="hidden" name="addressId" value="<%= addr._id %>">
                             <button type="submit" class="btn btn-primary btn-sm">
                                 <i class="fas fa-edit"></i> Edit
@@ -413,7 +413,7 @@
                         </div>
                         <h6>Add New Address</h6>
                         <p class="text-muted mb-3">Add a new shipping or billing address</p>
-                        <a href="/user/addAddress" class="btn btn-primary">
+                        <a href="/addAddress" class="btn btn-primary">
                           <i class="fas fa-plus me-1" ></i> Add Address
                         </a>
                       </div>
@@ -712,7 +712,7 @@
       const formData = new FormData();
       formData.append("image", file);
 
-      fetch(`/user/uploadProfile`, {
+      fetch(`/uploadProfile`, {
           method: "POST",
           body: formData
       })
@@ -755,7 +755,7 @@
                   dangerMode: true,
               }).then((willDelete) => {
                   if (willDelete) {
-                      fetch('/user/deleteAddress', {
+                      fetch('/deleteAddress', {
                           method: 'PUT',
                           headers: { 'Content-Type': 'application/json' },
                           body: JSON.stringify({ addressId })
@@ -804,7 +804,7 @@
       const currentEmail = document.getElementById("currentEmail").value;
       const newEmail = document.getElementById("newEmail").value;
       try {
-        const response = await fetch("/user/changeEmailOtp", {
+        const response = await fetch("/changeEmailOtp", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ currentEmail, newEmail })
@@ -826,7 +826,7 @@
       event.preventDefault();
       const otp = document.getElementById("otpCode").value;
       try {
-        const response = await fetch("/user/verifyChangeEmailOtp", {
+        const response = await fetch("/verifyChangeEmailOtp", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ otp })
@@ -850,7 +850,7 @@
       const newPassword = document.getElementById("newPassword").value;
       const confirmPassword = document.getElementById("confirmPassword").value;
       try {
-        const response = await fetch("/user/changePasswordOtp", {
+        const response = await fetch("/changePasswordOtp", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ currentPassword, newPassword, confirmPassword })
@@ -872,7 +872,7 @@
       event.preventDefault();
       const passwordOtpCode = document.getElementById("passwordOtpCode").value;
       try {
-        const response = await fetch("/user/verifyChangePasswordOtp", {
+        const response = await fetch("/verifyChangePasswordOtp", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ passwordOtpCode })

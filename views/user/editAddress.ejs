@@ -90,7 +90,7 @@
             // const formData=new FormData(this)
             const formData = Object.fromEntries(new FormData(this).entries());
             try {
-                const response = await fetch("/user/updateAddress", {
+                const response = await fetch("/updateAddress", {
                     method: "POST",
                     headers: {"Content-Type": "application/json"},
                     body: JSON.stringify(formData)
