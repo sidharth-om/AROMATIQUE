@@ -19,6 +19,8 @@ const checkoutController = {
         try {
             const email = req.session.user.email;
             const userId = req.session.user.userId;
+
+            req.session.appliedCoupon=null
             
             // Get cart with populated product details
             const cart = await Cart.findOne({ userId })
@@ -62,9 +64,13 @@ const checkoutController = {
                 isActive: true,
                 startDate: { $lte: new Date() },
                 endDate: { $gte: new Date() },
-                userId: null
-            });
+                userId: null,
+               
+            })
 
+
+          
+           
             // Get referral coupons for the logged-in user
             const referralCoupons = await Coupon.find({
                 isActive: true,
@@ -970,6 +976,25 @@ const checkoutController = {
             });
 
             await newOrder.save();
+
+
+            for(const item of cart.items){
+                
+                const product=await Product.findById(item.productId._id)
+                if(product){
+                    const variantIndex=product.variants.findIndex((v)=>v.volume===item.volume)
+
+                    if(variantIndex!==-1){
+                        product.variants[variantIndex].quantity-=item.quantity
+
+                        if(product.variants[variantIndex].quantity<0){
+                            product.variants[variantIndex].quantity=0
+                        }
+                        await product.save()
+                    }
+                }
+                console.log("peoorieieo",product)
+            }
 
             await Cart.findOneAndUpdate({ userId }, { $set: { items: [] } });
 

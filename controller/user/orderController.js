@@ -7,6 +7,7 @@ const userAddress = require("../../models/userAdressModel");
 const PDFDocument = require('pdfkit')
 const statusCode=require("../../config/statusCode")
 const message=require("../../config/userMessages")
+const { all } = require("../../routes/adminRoute")
 
 const orderController={
  myOrders: async (req, res) => {
@@ -338,9 +339,21 @@ console.log("ordd::",order)
           message: message.cancelEntireOrderNotCancellable
         });
       }
-
+        let refundAmount=0
       // Update product stock for each item
       for (const item of order.items) {
+
+        if(["return request","returned"].includes(item.itemStatus)){
+          continue;
+        }
+
+        const cancellableItemStatuses=["pending","confirmed","processing"]
+        if(!cancellableItemStatuses.includes(item.itemStatus)){
+          continue;
+        }
+
+
+
         const product = await Product.findById(item.productId);
         if (!product) {
           return res.status(statusCode.NOT_FOUND).json({ success: false, message: `Product not found for item: ${item.productId}` });
@@ -353,21 +366,36 @@ console.log("ordd::",order)
 
         variant.quantity += item.quantity;
         await product.save();
+
+        item.itemStatus="cancelled"
+        item.reason=reason
+        refundAmount +=item.itemSalePrice *item.quantity
       }
 
       // Update order and items status
-      order.status = 'cancelled';
-      order.cancelReason = reason;
-      order.items.forEach(item => {
-        item.itemStatus = 'cancelled';
-        item.reason = reason;
-      });
+
+      order.total -= refundAmount
+      order.amountPaid -= refundAmount
+      order.subtotal -= refundAmount
+
+      
+
+      const allEligibleItemsCancelled = order.items
+      .filter((item)=>!["return request","returned"].includes(item.itemStatus))
+      .every((item)=>item.itemStatus === "cancelled")
+      
+      if(allEligibleItemsCancelled){
+        order.status = "cancelled"
+        order.cancelReason=reason
+      }
       await order.save();
 
      
 
       // Refund full order total
-      const refundAmount = order.amountPaid;
+      // const refundAmount = order.amountPaid;
+
+      if(refundAmount){
       const user = await User.findById(userId);
       if (!user) {
         return res.status(statusCode.NOT_FOUND).json({ success: false, message: message.cancelEntireOrderUserNotFound});
@@ -392,6 +420,8 @@ console.log("ordd::",order)
       });
 
       await transaction.save();
+
+    }
 
       return res.status(statusCode.OK).json({
         success: true,
