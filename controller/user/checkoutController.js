@@ -8,6 +8,7 @@ const WalletTransaction = require("../../models/walletTransactionModel")
 const Razorpay = require('razorpay');
 const statusCode=require("../../config/statusCode")
 const message=require("../../config/userMessages")
+const { exists } = require("../../models/adminModel")
 
 const razorpay = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID,
@@ -58,6 +59,11 @@ const checkoutController = {
             // Get user and address details
             const user = await User.findOne({ email: email });
             const address = await userAddress.find({ userId: userId, status: "active" });
+
+            const usedCoupons=await Order.find({
+                userId,
+                couponUsed:{$exists:true,$ne:null}
+            }).distinct('couponUsed')
             
             // Get general coupons (not user-specific)
             const generalCoupons = await Coupon.find({
@@ -65,7 +71,7 @@ const checkoutController = {
                 startDate: { $lte: new Date() },
                 endDate: { $gte: new Date() },
                 userId: null,
-               
+                code:{$nin:usedCoupons}
             })
 
 
@@ -78,7 +84,8 @@ const checkoutController = {
                 isReferralReward: true,
                 usedCount: { $lt: 1 },
                 startDate: { $lte: new Date() },
-                endDate: { $gte: new Date() }
+                endDate: { $gte: new Date() },
+                code:{$nin:usedCoupons}
             });
 
             // Merge general and referral coupons
@@ -383,6 +390,15 @@ const checkoutController = {
                     message: message.placeOrderCartOrAddressNotFound,
                 });
             }
+
+             if (!cart || !cart.items || cart.items.length === 0) {
+                return res.status(statusCode.BAD_REQUEST).json({
+                    success: false,
+                    message: message.createRazorpayOrderEmptyCart
+                });
+            }
+
+            
 
             let subtotal = 0;
             let discountedSubtotal = 0;

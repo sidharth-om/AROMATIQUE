@@ -36,35 +36,22 @@
 <div class="content-header">
   <h2 class="content-title card-title text-center">Products</h2>
 </div>
-
 <header class="card-header text-center mb-20">
-  <form action="/products/" method="get" class="d-inline">
-      <div class="input-group input-group-sm border border-1 border-grey rounded-pill" 
-           style="width: 500px; margin-left: 230px; display: flex;">
-           
-          <input type="text" class="form-control border-0 rounded-pill" 
-                 placeholder="Search customers..." 
-                 name="search" 
-                 id="searchInput"
-                 value="<%= searchQuery %>">
-          
-          <button class="btn border-0" type="submit">Search</button>
-          
-          <button type="button" class="btn border-0 text-danger" id="clearSearch">✖</button>
+  <div class="search-container">
+    <form action="/products/" method="get" class="d-inline">
+      <div class="input-group input-group-sm border border-1 border-grey rounded-pill" style="width: 400px;">
+        <input type="text" class="form-control border-0 rounded-pill" placeholder="Search customers..." name="search" id="searchInput" value="<%= searchQuery %>">
+        <button class="btn border-0" type="submit">Search</button>
+        <button type="button" class="btn border-0 text-danger" id="clearSearch">✖</button>
       </div>
-  </form>
+    </form>
+    <a href="/addProduct" class="btn btn-primary add-product-btn">Add Product</a>
+  </div>
 </header>
-    <!-- Add Product Button -->
-    <a href="/addProduct" class="btn btn-primary add-product-btn"
-      >Add Product</a>
- 
 
 <div class="right mt-5">
-  
   <table class="table table-striped">
     <thead class="table-dark">
-     
-
       <tr>
         <th scope="col"><b>Image</b></th>
         <th scope="col"><b>Product Name</b></th>
@@ -83,68 +70,28 @@
           <td colspan="7" class="text-center fw-bold text-danger">Product not found</td>
         </tr>
       <% }else %>
-
-      <% products.forEach(product=>{ %>
+<% products.forEach(product=>{ %>
       <tr>
-       <td>
-  <% if (product.images && product.images.length > 0) { %>
-    <img
-      src="<%= product.images[0] %>"
-      alt="Product Image"
-      class="product-image"
-    />
-  <% } else { %>
-    <span>No Image</span>
-  <% } %>
-</td>
-        <!-- <td>Sample Product</td> -->
-        <td><%= product.name %></td>
-        <td><%= product.brand.name%></td>
-        <td><%= product.categoryId.name %></td>
-        <td><%= product.offer  %></td>
-
-        <td><% product.variants.forEach(variant=>{ %><%= variant.volume %>ml</td>
-        <% }) %>
-        <!-- <td>
-          <button class="btn btn-danger">
-            <a href="#" class="text-white text-decoration-none">Block</a>
-          </button>
-          <button class="btn btn-success">
-            <a href="#" class="text-white text-decoration-none">Unblock</a>
-          </button>
-        </td> -->
-
-        <!-- <td>
-          <button 
-            class="btn status-toggle-btn" 
-            data-product-id="<%= product._id %>"
-            data-active="<%= product.isActive %>"
-            onclick="toggleProductStatus(this)"
-          >
-            <span class="status-text">
-              <%= product.isActive ? 'Active' : 'Inactive' %>
-            </span>
-          </button>
-        </td> -->
         <td>
-          <button class="btn toggle-status <%= product.isActive ? 'btn-danger' : 'btn-success' %>" 
-              data-id="<%= product._id %>" 
-              style="width: 80px;">
-              <span><%= product.isActive ? 'Block' : 'Unblock' %></span>
-          </button>
-      </td>
-       
-
-        <!-- Edit Button to Trigger Modal -->
-        <td>
-          <button
-          class="btn btn-info text-white" onclick="redirectEdit('<%= product._id%>')">
-          Edit
-        </button>
-        
-          
+          <% if (product.images && product.images.length > 0) { %>
+            <img src="<%= product.images[0] %>" alt="Product Image" class="product-image" style="display: block; margin: auto;">
+          <% } else { %>
+            <span>No Image</span>
+          <% } %>
         </td>
-
+        <td><%= product.name %></td>
+        <td><%= product.brand.name %></td>
+        <td><%= product.categoryId.name %></td>
+        <td><%= product.offer %></td>
+        <td><%= product.isActive ? '0' : '1' %></td> <!-- Adjust based on your data -->
+        <td>
+          <button class="btn toggle-status <%= product.isActive ? 'btn-danger' : 'btn-success' %>" data-id="<%= product._id %>" style="width: 80px;">
+            <span><%= product.isActive ? 'Block' : 'Unblock' %></span>
+          </button>
+        </td>
+        <td>
+          <button class="btn btn-info text-white" onclick="redirectEdit('<%= product._id%>')">Edit</button>
+        </td>
       </tr>
       <% }) %>
     </tbody>
